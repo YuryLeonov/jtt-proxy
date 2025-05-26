@@ -1,4 +1,5 @@
 #include "module.h"
+#include "jt808headerparser.h".h"
 
 #include "easylogging++.h"
 
@@ -84,6 +85,8 @@ void Module::initPlatformServer()
 
 void Module::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
-    const uint16_t answerID = (answer[1] << 8) | answer[2];
-    std::cout << "Получен запрос: " << std::hex << answerID << std::endl;
+    JT808Header header = JT808HeaderParser::getHeader(answer);
+
+    std::cout << "На сервер прилетел запрос от платформы: " << std::hex << header.messageID << std::endl;
+
 }

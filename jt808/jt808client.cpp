@@ -6,6 +6,7 @@
 #include "jt808mediauploadrequest.h"
 #include "jt808mediauploadeventinforequest.h"
 #include "jt808terminalparametersrequest.h"
+#include "jt808headerparser.h"
 
 #include "tools.h"
 #include "easylogging++.h"
@@ -221,8 +222,8 @@ void JT808Client::startPlatformAnswerHandler()
 
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
-    const uint16_t answerID = (answer[1] << 8) | answer[2];
-    if(answerID == 0x8001) {
+    JT808Header header = JT808HeaderParser::getHeader(answer);
+    if(header.messageID == 0x8001) {
         parseGeneralResponse(answer);
     }
 }
@@ -328,7 +329,7 @@ bool JT808Client::connectIp()
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(platformInfo.port);
     inet_pton(AF_INET, platformInfo.ipAddress.c_str(), &server_addr.sin_addr);
-    std::cout << "Попытка подключения к " << platformInfo.ipAddress << std::endl;
+    std::cout << "Попытка подключения к платформе:" << platformInfo.ipAddress << std::endl;
     if(connect(socketFd, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(socketFd);
         std::cerr << "Ошибка подключения к платформе мониторинга(проверьте реквизиты сервера)" << std::endl;
@@ -418,12 +419,11 @@ bool JT808Client::checkIfAuthenticationKeyExists()
     try {
         authenticationKey = creator.getAuthenticationKey();
     } catch(const AuthenticationKeyNotFoundException &excep) {
-        std::cout << "Ключ авторизации не найден" << std::endl;
+        std::cout << "Ключ авторизации не найден: ";
+        tools::printHexBitStream(authenticationKey);
         return false;
     }
 
-    std::cout << "Ключ авторизации найден: ";
-    tools::printHexBitStream(authenticationKey);
     std::cout << std::endl;
 
     return true;

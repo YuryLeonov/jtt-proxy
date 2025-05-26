@@ -69,12 +69,6 @@ void FileJT808AuthenticationKeyFinder::findKey()
 
     keyFound = true;
 
-//    std::cout << "Ключ найден: ";
-//    for (size_t i = 0; i < key.size(); ++i) {
-//        std::cout << std::hex << static_cast<int>(key[i]) << " ";
-//    }
-//    std::cout << std::endl;
-
 }
 
 DataBaseJT808AuthenticationKeyFinder::DataBaseJT808AuthenticationKeyFinder()
