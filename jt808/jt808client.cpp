@@ -223,6 +223,8 @@ void JT808Client::startPlatformAnswerHandler()
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
     JT808Header header = JT808HeaderParser::getHeader(answer);
+    tools::printHexBitStream(answer);
+    header.printInfo();
     if(header.messageID == 0x8001) {
         parseGeneralResponse(answer);
     }

@@ -763,3 +763,8 @@
 2025-05-21 17:05:14,783511 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
 2025-05-21 17:05:15,787215 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
 2025-05-21 17:05:16,790973 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
+2025-05-26 18:07:05,358822 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
+2025-05-26 18:07:11,359359 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
+2025-05-26 18:07:17,359868 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
+2025-05-26 18:07:23,360449 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
+2025-05-26 18:07:29,361000 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl) Ошибка установки соединения вебсокет с сервером: ws://10.2.0.110:8111
