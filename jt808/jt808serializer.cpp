@@ -1,0 +1,280 @@
+#include "jt808serializer.h"
+
+#include "tools.h"
+#include <iostream>
+#include <string>
+#include <cstdint>
+#include <fstream>
+
+JT808EventSerializer::JT808EventSerializer()
+{
+
+}
+
+JT808EventSerializer::~JT808EventSerializer()
+{
+
+}
+
+void JT808EventSerializer::setTerminalPhoneNumber(const std::string &phone)
+{
+    terminalPhoneNumber = phone;
+}
+
+std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message)
+{
+    messageStream.clear();
+    json data = json::parse(message);
+
+    return serializeToBitStream(data);
+
+}
+
+std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
+{
+    eventJson = j;
+    if(eventJson["data"].is_array() && !eventJson["data"].empty()) {
+        setAlarmFlag();
+        setStateFlag();
+        setEventData();
+        setHeader();
+        messageStream.clear();
+
+        messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
+        messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
+        tools::replaceByteInVectorWithTwo(messageStream, 0x7d, 0x7d, 0x01);
+        tools::replaceByteInVectorWithTwo(messageStream, 0x7e, 0x7d, 0x02);
+        setCheckSum();
+
+        addStartByte();
+        addStopByte();
+    }
+
+    return messageStream;
+}
+
+const std::vector<uint8_t> JT808EventSerializer::getBodyStream() const
+{
+    return bodyStream;
+}
+
+void JT808EventSerializer::parseEventMessage(const std::string &message)
+{
+
+}
+
+void JT808EventSerializer::addStartByte()
+{
+    messageStream.insert(messageStream.begin(), startStopByte);
+}
+
+void JT808EventSerializer::addStopByte()
+{
+    messageStream.insert(messageStream.end(), startStopByte);
+}
+
+void JT808EventSerializer::setAlarmFlag()
+{
+    alarmFlag = 0;
+
+    for(const auto &event: eventJson["data"]) {
+        const int eventID = event.at("event_type");
+        switch(eventID) {
+            case 1 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 2 :
+                tools::setBit(alarmFlag, 14);
+                break;
+            case 3 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 4 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 5 :
+                tools::setBit(alarmFlag, 2);
+                break;
+            case 6 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 7 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 8 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 9 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 10 :
+                tools::setBit(alarmFlag, 3);
+                break;
+            case 14 :
+                tools::setBit(alarmFlag, 14);
+                break;
+            case 15 :
+                tools::setBit(alarmFlag, 14);
+                break;
+            case 16 :
+                tools::setBit(alarmFlag, 14);
+                break;
+            case 17 :
+                tools::setBit(alarmFlag, 3);
+                tools::setBit(alarmFlag, 2);
+                tools::setBit(alarmFlag, 29);
+                tools::setBit(alarmFlag, 30);
+                break;
+            case 30 :
+                tools::setBit(alarmFlag, 11);
+                break;
+            case 31 :
+                tools::setBit(alarmFlag, 11);
+                break;
+        }
+    }
+
+    tools::addToStdVector(bodyStream, alarmFlag);
+
+}
+
+void JT808EventSerializer::setStateFlag()
+{
+    tools::addToStdVector(bodyStream, stateFlag);
+}
+
+void JT808EventSerializer::setEventData()
+{
+    const json event = eventJson["data"][0];
+
+    //Coordinates
+    const std::string gps = event.at("gps");
+    std::vector<std::string> coordinates = tools::split(gps, ',');
+    try {
+        latitude = static_cast<uint32_t>(std::stod(coordinates.at(0))*1000000);
+        longitude = static_cast<uint32_t>(std::stod(coordinates.at(1))*1000000);
+    } catch(const std::invalid_argument &e) {
+        std::cerr << "Ошибка аргумента метода stod при преобразовании координат из строки: " << e.what();
+    } catch(const std::out_of_range &e) {
+        std::cerr << "Ошибка аргумента метода stod при преобразовании координат из строки: " << e.what();
+    }
+
+    elevation = 10;
+    direction = 100;
+
+    //speed
+    const int8_t s = event.at("speed");
+    if(s >= 0) {
+        speed = static_cast<uint16_t>(s);
+    }
+
+    //Time
+    const std::string timestamp = event.at("timestamp");
+    std::vector<std::string> splittedTimestamp = tools::split(timestamp, ' ');
+    const std::string dateStr = splittedTimestamp.at(0);
+    const std::string timeStr = splittedTimestamp.at(1);
+    std::vector<std::string> splittedDate = tools::split(dateStr, '-');
+    std::vector<std::string> splittedTime = tools::split(timeStr, ':');
+    const std::string yearStr = splittedDate.at(0);
+    const std::string monthStr = splittedDate.at(1);
+    const std::string dayStr = splittedDate.at(2);
+    const std::string hourStr = splittedTime.at(0);
+    const std::string minuteStr = splittedTime.at(1);
+    const std::string secondStr = splittedTime.at(2);
+    time.setDateAndTimeFromOrdinary(std::stoi(yearStr.substr(yearStr.size() - 2)),
+                                    std::stoi(monthStr),
+                                    std::stoi(dayStr),
+                                    std::stoi(hourStr),
+                                    std::stoi(minuteStr),
+                                    std::stoi(secondStr));
+
+    tools::addToStdVector(bodyStream, latitude);
+    tools::addToStdVector(bodyStream, longitude);
+    tools::addToStdVector(bodyStream, elevation);
+    tools::addToStdVector(bodyStream, speed);
+    tools::addToStdVector(bodyStream, direction);
+    bodyStream.push_back(time.year);
+    bodyStream.push_back(time.month);
+    bodyStream.push_back(time.day);
+    bodyStream.push_back(time.hour);
+    bodyStream.push_back(time.minute);
+    bodyStream.push_back(time.second);
+
+}
+
+void JT808EventSerializer::setHeader()
+{
+    headerStream.clear();
+
+    //MessageID
+    tools::addToStdVector(headerStream, alarmMessageID);
+
+    //Information of body
+    uint16_t bodyInfo = 0;
+    setBodyInfo(bodyInfo);
+    tools::addToStdVector(headerStream, bodyInfo);
+
+    //PhoneNumber
+    std::vector<std::string> numbers = tools::split(terminalPhoneNumber, '-');
+    if(numbers.size() == 6) {
+        for(const auto &numStr : numbers) {
+            const uint8_t num = static_cast<uint8_t>(std::stoi(numStr));
+            uint8_t bcdNum = tools::to_bcd(num);
+            headerStream.push_back(bcdNum);
+        }
+    }
+
+    //Serial number
+    messageSerialNum = tools::random_hex_uint16();
+    tools::addToStdVector(headerStream, messageSerialNum);
+
+    //Packets incapsulation if there is
+    if(isPacketsIncapsulated) {
+
+    }
+
+}
+
+void JT808EventSerializer::setBodyInfo(uint16_t &info)
+{
+    //body length
+    const uint16_t bodySize = static_cast<uint16_t>(bodyStream.size());
+    if(tools::getBit(bodySize,0)) tools::setBit(info, 0);
+    if(tools::getBit(bodySize,1)) tools::setBit(info, 1);
+    if(tools::getBit(bodySize,2)) tools::setBit(info, 2);
+    if(tools::getBit(bodySize,3)) tools::setBit(info, 3);
+    if(tools::getBit(bodySize,4)) tools::setBit(info, 4);
+    if(tools::getBit(bodySize,5)) tools::setBit(info, 5);
+    if(tools::getBit(bodySize,6)) tools::setBit(info, 6);
+    if(tools::getBit(bodySize,7)) tools::setBit(info, 7);
+    if(tools::getBit(bodySize,8)) tools::setBit(info, 8);
+
+    //EncryptionInfo
+
+    //subcontract
+//    isPacketsIncapsulated = true;
+    //reserve
+
+}
+
+void JT808EventSerializer::setCheckSum()
+{
+    checkSum = 0x00;
+
+    for(uint8_t elem : messageStream) {
+        checkSum ^= elem;
+    }
+
+    messageStream.push_back(checkSum);
+
+}
+
+void BCDTime::setDateAndTimeFromOrdinary(uint8_t y, uint8_t mth, uint8_t d, uint8_t h, uint8_t min, uint8_t s)
+{
+    year = tools::to_bcd(y);
+    month = tools::to_bcd(mth);
+    day = tools::to_bcd(d);
+    hour = tools::to_bcd(h);
+    minute = tools::to_bcd(min);
+    second = tools::to_bcd(s);
+}

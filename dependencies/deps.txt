@@ -1,0 +1,7 @@
+Для сборки проекта нужны следующие зависимости:
+1) Header-only библиотека nlohmann для работы с форматом JSON. Она скачана отдельно, уже входит в дерево проекта.
+2) Header-only библиотека websocketpp для создания клиентов и серверов Websocket. 
+	sudo apt install websocketpp-dev
+3)Для логирования используется header-only библиотека easylogging++.Она скачана отдельно, уже входит в дерево проекта
+4)Для передачи видео его надо сначала сегментировать с помощью библиотеки ffmpeg, чтобы установить ее вводим в терминале:
+	sudo apt-get install libavformat-dev libavcodec-dev libavutil-dev

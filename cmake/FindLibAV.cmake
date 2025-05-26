@@ -1,0 +1,7 @@
+find_library(AVCODEC_LIBRARY avcodec)
+find_library(AVFORMAT_LIBRARY avformat)
+find_library(AVFILTER_LIBRARY avfilter)
+
+message(STATUS "AVCODEC PATH = ${AVCODEC_LIBRARY}")
+message(STATUS "AVFORMAT PATH = ${AVFORMAT_LIBRARY}")
+message(STATUS "AVFILTER PATH = ${AVFILTER_LIBRARY}")
