@@ -1,0 +1,33 @@
+{
+	"terminal" : {
+		"phoneNumber" : "19-11-11-78-13-17",
+		"provinceID" : 108,
+		"cityID" : 23,
+		"manufacturerID" : "13579",
+		"terminalModel" : "QWERVDUIOPASDFGHJKLZ",
+		"terminalID" : "QAZWSBV",
+		"licensePlateColor" : 0,
+		"VIN" : "WVGZZZCAZJC559100"
+	},
+	"eventsServer" : {
+		"serverIP" : "127.0.0.1",
+		"serverPort" : 8088,
+		"reconnectTimeout" : 1000,
+		"surveyInterval" : 12000,
+		"videoRootPath" : ""
+	},
+	"platform" : {
+		"serverIP" : "67.207.166.59",
+		"serverPort" : 6608,
+		"heartbeatTimeout" : 5000,
+		"reconnectTimeout" : 5000
+	},
+	"localServer" : {
+		"host" : "127.0.0.1",
+		"port" : 8096,
+		"connectionsAllowed" : 3
+	},
+	"debug" : {
+		"localServerPort" : 8090
+	}
+}
