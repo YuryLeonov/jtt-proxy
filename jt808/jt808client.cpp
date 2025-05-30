@@ -43,33 +43,81 @@ JT808Client::~JT808Client()
 
 void JT808Client::sendRegistrationRequest()
 {
-    JT808RegistrationRequest request(terminalInfo);
-    std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+    int bytes_read = 0;
 
-    unsigned char *message = requestBuffer.data();
-    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-    if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки данных" << std::endl;
-        return;
+    while(!bytes_read) {
+        JT808RegistrationRequest request(terminalInfo);
+        std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+
+        unsigned char *message = requestBuffer.data();
+
+        if(socketFd >= 0) {
+            ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+            if (bytes_sent == -1 && (errno == EPIPE || errno == ECONNRESET)) {
+                std::cerr << "Ошибка отправки данных(сервер закрыл соединение)." << std::endl;
+                while(!connectToHost()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.reconnectTimeout));
+                }
+                continue;
+            }
+        } else {
+            std::cerr << "Сокет закрыт" << std::endl;
+        }
+
+        std::cout << std::endl << "Запрос на регистрацию терминала отправлен." << std::endl;
+        tools::printHexBitStream(requestBuffer);
+
+        char buffer[1024] = {0};
+        bytes_read = read(socketFd, buffer, 1024);
+        if (bytes_read < 0) {
+            std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
+            continue;
+        } else {
+            std::cout << "Ответ на запрос регистрации получен: " << std::dec << bytes_read << std::endl;
+            if(bytes_read == 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                continue;
+            }
+        }
+
+        std::vector<uint8_t> vec(bytes_read);
+        std::copy(buffer, buffer + bytes_read, vec.begin());
+
+        parseRegistrationAnswer(std::move(vec));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        sendAuthenticationRequest();
     }
 
-    std::cout << std::endl << "Запрос на регистрацию: " << std::endl;
-    tools::printHexBitStream(requestBuffer);
+//    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+//    if (bytes_sent == -1) {
+//        std::cerr << "Ошибка отправки данных" << std::endl;
+//        return;
+//    }
 
-    char buffer[1024] = {0};
-    int bytes_read = read(socketFd, buffer, 1024);
-    if (bytes_read < 0) {
-        std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
-    }
+//    std::cout << std::endl << "Запрос на регистрацию: " << std::endl;
+//    tools::printHexBitStream(requestBuffer);
 
-    std::vector<uint8_t> vec(bytes_read);
-    std::copy(buffer, buffer + bytes_read, vec.begin());
+//    char buffer[1024] = {0};
+//    bytes_read = read(socketFd, buffer, 1024);
+//    if (bytes_read < 0) {
+//        std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
+//    } else {
+//        std::cout << "Ответ на запрос регистрации получен: " << std::dec << bytes_read << std::endl;
+//        if(bytes_read == 0)
+//            continue;
+//    }
 
-    parseRegistrationAnswer(std::move(vec));
+//    std::vector<uint8_t> vec(bytes_read);
+//    std::copy(buffer, buffer + bytes_read, vec.begin());
+//    tools::printHexBitStream(vec);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//    parseRegistrationAnswer(std::move(vec));
 
-    sendAuthenticationRequest();
+//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+//    sendAuthenticationRequest();
 
 }
 
