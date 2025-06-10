@@ -143,7 +143,7 @@ void WebSocketClient::startPeriodicSurvey()
         if (auto con = currentConnectionHandler.lock()) {
             const std::string time = tools::getPastTime(10);
             const std::string getEventInfoRequest = EventRequests::createGetAllRequest(eventInfoMTP, time, eventsTableName);
-            std::cout << "Отправка запроса на события после " << time << std::endl;
+//            std::cout << "Отправка запроса на события после " << time << std::endl;
             client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
         }
 

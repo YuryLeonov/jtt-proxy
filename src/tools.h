@@ -21,6 +21,8 @@ namespace tools {
 
     void addToStdVector(std::vector<uint8_t> &vec, uint32_t num);
 
+    void addToStdVector(std::vector<uint8_t> &vec, int32_t num);
+
     void setBit(uint16_t &num, uint8_t bitPos);
 
     void setBit(uint32_t &num, uint8_t bitPos);

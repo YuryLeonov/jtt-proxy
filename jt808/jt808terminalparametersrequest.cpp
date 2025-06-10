@@ -44,24 +44,24 @@ std::vector<uint8_t> JT808TerminalParametersRequest::getRequest()
     bodyStream.push_back(paramLength);
     tools::addToStdVector(bodyStream, params.terminalHeartbeatTimeout);
 
-    paramID = 0x0013;
-    tools::addToStdVector(bodyStream, paramID);
-    std::vector<uint8_t> ipCode = tools::getUint8VectorFromString(params.primaryServerIpAddress);
-    paramLength = ipCode.size();
-    bodyStream.push_back(paramLength);
-    bodyStream.insert(bodyStream.end(), ipCode.begin(), ipCode.end());
+//    paramID = 0x0013;
+//    tools::addToStdVector(bodyStream, paramID);
+//    std::vector<uint8_t> ipCode = tools::getUint8VectorFromString(params.primaryServerIpAddress);
+//    paramLength = ipCode.size();
+//    bodyStream.push_back(paramLength);
+//    bodyStream.insert(bodyStream.end(), ipCode.begin(), ipCode.end());
 
-    paramID = 0x0018;
-    tools::addToStdVector(bodyStream, paramID);
-    paramLength = sizeof(params.serverTCPPort);
-    bodyStream.push_back(paramLength);
-    tools::addToStdVector(bodyStream, params.serverTCPPort);
+//    paramID = 0x0018;
+//    tools::addToStdVector(bodyStream, paramID);
+//    paramLength = sizeof(params.serverTCPPort);
+//    bodyStream.push_back(paramLength);
+//    tools::addToStdVector(bodyStream, params.serverTCPPort);
 
-    paramID = 0x0019;
-    tools::addToStdVector(bodyStream, paramID);
-    paramLength = sizeof(params.serverUDPPort);
-    bodyStream.push_back(paramLength);
-    tools::addToStdVector(bodyStream, params.serverUDPPort);
+//    paramID = 0x0019;
+//    tools::addToStdVector(bodyStream, paramID);
+//    paramLength = sizeof(params.serverUDPPort);
+//    bodyStream.push_back(paramLength);
+//    tools::addToStdVector(bodyStream, params.serverUDPPort);
 
     //Header
     setHeader(0x8103);

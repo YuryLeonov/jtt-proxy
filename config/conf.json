@@ -18,8 +18,8 @@
 		"videoRootPath" : ""
 	},
 	"platform" : {
-		"serverIP" : "46.47.229.62",
-		"serverPort" : 19202,
+		"serverIP" : "67.207.166.59",
+		"serverPort" : 6608,
 		"heartbeatTimeout" : 5000,
 		"reconnectTimeout" : 5000
 	},

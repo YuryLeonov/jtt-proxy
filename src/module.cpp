@@ -1,5 +1,5 @@
 #include "module.h"
-#include "jt808headerparser.h".h"
+#include "jt808headerparser.h"
 
 #include "easylogging++.h"
 
@@ -55,6 +55,9 @@ void Module::wsClientMessageHandler(const std::string &message)
     if(vec.empty()) {
         std::cout << "Задетектированных событий нет" << std::endl;
         return;
+    } else {
+        std::cout << "Найдено событие" << std::endl;
+        std::cout << message << std::endl;
     }
 
 //    std::cout << "Получил сообщение от сервера: " << std::endl;

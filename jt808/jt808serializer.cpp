@@ -151,8 +151,8 @@ void JT808EventSerializer::setEventData()
     const std::string gps = event.at("gps");
     std::vector<std::string> coordinates = tools::split(gps, ',');
     try {
-        latitude = static_cast<uint32_t>(std::stod(coordinates.at(0))*1000000);
-        longitude = static_cast<uint32_t>(std::stod(coordinates.at(1))*1000000);
+        latitude = static_cast<int32_t>(std::stod(coordinates.at(0))*1000000);
+        longitude = static_cast<int32_t>(std::stod(coordinates.at(1))*1000000);
     } catch(const std::invalid_argument &e) {
         std::cerr << "Ошибка аргумента метода stod при преобразовании координат из строки: " << e.what();
     } catch(const std::out_of_range &e) {

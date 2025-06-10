@@ -73,9 +73,9 @@ void JT808Client::sendRegistrationRequest()
             std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
             continue;
         } else {
-            std::cout << "Ответ на запрос регистрации получен: " << std::dec << bytes_read << std::endl;
+            std::cout << "Ответ на запрос регистрации получен(содержит " << std::dec << bytes_read << " байт)" << std::endl;
             if(bytes_read == 0) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(30000));
                 continue;
             }
         }
@@ -123,6 +123,8 @@ void JT808Client::sendRegistrationRequest()
 
 void JT808Client::parseRegistrationAnswer(std::vector<uint8_t> answer)
 {
+    std::cout << "Ответ на запрос регистрации: " << std::endl;
+    tools::printHexBitStream(answer);
     const uint8_t registrationResult = answer[11];
     if(registrationResult) {
         std::cerr << "Ошибка регистрации: " << std::dec << registrationResult << std::endl;
@@ -178,6 +180,8 @@ void JT808Client::sendAuthenticationRequest()
     JT808AuthenticationRequest request(authenticationKey, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
+    std::cout << "Отправка запроса на авторизацию:" << std::endl;
+    tools::printHexBitStream(requestBuffer);
     unsigned char *message = requestBuffer.data();
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
     if (bytes_sent == -1) {
@@ -186,6 +190,7 @@ void JT808Client::sendAuthenticationRequest()
     }
 
     char buffer[1024] = {0};
+    std::cout << "Ждем ответ..." << std::endl;
     int bytes_read = read(socketFd, buffer, 1024);
     if (bytes_read < 0) {
         std::cerr << "Ошибка при чтении ответа" << std::endl;
@@ -193,6 +198,9 @@ void JT808Client::sendAuthenticationRequest()
 
     std::vector<uint8_t> vec(bytes_read);
     std::copy(buffer, buffer + bytes_read, vec.begin());
+
+    std::cout << "Ответ на запрос авторизации получен(содержит " << bytes_read << " байт)" << std::endl;
+    tools::printHexBitStream(vec);
 
     if(parseGeneralResponse(std::move(vec))) {
         std::cout << "АВТОРИЗАЦИЯ УСПЕШНА" << std::endl << std::endl;
@@ -236,11 +244,12 @@ void JT808Client::sendHeartBeatRequest()
 
 void JT808Client::sendTerminalParametersRequest()
 {
-    JT808TerminalParametersRequest request(terminalInfo, terminalParams, 4);
+    JT808TerminalParametersRequest request(terminalInfo, terminalParams, 1);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
     unsigned char *message = requestBuffer.data();
     std::cout << "Отправка параметров терминала на платформу" << std::endl;
+    tools::printHexBitStream(requestBuffer);
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
     if (bytes_sent == -1) {
         std::cerr << "Ошибка отправки данных" << std::endl;
@@ -271,15 +280,19 @@ void JT808Client::startPlatformAnswerHandler()
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
     JT808Header header = JT808HeaderParser::getHeader(answer);
-    tools::printHexBitStream(answer);
-    header.printInfo();
     if(header.messageID == 0x8001) {
         parseGeneralResponse(answer);
+    } else {
+        tools::printHexBitStream(answer);
+        header.printInfo();
     }
 }
 
 bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
 {
+    if(response.size() == 0) {
+        return false;
+    }
     const uint16_t replyID = (response[13] << 8) | response[14];
     const uint16_t requestID = (response[15] << 8) | response[16];
     const int result = static_cast<int>(response[17]);
@@ -299,6 +312,7 @@ void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         return;
     } else {
         std::cout << "Аларм отправлен на платформу!" << std::endl << std::endl;
+        tools::printHexBitStream(request);
     }
 
 //    std::this_thread::sleep_for(std::chrono::milliseconds(100));

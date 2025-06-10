@@ -52,20 +52,23 @@ void FileJT808AuthenticationKeyFinder::findKey()
 
     const size_t fileSize = std::filesystem::file_size(filePath);
 
-    if(!fileSize) {
-        std::cerr << "Файл с ключом авторизации пуст" << std::endl;
-        return;
-    }
+//    if(!fileSize) {
+//        std::cerr << "Файл с ключом авторизации пуст" << std::endl;
+//        return;
+//    }
 
     key.clear();
-    key.reserve(fileSize);
 
-    std::vector<uint8_t> buffer(fileSize);
-    if (!file.read(reinterpret_cast<char*>(buffer.data()), fileSize)) {
-        throw std::runtime_error("Ошибка чтения файла: " + filePath);
+    if(fileSize > 0) {
+        key.reserve(fileSize);
+
+        std::vector<uint8_t> buffer(fileSize);
+        if (!file.read(reinterpret_cast<char*>(buffer.data()), fileSize)) {
+            throw std::runtime_error("Ошибка чтения файла: " + filePath);
+        }
+
+        key = std::move(buffer);
     }
-
-    key = std::move(buffer);
 
     keyFound = true;
 

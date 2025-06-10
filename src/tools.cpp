@@ -162,4 +162,12 @@ namespace tools {
         num |= (1 << pos);
     }
 
+    void addToStdVector(std::vector<uint8_t> &vec, int32_t num)
+    {
+        vec.push_back(static_cast<uint8_t>((num >> 24) & 0xFF));  // Старший байт (биты 24-31)
+        vec.push_back(static_cast<uint8_t>((num >> 16) & 0xFF));  // Биты 16-23
+        vec.push_back(static_cast<uint8_t>((num >> 8)  & 0xFF));  // Биты 8-15
+        vec.push_back(static_cast<uint8_t>(num & 0xFF));
+    }
+
 }

@@ -37,7 +37,7 @@ std::vector<uint8_t> JT808RegistrationRequest::getRequest()
     bodyStream.push_back(0xAA);
 
     //Header
-    setHeader(0x0102);
+    setHeader(0x0100);
 
     //Full message
     formFullMessage();

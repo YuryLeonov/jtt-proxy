@@ -62,8 +62,8 @@ private:
 
     uint32_t alarmFlag = 0x00000000;
     uint32_t stateFlag = 0xC0C0C00C;
-    uint32_t latitude = 0;
-    uint32_t longitude = 0;
+    int32_t latitude = 0;
+    int32_t longitude = 0;
     uint16_t elevation = 0;
     uint16_t speed = 0;
     uint16_t direction = 0;
