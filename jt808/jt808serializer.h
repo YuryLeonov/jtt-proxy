@@ -23,6 +23,29 @@ struct BCDTime {
     void setDateAndTimeFromOrdinary(uint8_t y, uint8_t mth, uint8_t d, uint8_t h, uint8_t min, uint8_t s);
 };
 
+struct TerminalStatus
+{
+    bool isACCOn = false;
+    bool isPositioned = false;
+    bool isSouthLatitude = false;
+    bool isWestLongitude = false;
+    bool isRunningStatus = false;
+    bool isCoordinatesEncrypted = false;
+    int loadLevel = 0;
+    bool vehicleOilCurcuit = false;
+    bool vehicleCurcuit = false;
+    bool isDoorLocked = false;
+    bool isDoor1Opened = false;
+    bool isDoor2Opened = false;
+    bool isDoor3Opened = false;
+    bool isDoor4Opened = false;
+    bool isDoor5Opened = false;
+    bool isGPSUsing = false;
+    bool isBeidouUsing = false;
+    bool isGlonasUsing = false;
+    bool isGalileoUsing = false;
+};
+
 class JT808EventSerializer
 {
 public:
@@ -41,9 +64,16 @@ private:
 
     void addStartByte();
     void addStopByte();
+    
     void setAlarmFlag();
+    void fillAlarmFlag();
+    
+    void setTerminalStatus();
     void setStateFlag();
+    void fillStateFlag();
+    
     void setEventData();
+    void fillEventDada();
 
     void setHeader();
     void setBodyInfo(uint16_t &info);
@@ -61,7 +91,10 @@ private:
     uint16_t messageSerialNum = 0;
 
     uint32_t alarmFlag = 0x00000000;
-    uint32_t stateFlag = 0xC0C0C00C;
+
+    TerminalStatus terminalStatus;
+    uint32_t stateFlag = 0x00000000;
+
     int32_t latitude = 0;
     int32_t longitude = 0;
     uint16_t elevation = 0;

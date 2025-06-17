@@ -26,18 +26,6 @@ namespace tools {
         return ((bcd >> 4) * 10) + (bcd & 0x0F);
     }
 
-    void addToStdVector(std::vector<uint8_t> &vec, uint16_t num) {
-        vec.push_back(static_cast<uint8_t>((num >> 8) & 0xFF));
-        vec.push_back(static_cast<uint8_t>(num & 0xFF));
-    }
-
-    void addToStdVector(std::vector<uint8_t> &vec, uint32_t num) {
-        vec.push_back(static_cast<uint8_t>((num >> 24) & 0xFF));
-        vec.push_back(static_cast<uint8_t>((num >> 16) & 0xFF));
-        vec.push_back(static_cast<uint8_t>((num >> 8) & 0xFF));
-        vec.push_back(static_cast<uint8_t>(num & 0xFF));
-    }
-
     void setBit(uint16_t &num, uint8_t bitPos) {
         num |= (1 << bitPos);
     }
@@ -161,6 +149,19 @@ namespace tools {
     {
         num |= (1 << pos);
     }
+
+    void addToStdVector(std::vector<uint8_t> &vec, uint16_t num) {
+        vec.push_back(static_cast<uint8_t>((num >> 8) & 0xFF));
+        vec.push_back(static_cast<uint8_t>(num & 0xFF));
+    }
+
+    void addToStdVector(std::vector<uint8_t> &vec, uint32_t num) {
+        vec.push_back(static_cast<uint8_t>((num >> 24) & 0xFF));
+        vec.push_back(static_cast<uint8_t>((num >> 16) & 0xFF));
+        vec.push_back(static_cast<uint8_t>((num >> 8) & 0xFF));
+        vec.push_back(static_cast<uint8_t>(num & 0xFF));
+    }
+
 
     void addToStdVector(std::vector<uint8_t> &vec, int32_t num)
     {

@@ -34,9 +34,15 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 {
     eventJson = j;
     if(eventJson["data"].is_array() && !eventJson["data"].empty()) {
+        setEventData();
+        setTerminalStatus();
         setAlarmFlag();
         setStateFlag();
-        setEventData();
+
+        fillAlarmFlag();
+        fillStateFlag();
+        fillEventDada();
+
         setHeader();
         messageStream.clear();
 
@@ -73,7 +79,7 @@ void JT808EventSerializer::addStopByte()
     messageStream.insert(messageStream.end(), startStopByte);
 }
 
-void JT808EventSerializer::setAlarmFlag()
+void JT808EventSerializer::  setAlarmFlag()
 {
     alarmFlag = 0;
 
@@ -134,11 +140,81 @@ void JT808EventSerializer::setAlarmFlag()
         }
     }
 
-    tools::addToStdVector(bodyStream, alarmFlag);
+}
 
+void JT808EventSerializer::fillAlarmFlag()
+{
+    tools::addToStdVector(bodyStream, alarmFlag);
+}
+
+void JT808EventSerializer::setTerminalStatus()
+{
+    if(latitude < 0)
+        terminalStatus.isSouthLatitude = true;
+    else
+        terminalStatus.isSouthLatitude = false;
+
+    if(longitude < 0)
+        terminalStatus.isWestLongitude = true;
+    else
+        terminalStatus.isWestLongitude = false;
 }
 
 void JT808EventSerializer::setStateFlag()
+{
+    stateFlag = 0;
+
+    if(terminalStatus.isACCOn)
+        tools::setBit(stateFlag, 0);
+    if(terminalStatus.isPositioned)
+        tools::setBit(stateFlag, 1);
+    if(terminalStatus.isSouthLatitude)
+        tools::setBit(stateFlag, 2);
+    if(terminalStatus.isWestLongitude)
+        tools::setBit(stateFlag, 3);
+    if(!terminalStatus.isRunningStatus)
+        tools::setBit(stateFlag, 4);
+    if(terminalStatus.isCoordinatesEncrypted)
+        tools::setBit(stateFlag, 5);
+
+
+    if(terminalStatus.loadLevel == 1) {
+        tools::setBit(stateFlag, 9);
+    } else if(terminalStatus.loadLevel == 2) {
+        tools::setBit(stateFlag, 8);
+    } else if(terminalStatus.loadLevel == 3) {
+        tools::setBit(stateFlag, 8);
+        tools::setBit(stateFlag, 9);
+    }
+
+    if(!terminalStatus.vehicleOilCurcuit)
+        tools::setBit(stateFlag, 10);
+    if(!terminalStatus.vehicleCurcuit)
+        tools::setBit(stateFlag, 11);
+    if(terminalStatus.isDoorLocked)
+        tools::setBit(stateFlag, 12);
+    if(terminalStatus.isDoor1Opened)
+        tools::setBit(stateFlag, 13);
+    if(terminalStatus.isDoor2Opened)
+        tools::setBit(stateFlag, 14);
+    if(terminalStatus.isDoor3Opened)
+        tools::setBit(stateFlag, 15);
+    if(terminalStatus.isDoor4Opened)
+        tools::setBit(stateFlag, 16);
+    if(terminalStatus.isDoor5Opened)
+        tools::setBit(stateFlag, 17);
+    if(terminalStatus.isGPSUsing)
+        tools::setBit(stateFlag, 18);
+    if(terminalStatus.isBeidouUsing)
+        tools::setBit(stateFlag, 19);
+    if(terminalStatus.isGlonasUsing)
+        tools::setBit(stateFlag, 20);
+    if(terminalStatus.isGalileoUsing)
+        tools::setBit(stateFlag, 21);
+
+}
+
+void JT808EventSerializer::fillStateFlag()
 {
     tools::addToStdVector(bodyStream, stateFlag);
 }
@@ -188,6 +264,10 @@ void JT808EventSerializer::setEventData()
                                     std::stoi(minuteStr),
                                     std::stoi(secondStr));
 
+}
+
+void JT808EventSerializer::fillEventDada()
+{
     tools::addToStdVector(bodyStream, latitude);
     tools::addToStdVector(bodyStream, longitude);
     tools::addToStdVector(bodyStream, elevation);
@@ -199,7 +279,6 @@ void JT808EventSerializer::setEventData()
     bodyStream.push_back(time.hour);
     bodyStream.push_back(time.minute);
     bodyStream.push_back(time.second);
-
 }
 
 void JT808EventSerializer::setHeader()

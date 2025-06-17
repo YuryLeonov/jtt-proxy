@@ -300,7 +300,6 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     return !result;
 }
 
-
 void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)
 {
     unsigned char *message = const_cast<unsigned char *>(request.data());
