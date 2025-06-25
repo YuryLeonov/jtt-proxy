@@ -5,7 +5,8 @@ project(mtp-808-proxy LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/binDebug)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/binDebug)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG /opt/mtp/mtp-808-proxy/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/binRelease)
 
 find_package(websocketpp REQUIRED)
@@ -87,4 +88,4 @@ set(SOURCES ./src/main.cpp
 
 
 add_executable(mtp-808-proxy ${SOURCES})
-target_link_libraries(mtp-808-proxy pthread)
+target_link_libraries(mtp-808-proxy pthread systemd)

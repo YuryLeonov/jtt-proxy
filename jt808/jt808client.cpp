@@ -383,8 +383,17 @@ bool JT808Client::connectDomain()
 bool JT808Client::connectIp()
 {
     socketFd = socket(AF_INET, SOCK_STREAM, 0);
+
     if (socketFd == -1) {
         std::cerr << "Ошибка подключения к платформе мониторинга(ошибка создания сокета)" << std::endl;
+        return false;
+    }
+
+    struct timeval timeout;
+    timeout.tv_sec = 5;  // Секунды
+    timeout.tv_usec = 0;
+    if(setsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout))) {
+         std::cerr << "Ошибка установки таймаута переподключения к серверу" << std::endl;
         return false;
     }
 
@@ -392,7 +401,7 @@ bool JT808Client::connectIp()
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(platformInfo.port);
     inet_pton(AF_INET, platformInfo.ipAddress.c_str(), &server_addr.sin_addr);
-    std::cout << "Попытка подключения к платформе:" << platformInfo.ipAddress << std::endl;
+    std::cout << "Попытка подключения к платформе:" << platformInfo.ipAddress << ":" << std::to_string(platformInfo.port) << std::endl;
     if(connect(socketFd, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(socketFd);
         std::cerr << "Ошибка подключения к платформе мониторинга(проверьте реквизиты сервера)" << std::endl;

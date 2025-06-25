@@ -13,6 +13,7 @@
 #include "tests/jt808requeststest.h"
 #include "jt808client.h"
 #include <csignal>
+#include <systemd/sd-daemon.h>
 
 //#define REQUESTTEST
 
@@ -81,6 +82,18 @@ using namespace std;
 
 bool isRunning = true;
 
+void sdNotify(int timeout)
+{
+    sd_notify(0, "READY=1");
+
+    while(isRunning) {
+        std::cout << "Отправка пинга в вотчдог" << std::endl;
+        sd_notify(0, "WATCHDOG=1");
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    }
+}
+
+
 void signalHandler(int sigNum) {
     std::cout << "Interrupt signal: " << sigNum << " recieved..." << std::endl;
 
@@ -111,13 +124,11 @@ int main(int argc, char **argv)
 
     //-------- Configuration settings----------
     std::string pathToConf = "";
-    if(argc > 2) {
-        LOG(ERROR) << "Ошибочный запуск программы!!!\n Пример правильного запуска: ./mtp-808-proxy [путь_к_конфигу]";
+    if(argc != 2) {
+        std::cerr << "Ошибочный запуск программы!!!\nmtp-808-proxy absolute_path_to_config" << std::endl;
         return 0;
-    } else if(argc == 2) {
-        pathToConf = std::string(argv[1]);
     } else {
-        pathToConf = "../config/conf.json";
+        pathToConf = std::string(argv[1]);
     }
 
     FullConfiguration fullConf = getFullConfiguration(pathToConf);
@@ -139,12 +150,14 @@ int main(int argc, char **argv)
         }
     });
 
-    while(isRunning) {
+//    std::thread watchdogNotofierThread(sdNotify, 10000);
 
+    while(isRunning) {
     }
 
 
     confWatcherThread.join();
+//    watchdogNotofierThread.join();
 
     return 0;
 }

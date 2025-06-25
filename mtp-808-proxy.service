@@ -1,0 +1,20 @@
+[Unit]
+Description=mtp-808-proxy
+Wants=network-online.target
+After=syslog.target network.target network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/yury/projects/808/mtp-808-proxy/binDebug/mtp-808-proxy /home/yury/projects/808/mtp-808-proxy/config/conf.json
+WorkingDirectory=/home/yury/projects/808/mtp-808-proxy/binDebug
+User=yury
+StartLimitInterval=0
+StartLimitBurst=0
+Restart=always
+RestartSec=2
+TimeoutStopSec=3
+KillSignal=SIGINT
+WatchdogSec=30s
+
+[Install]
+WantedBy=multi-user.target
