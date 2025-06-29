@@ -77,7 +77,6 @@ void WebSocketClient::connectionEstablishedHandler(websocketpp::connection_hdl h
 
     //Запускаем периодический опрос сервера
     startPeriodicSurvey();
-
 }
 
 void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl handler)

@@ -187,4 +187,9 @@ namespace tools {
         return false;
     }
 
+    uint16_t make_uint16(uint8_t high_byte, uint8_t low_byte)
+    {
+        return (static_cast<uint16_t>(high_byte) << 8) | low_byte;
+    }
+
 }

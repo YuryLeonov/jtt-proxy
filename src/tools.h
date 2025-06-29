@@ -54,6 +54,8 @@ namespace tools {
     std::vector<std::vector<uint8_t>> splitFileIntoChunks(const std::string& filePath, size_t chunkSize);
 
    void parseJT808Request(const std::vector<uint8_t> &vec);
+
+   uint16_t make_uint16(uint8_t high_byte, uint8_t low_byte);
 }
 
 

@@ -30,6 +30,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./src/configuration.h
             ./src/module.h
             ./src/tools.h
+            ./src/requestsmap.h
             ./src/eventrequests.h
             ./src/terminalinfo.h
             ./src/terminalparams.h

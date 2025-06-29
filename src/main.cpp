@@ -15,7 +15,7 @@
 #include <csignal>
 #include <systemd/sd-daemon.h>
 
-//#define REQUESTTEST
+#define REQUESTTEST
 
 
 struct FullConfiguration
@@ -100,6 +100,16 @@ void signalHandler(int sigNum) {
     isRunning = false;
 }
 
+void setLogger()
+{
+    el::Configurations config("../logger/logger.conf");
+    if(!config.parseFromFile("../logger/logger.conf")) {
+        std::cerr << "Ошибка парсинга файла логгера" << std::endl;
+    }
+    el::Loggers::reconfigureLogger("default", config);
+    el::Loggers::flushAll();
+}
+
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char **argv)
@@ -108,25 +118,12 @@ int main(int argc, char **argv)
 
 
 #ifdef REQUESTTEST
-    std::vector<uint8_t> vec = {0x01,0x77,0x33,0xef,0x7e,0x43,0x19,0x71};
-    tools::printHexBitStream(vec);
-    if(tools::isByteInStream(vec, 0x7e)) {
-        std::cout << "Есть" << std::endl;
-    } else {
-        std::cout << "Нет" << std::endl;
-    }
-    tools::replaceByteInVectorWithTwo(vec, 0x7e, 0x7d, 0x01);
-    tools::printHexBitStream(vec);
+
     return 0;
 #endif
 
     //--------Logger settings--------------------
-    el::Configurations config("../logger/logger.conf");
-    if(!config.parseFromFile("../logger/logger.conf")) {
-        std::cerr << "Ошибка парсинга файла логгера" << std::endl;
-    }
-    el::Loggers::reconfigureLogger("default", config);
-    el::Loggers::flushAll();
+    setLogger();
 
     //-------- Configuration settings----------
     std::string pathToConf = "";
