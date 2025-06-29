@@ -1,4 +1,5 @@
 #include "jt808messageformatter.h"
+#include <easylogging++.h>
 
 JT808MessageFormatter::JT808MessageFormatter(const TerminalInfo &info) :
     terminalInfo(info)
@@ -84,9 +85,13 @@ void JT808MessageFormatter::formFullMessage()
 {
     messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
     messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
+    setCheckSum();
+
     tools::replaceByteInVectorWithTwo(messageStream, 0x7d, 0x7d, 0x01);
     tools::replaceByteInVectorWithTwo(messageStream, 0x7e, 0x7d, 0x02);
-    setCheckSum();
+    if(tools::isByteInStream(messageStream, 0x7e)) {
+        LOG(ERROR) << "Ошибка замены байт в сообщении" << std::endl;
+    }
 
     messageStream.insert(messageStream.begin(), 0x7E);
     messageStream.insert(messageStream.end(), 0x7E);

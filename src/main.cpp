@@ -108,9 +108,15 @@ int main(int argc, char **argv)
 
 
 #ifdef REQUESTTEST
-    std::cout << "TEST START" << std::endl;
-    requestTest();
-    std::cout << "TEST END" << std::endl;
+    std::vector<uint8_t> vec = {0x01,0x77,0x33,0xef,0x7e,0x43,0x19,0x71};
+    tools::printHexBitStream(vec);
+    if(tools::isByteInStream(vec, 0x7e)) {
+        std::cout << "Есть" << std::endl;
+    } else {
+        std::cout << "Нет" << std::endl;
+    }
+    tools::replaceByteInVectorWithTwo(vec, 0x7e, 0x7d, 0x01);
+    tools::printHexBitStream(vec);
     return 0;
 #endif
 

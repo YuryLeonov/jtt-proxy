@@ -40,7 +40,6 @@ void FileJT808AuthenticationKeyFinder::findKey()
 {
 
     if(!std::filesystem::exists(filePath)) {
-        std::cout << "Файла с ключем авторизации на платформе не существует" << std::endl;
         return;
     }
 

@@ -108,8 +108,14 @@ namespace tools {
     }
 
     const std::string getStringFromBitStream(const std::vector<uint8_t> &vec) {
-        const std::string str(vec.begin(), vec.end());
-        return str;
+        std::ostringstream oss;
+        oss << std::hex << std::setfill('0');
+
+        for (uint8_t byte : vec) {
+            oss << std::setw(2) << static_cast<int>(byte) << " ";
+        }
+
+        return oss.str();
     }
 
     std::vector<std::vector<uint8_t>> splitFileIntoChunks(const std::string& filePath, size_t chunkSize) {
@@ -169,6 +175,16 @@ namespace tools {
         vec.push_back(static_cast<uint8_t>((num >> 16) & 0xFF));  // Биты 16-23
         vec.push_back(static_cast<uint8_t>((num >> 8)  & 0xFF));  // Биты 8-15
         vec.push_back(static_cast<uint8_t>(num & 0xFF));
+    }
+
+    bool isByteInStream(const std::vector<uint8_t> &vec, const uint8_t &byte)
+    {
+        for(const auto &el : vec) {
+            if(el == byte)
+                return true;
+        }
+
+        return false;
     }
 
 }

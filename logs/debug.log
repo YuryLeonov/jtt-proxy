@@ -5558,3 +5558,193 @@
 
 2025-05-15 20:28:16,619488 void JT808ConnectionHandler::sendHeartBeatRequest() Запрос heartbeat отправлен
 
+2025-06-26 11:44:19,672171 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 11:44:24,672349 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 11:44:29,673438 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 11:44:34,673622 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 11:44:39,673829 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:12,766543 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:17,769087 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:22,769291 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:27,769446 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:32,769618 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:46,210818 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:51,211028 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:01:56,211218 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:01,211411 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:06,211596 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:18,743210 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:23,743407 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:28,743596 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:33,743793 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:38,743956 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:02:55,177068 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:00,177252 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:05,177459 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:10,177691 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:15,177911 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:27,943639 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:32,943838 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:37,944314 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:42,944559 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:03:47,947260 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:04:28,487420 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:04:33,487646 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:04:38,487869 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:04:43,488095 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:04:48,489461 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:05,929654 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:10,931741 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:15,931973 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:20,932202 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:25,934319 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:38,676149 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:43,676406 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:48,676597 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:53,676813 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 12:05:58,677072 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:34:56,021116 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:35:01,021321 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:35:06,023162 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:35:11,024280 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:35:16,026056 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:38:44,391638 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:38:49,391917 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:38:54,392093 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:38:59,392278 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 16:39:04,392455 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:09:09,780290 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:09:14,786281 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:09:19,788273 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:09:24,788451 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:09:29,788899 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:13:30,316255 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:13:35,320264 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:13:40,322042 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:13:45,323499 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-26 17:13:50,324271 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 10:21:39,325868 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 10:21:44,326055 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 10:21:49,326258 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 10:21:54,326460 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 10:21:59,326648 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:25:19,316551 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:25:24,316747 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:25:29,316922 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:25:34,319852 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:25:39,320047 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:43:52,162642 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:43:57,162837 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:44:02,164549 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:44:07,166059 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:44:12,166242 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:56:26,598867 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:56:31,599096 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:56:36,599282 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:56:41,604336 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:56:46,604537 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:58:37,280958 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:58:42,281143 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:58:47,281353 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:58:52,281541 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 14:58:57,281851 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 15:04:31,844398 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 15:04:36,844643 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 15:04:41,844876 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 15:04:46,845186 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+
+2025-06-27 15:04:51,845411 void JT808Client::sendHeartBeatRequest() Ошибка запроса heartbeat
+

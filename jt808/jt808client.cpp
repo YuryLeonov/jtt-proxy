@@ -43,9 +43,9 @@ JT808Client::~JT808Client()
 
 void JT808Client::sendRegistrationRequest()
 {
-    int bytes_read = 0;
+    int bytes_read = -1;
 
-    while(!bytes_read) {
+    while(bytes_read <= 0) {
         JT808RegistrationRequest request(terminalInfo);
         std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
@@ -59,13 +59,12 @@ void JT808Client::sendRegistrationRequest()
                     std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.reconnectTimeout));
                 }
                 continue;
+            } else {
+                LOG(TRACE) << "Отправлен запрос на регистрацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
             }
         } else {
             std::cerr << "Сокет закрыт" << std::endl;
         }
-
-        std::cout << std::endl << "Запрос на регистрацию терминала отправлен." << std::endl;
-        tools::printHexBitStream(requestBuffer);
 
         char buffer[1024] = {0};
         bytes_read = read(socketFd, buffer, 1024);
@@ -73,9 +72,8 @@ void JT808Client::sendRegistrationRequest()
             std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
             continue;
         } else {
-            std::cout << "Ответ на запрос регистрации получен(содержит " << std::dec << bytes_read << " байт)" << std::endl;
             if(bytes_read == 0) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(30000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(10000));
                 continue;
             }
         }
@@ -89,42 +87,11 @@ void JT808Client::sendRegistrationRequest()
 
         sendAuthenticationRequest();
     }
-
-//    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-//    if (bytes_sent == -1) {
-//        std::cerr << "Ошибка отправки данных" << std::endl;
-//        return;
-//    }
-
-//    std::cout << std::endl << "Запрос на регистрацию: " << std::endl;
-//    tools::printHexBitStream(requestBuffer);
-
-//    char buffer[1024] = {0};
-//    bytes_read = read(socketFd, buffer, 1024);
-//    if (bytes_read < 0) {
-//        std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
-//    } else {
-//        std::cout << "Ответ на запрос регистрации получен: " << std::dec << bytes_read << std::endl;
-//        if(bytes_read == 0)
-//            continue;
-//    }
-
-//    std::vector<uint8_t> vec(bytes_read);
-//    std::copy(buffer, buffer + bytes_read, vec.begin());
-//    tools::printHexBitStream(vec);
-
-//    parseRegistrationAnswer(std::move(vec));
-
-//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-//    sendAuthenticationRequest();
-
 }
 
 void JT808Client::parseRegistrationAnswer(std::vector<uint8_t> answer)
 {
-    std::cout << "Ответ на запрос регистрации: " << std::endl;
-    tools::printHexBitStream(answer);
+    LOG(TRACE) << "Ответ на запрос регистрации: " << tools::getStringFromBitStream(answer) << std::endl;
     const uint8_t registrationResult = answer[11];
     if(registrationResult) {
         std::cerr << "Ошибка регистрации: " << std::dec << registrationResult << std::endl;
@@ -132,9 +99,6 @@ void JT808Client::parseRegistrationAnswer(std::vector<uint8_t> answer)
     } else {
         std::cout << "РЕГИСТРАЦИЯ УСПЕШНА" << std::endl << std::endl;
     }
-
-    std::cout << std::endl << "Запрос на регистрацию(ответ): " << std::endl;
-    tools::printHexBitStream(answer);
 
     authenticationKey.clear();
     //Get authentication key
@@ -180,27 +144,34 @@ void JT808Client::sendAuthenticationRequest()
     JT808AuthenticationRequest request(authenticationKey, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-    std::cout << "Отправка запроса на авторизацию:" << std::endl;
-    tools::printHexBitStream(requestBuffer);
     unsigned char *message = requestBuffer.data();
-    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-    if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки данных" << std::endl;
-        return;
-    }
 
+    ssize_t bytes_sent = -1;
+    int bytes_read = -1;
     char buffer[1024] = {0};
-    std::cout << "Ждем ответ..." << std::endl;
-    int bytes_read = read(socketFd, buffer, 1024);
-    if (bytes_read < 0) {
-        std::cerr << "Ошибка при чтении ответа" << std::endl;
+
+    while(true) {
+        bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        if (bytes_sent == -1) {
+            std::cerr << "Ошибка отправки запроса на авторизацию." << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(30000));
+            continue;
+        } else {
+            LOG(TRACE) << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+        }
+
+        bytes_read = read(socketFd, buffer, 1024);
+        if (bytes_read <= 0) {
+            std::cerr << "Ошибка при чтении ответа на запрос авторизации" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(120000));
+            continue;
+        } else {
+            break;
+        }
     }
 
     std::vector<uint8_t> vec(bytes_read);
     std::copy(buffer, buffer + bytes_read, vec.begin());
-
-    std::cout << "Ответ на запрос авторизации получен(содержит " << bytes_read << " байт)" << std::endl;
-    tools::printHexBitStream(vec);
 
     if(parseGeneralResponse(std::move(vec))) {
         std::cout << "АВТОРИЗАЦИЯ УСПЕШНА" << std::endl << std::endl;
@@ -224,7 +195,7 @@ void JT808Client::sendAuthenticationRequest()
 
     } else {
         std::cerr << "Ошибка авторизации"<< std::endl;
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(30000));
         sendAuthenticationRequest();
     }
 }
@@ -239,6 +210,8 @@ void JT808Client::sendHeartBeatRequest()
     if (bytes_sent == -1) {
         LOG(DEBUG) << "Ошибка запроса heartbeat" << std::endl;
         return;
+    } else {
+        LOG(TRACE) << "Отправлен heartbeat: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
 }
 
@@ -248,31 +221,32 @@ void JT808Client::sendTerminalParametersRequest()
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
     unsigned char *message = requestBuffer.data();
-    std::cout << "Отправка параметров терминала на платформу" << std::endl;
-    tools::printHexBitStream(requestBuffer);
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
     if (bytes_sent == -1) {
         std::cerr << "Ошибка отправки данных" << std::endl;
         return;
-    } else
-        std::cout << "Параметры терминала отправлены" << std::endl << std::endl;
-
+    } else {
+        LOG(TRACE) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+    }
 }
 
 void JT808Client::startPlatformAnswerHandler()
 {
-    char buffer[1024];
     while (isConnected) {
+            char buffer[1024];
             int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
+
             if(bytes_recieved <= 0) {
                 std::cout << "Сервер отключился" << std::endl;
                 isConnected = false;
                 break;
+//                return;
+            } else {
+                std::vector<uint8_t> answer(bytes_recieved);
+                std::copy(buffer, buffer + bytes_recieved, answer.begin());
+                LOG(TRACE) << "Получен запрос от сервера: " << tools::getStringFromBitStream(answer) << std::endl;
+                handlePlatformAnswer(answer);
             }
-
-            std::vector<uint8_t> answer(bytes_recieved);
-            std::copy(buffer, buffer + bytes_recieved, answer.begin());
-            handlePlatformAnswer(answer);
 
     }
 }
@@ -293,6 +267,12 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     if(response.size() == 0) {
         return false;
     }
+
+//    if(!response[0] != 0x7e) {
+//        std::cerr << "Неверный формат ответа General response" << std::endl;
+//        return false;
+//    }
+
     const uint16_t replyID = (response[13] << 8) | response[14];
     const uint16_t requestID = (response[15] << 8) | response[16];
     const int result = static_cast<int>(response[17]);
@@ -390,10 +370,15 @@ bool JT808Client::connectIp()
     }
 
     struct timeval timeout;
-    timeout.tv_sec = 5;  // Секунды
+    timeout.tv_sec = 5;
     timeout.tv_usec = 0;
     if(setsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout))) {
          std::cerr << "Ошибка установки таймаута переподключения к серверу" << std::endl;
+        return false;
+    }
+
+    if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))) {
+        std::cerr << "Ошибка установки таймаута на чтение из сокета сервеа" << std::endl;
         return false;
     }
 
@@ -491,8 +476,6 @@ bool JT808Client::checkIfAuthenticationKeyExists()
     try {
         authenticationKey = creator.getAuthenticationKey();
     } catch(const AuthenticationKeyNotFoundException &excep) {
-        std::cout << "Ключ авторизации не найден: ";
-        tools::printHexBitStream(authenticationKey);
         return false;
     }
 
