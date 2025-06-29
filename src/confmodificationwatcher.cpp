@@ -19,7 +19,7 @@ bool ConfModificationWatcher::checkIfFileWasModified()
     const fs::path pathToConf = filePath;
     const auto modTime = fs::last_write_time(pathToConf);
     if(modTime != lastTimeModification) {
-        std::cout << "Конфигурационный файл " << filePath << "изменен!!!" << std::endl;
+        std::cout << "Конфигурационный файл " << filePath << " изменен!!!" << std::endl;
         lastTimeModification = modTime;
         return true;
     }

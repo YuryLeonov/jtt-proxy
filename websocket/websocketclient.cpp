@@ -114,7 +114,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 void WebSocketClient::runConnectionThread()
 {
     while(true) {
-        LOG(INFO) << "Trying to connect to server " << serverURI;
+        std::cout << "Trying to connect to server " << serverURI;
         setConnection();
         client.run();
         client.reset();

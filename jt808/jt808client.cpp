@@ -178,8 +178,10 @@ void JT808Client::sendAuthenticationRequest()
         isConnected = true;
         heartBeatThread = std::thread([this](){
             while(true) {
-                sendHeartBeatRequest();
-                std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.heartBeatTimeout));
+                if(isConnected) {
+                    sendHeartBeatRequest();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.heartBeatTimeout));
+                }
             }
         });
         heartBeatThread.detach();
@@ -236,18 +238,21 @@ void JT808Client::startPlatformAnswerHandler()
             char buffer[1024];
             int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
 
-            if(bytes_recieved <= 0) {
+            if(bytes_recieved == 0) {
                 std::cout << "Сервер отключился" << std::endl;
+                close(socketFd);
                 isConnected = false;
-                break;
-//                return;
-            } else {
+                connectToPlatform();
+            } else if(bytes_recieved > 0) {
                 std::vector<uint8_t> answer(bytes_recieved);
                 std::copy(buffer, buffer + bytes_recieved, answer.begin());
                 LOG(TRACE) << "Получен запрос от сервера: " << tools::getStringFromBitStream(answer) << std::endl;
                 handlePlatformAnswer(answer);
+            } else {
+                if(errno != EAGAIN) {
+                    LOG(ERROR) << "bytes_recieved == -1, errno = " << errno << std::endl;
+                }
             }
-
     }
 }
 
@@ -264,14 +269,15 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 
 bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
 {
-    if(response.size() == 0) {
+    const int size = response.size();
+    if(size == 0) {
         return false;
     }
 
-//    if(!response[0] != 0x7e) {
-//        std::cerr << "Неверный формат ответа General response" << std::endl;
-//        return false;
-//    }
+    if((response[0] != 0x7e) || (response[size - 1] != 0x7e)) {
+        std::cerr << "Неверный формат ответа General response" << std::endl;
+        return false;
+    }
 
     const uint16_t replyID = (response[13] << 8) | response[14];
     const uint16_t requestID = (response[15] << 8) | response[16];

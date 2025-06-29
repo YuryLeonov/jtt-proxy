@@ -10,7 +10,7 @@ Module::Module(TerminalInfo tInfo, PlatformInfo pInfo, EventServerInfo esInfo) :
     platformInfo(pInfo),
     eventServerInfo(esInfo)
 {
-    initPlatformServer();
+//    initPlatformServer();
     initWebSocketClient();
     initPlatformClient();
 }
