@@ -38,6 +38,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./src/mediatransmissionparams.h
             ./src/platforminfo.h
             ./src/eventserverinfo.h
+            ./src/realtimevideostreamer.h
             ./jt808/jt808serializer.h
             ./jt808/jt808client.h
             ./jt808/jt808server.h
@@ -67,6 +68,7 @@ set(SOURCES ./src/main.cpp
             ./src/module.cpp
             ./src/configurationparser.cpp
             ./src/confmodificationwatcher.cpp
+            ./src/realtimevideostreamer.cpp
             ./jt808/jt808serializer.cpp
             ./jt808/jt808server.cpp
             ./jt808/jt808client.cpp

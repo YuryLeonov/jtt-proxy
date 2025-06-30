@@ -7,6 +7,7 @@
 #include "jt808mediauploadeventinforequest.h"
 #include "jt808terminalparametersrequest.h"
 #include "jt808headerparser.h"
+#include "realtimevideostreamer.h"
 
 #include "tools.h"
 #include "easylogging++.h"
@@ -269,9 +270,8 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
     JT808Header header = JT808HeaderParser::getHeader(answer);
     if(header.messageID == 0x8001) {
         parseGeneralResponse(answer);
-    } else {
-        tools::printHexBitStream(answer);
-        header.printInfo();
+    } else if(header.messageID == 0x9101){
+        parseRealTimeVideoRequest(answer);
     }
 }
 
@@ -292,6 +292,15 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     const int result = static_cast<int>(response[17]);
 
     return !result;
+}
+
+bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
+{
+    RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+
+
+
+    return true;
 }
 
 void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)

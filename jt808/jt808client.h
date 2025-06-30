@@ -51,7 +51,9 @@ private:
 
     void startPlatformAnswerHandler();
     void handlePlatformAnswer(const std::vector<uint8_t> &answer);
+
     bool parseGeneralResponse(const std::vector<uint8_t> &response);
+    bool parseRealTimeVideoRequest(const std::vector<uint8_t> &request);
 
     bool isIPAddress(const std::string &socketAddr);
 
