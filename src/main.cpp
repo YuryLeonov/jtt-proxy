@@ -15,7 +15,7 @@
 #include <csignal>
 #include <systemd/sd-daemon.h>
 
-#define REQUESTTEST
+//#define REQUESTTEST
 
 
 struct FullConfiguration

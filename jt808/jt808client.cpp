@@ -150,8 +150,9 @@ void JT808Client::sendAuthenticationRequest()
     int bytes_read = -1;
     char buffer[1024] = {0};
 
+    uint8_t errors_count = 0;
     while(true) {
-        bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
         if (bytes_sent == -1) {
             std::cerr << "Ошибка отправки запроса на авторизацию." << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(30000));
@@ -162,8 +163,14 @@ void JT808Client::sendAuthenticationRequest()
 
         bytes_read = read(socketFd, buffer, 1024);
         if (bytes_read <= 0) {
-            std::cerr << "Ошибка при чтении ответа на запрос авторизации" << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(120000));
+            std::cerr << "Ошибка при чтении ответа на запрос авторизации: " << errno << std::endl;
+            errors_count++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.reconnectTimeout));
+            if(errors_count == 3) {
+                errors_count = 0;
+                reconnectToHost();
+                break;
+            }
             continue;
         } else {
             break;
@@ -228,6 +235,7 @@ void JT808Client::sendTerminalParametersRequest()
         std::cerr << "Ошибка отправки данных" << std::endl;
         return;
     } else {
+        tools::printHexBitStream(requestBuffer);
         LOG(TRACE) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
 }
@@ -497,6 +505,12 @@ bool JT808Client::connectToHost()
     } else {
         return connectDomain();
     }
+}
+
+void JT808Client::reconnectToHost()
+{
+    close(socketFd);
+    connectToHost();
 }
 
 bool JT808Client::isIPAddress(const std::string &socketAddr)

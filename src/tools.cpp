@@ -75,12 +75,6 @@ namespace tools {
         return  num;
     }
 
-    std::vector<uint8_t> getUint8VectorFromString(const std::string &str) {
-        std::vector<uint8_t> vec(str.begin(), str.end());
-
-        return vec;
-    }
-
     const std::string getPastTime(int seconds)
     {
         auto now = std::chrono::system_clock::now();
@@ -190,6 +184,17 @@ namespace tools {
     uint16_t make_uint16(uint8_t high_byte, uint8_t low_byte)
     {
         return (static_cast<uint16_t>(high_byte) << 8) | low_byte;
+    }
+
+    std::string hex_bytes_to_string(const std::vector<uint8_t>& hex_bytes)
+    {
+        return std::string(hex_bytes.begin(), hex_bytes.end());
+    }
+
+    std::vector<uint8_t> getUint8VectorFromString(const std::string &str) {
+        std::vector<uint8_t> vec(str.begin(), str.end());
+
+        return vec;
     }
 
 }

@@ -41,6 +41,8 @@ namespace tools {
 
     uint16_t random_hex_uint16();
 
+    std::string hex_bytes_to_string(const std::vector<uint8_t>& hex_bytes);
+
     std::vector<uint8_t> getUint8VectorFromString(const std::string &str);
 
     const std::string getPastTime(int seconds);

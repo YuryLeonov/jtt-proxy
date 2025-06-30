@@ -35,6 +35,7 @@ private:
     bool checkIfAuthenticationKeyExists();
 
     bool connectToHost();
+    void reconnectToHost();
     bool connectDomain();
     bool connectIp();
 
