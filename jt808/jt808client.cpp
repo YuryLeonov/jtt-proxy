@@ -1,5 +1,6 @@
 #include "jt808client.h"
 #include "jt808registrationrequest.h"
+#include "jt808generalresponserequest.h"
 #include "jt808authenticationrequest.h"
 #include "jt808heartbeatrequest.h"
 #include "jt808authenticationkeyfinder.h"
@@ -296,9 +297,25 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
 
 bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 {
+    JT808HeaderParser headerParser;
+    JT808Header header = headerParser.getHeader(request);
+    std::cout << "Отвечаем на: " << std::endl;
+    std::cout << "Reply ID = " << header.messageID << std::endl;
+    std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
+
+    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+    unsigned char *message = requestBuffer.data();
+    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+    if (bytes_sent == -1) {
+        std::cerr << "Ошибка отправки video general response" << std::endl;
+        return false;
+    } else {
+        std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
+        tools::printHexBitStream(requestBuffer);
+    }
+
     RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
-
-
 
     return true;
 }

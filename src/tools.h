@@ -41,7 +41,9 @@ namespace tools {
 
     uint16_t random_hex_uint16();
 
-    std::string hex_bytes_to_string(const std::vector<uint8_t>& hex_bytes);
+    std::string getStringFromBitStream(const std::vector<uint8_t>& hex_bytes); //выводит строкой последовательность байт
+
+    std::string hex_bytes_to_string(const std::vector<uint8_t>& hex_bytes); //переводит последовательность байт в строку по unicode
 
     std::vector<uint8_t> getUint8VectorFromString(const std::string &str);
 
@@ -50,8 +52,6 @@ namespace tools {
     uint8_t calculateChecksum(const std::vector<uint8_t>& data);
 
     void printHexBitStream(const std::vector<uint8_t> &vec);
-
-    const std::string getStringFromBitStream(const std::vector<uint8_t> &vec);
 
     std::vector<std::vector<uint8_t>> splitFileIntoChunks(const std::string& filePath, size_t chunkSize);
 
