@@ -55,6 +55,8 @@ private:
     bool parseGeneralResponse(const std::vector<uint8_t> &response);
     bool parseRealTimeVideoRequest(const std::vector<uint8_t> &request);
 
+    void streamVideo(const std::vector<uint8_t> &request);
+
     bool isIPAddress(const std::string &socketAddr);
 
 private:

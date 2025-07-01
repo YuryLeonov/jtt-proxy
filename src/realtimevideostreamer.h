@@ -5,6 +5,16 @@
 #include <inttypes.h>
 #include <iostream>
 
+extern "C" {
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libavfilter/avfilter.h>
+    #include <libavutil/timestamp.h>
+    #include <libavutil/pixdesc.h>
+    #include <libavutil/opt.h>
+}
+
+
 struct VideoServerRequisites
 {
     std::string host = "";
@@ -31,12 +41,32 @@ public:
     RealTimeVideoStreamer(const std::vector<uint8_t> &hex, const std::string &rtsp);
     ~RealTimeVideoStreamer();
 
+    bool establishConnection();
+    void startStreaming();
+
 private:
     void parseHex(const std::vector<uint8_t> &hex);
+
+    bool initDecoder();
+    bool fillDecoderVideoStreamInfo();
+    bool fillStreamInfo(AVStream *stream, AVCodec **codec, AVCodecContext **codecContext);
+
+    void startPacketsReading();
 
 private:
     std::string rtspLink = "";
     VideoServerRequisites videoServer;
+
+    int socketFd;
+    bool isConnected = false;
+
+    //FFMPEG
+    AVFormatContext *decoderFormatContext = nullptr;
+    AVCodec *decoderVideoCodec = nullptr;
+    AVCodecContext *decoderVideoCodecContext = nullptr;
+    AVStream *decoderVideoStream = nullptr;
+    int decoderVideoIndex = 0;
+
 };
 
 #endif // REALTIMEVIDEOSTREAMER_H

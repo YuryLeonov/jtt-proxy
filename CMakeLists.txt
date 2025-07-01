@@ -11,7 +11,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/binRelease)
 
 find_package(websocketpp REQUIRED)
 
+include(cmake/FindLibAV.cmake)
+
 #add_definitions(-DTEST_MODE)
+
+set(AV_LIBRARIES avutil avcodec avfilter avformat)
 
 include_directories(
         ./
@@ -55,6 +59,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./jt808/jt808authenticationkeyfinder.h
             ./jt808/jt808mediauploadeventinforequest.h
             ./jt808/jt1078mediatransmissionrequest.h
+            ./jt808/jt1078streamtransmitrequest.h
             ./websocket/websocketclient.h
             ./websocket/websocketserver.h
 
@@ -85,10 +90,11 @@ set(SOURCES ./src/main.cpp
             ./jt808/jt808authenticationkeyfinder.cpp
             ./jt808/jt808mediauploadeventinforequest.cpp
             ./jt808/jt1078mediatransmissionrequest.cpp
+            ./jt808/jt1078streamtransmitrequest.cpp
             ./websocket/websocketclient.cpp
             ./websocket/websocketserver.cpp
             ./easylogging/easylogging++.cc)
 
 
 add_executable(mtp-808-proxy ${SOURCES})
-target_link_libraries(mtp-808-proxy pthread systemd)
+target_link_libraries(mtp-808-proxy pthread systemd ${AV_LIBRARIES})

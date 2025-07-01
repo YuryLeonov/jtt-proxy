@@ -160,6 +160,7 @@ void JT808Client::sendAuthenticationRequest()
             std::this_thread::sleep_for(std::chrono::milliseconds(30000));
             continue;
         } else {
+            std::cout << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
             LOG(TRACE) << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
         }
 
@@ -315,9 +316,21 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
         tools::printHexBitStream(requestBuffer);
     }
 
-    RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    std::thread streamThread([this, request]() {
+        this->streamVideo(request);
+    });
+    streamThread.detach();
+
 
     return true;
+}
+
+void JT808Client::streamVideo(const std::vector<uint8_t> &request)
+{
+    RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    if(streamer.establishConnection()) {
+        streamer.startStreaming();
+    }
 }
 
 void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)
