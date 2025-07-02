@@ -327,7 +327,7 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
 {
-    RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101", terminalInfo);
     if(streamer.establishConnection()) {
         streamer.startStreaming();
     }

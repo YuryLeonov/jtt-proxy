@@ -1,5 +1,6 @@
 #include "realtimevideostreamer.h"
 #include "tools.h"
+#include "jt1078streamtransmitrequest.h"
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -7,8 +8,9 @@
 #include "unistd.h"
 #include <thread>
 
-RealTimeVideoStreamer::RealTimeVideoStreamer(const std::vector<uint8_t> &hex, const std::string &rtsp) :
-    rtspLink(rtsp)
+RealTimeVideoStreamer::RealTimeVideoStreamer(const std::vector<uint8_t> &hex, const std::string &rtsp, const TerminalInfo &tInfo) :
+    rtspLink(rtsp),
+    terminalInfo(tInfo)
 {
     parseHex(hex);
 }
@@ -149,18 +151,43 @@ void RealTimeVideoStreamer::startPacketsReading()
     }
 
     int i = 0;
+    std::chrono::system_clock::time_point start = std::chrono::high_resolution_clock::now();
+    std::chrono::system_clock::time_point startIFrame = std::chrono::high_resolution_clock::now();
+
     while(av_read_frame(decoderFormatContext, input_packet) >= 0) {
 
-        avcodec_receive_frame(decoderVideoCodecContext, frame);
+        if(input_packet->buf->size > 950) {
+            av_packet_unref(input_packet);
+            continue;
+        }
 
-       std::cout << "Получен пакет:" << i << " : " << frame->pict_type << std::endl;
-//            std::vector<uint8_t> vec(input_packet->buf->data, input_packet->buf->data + input_packet->buf->size);
-//            for(int i = 0; i < vec.size(); ++i) {
-//                std::cout << std::hex << static_cast<int>(vec[i]) << " ";
-//            }
-//            std::cout << std::endl;
+        std::vector<uint8_t> vec(input_packet->buf->data, input_packet->buf->data + input_packet->buf->size);
+
+        RTPParams params;
+        params.logicalNumber = videoServer.channel;
+        params.serialNumber = i;
+
+        auto stop = std::chrono::high_resolution_clock::now();
+        params.lastFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+        params.lastIFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - startIFrame).count();
+        if(input_packet->flags & AV_PKT_FLAG_KEY) {
+            startIFrame = std::chrono::high_resolution_clock::now();
+        }
+        start = std::chrono::high_resolution_clock::now();
+
         av_packet_unref(input_packet);
         ++i;
+
+
+        JT1078StreamTransmitRequest request(terminalInfo, params, vec);
+        std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+        unsigned char *message = requestBuffer.data();
+        ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        if (bytes_sent == -1) {
+            std::cerr << "Ошибка отправки видеопакета" << std::endl;
+        } else {
+            std::cout << "Отправлен" << std::endl;
+        }
     }
 
     av_packet_free(&input_packet);

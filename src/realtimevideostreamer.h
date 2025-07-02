@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <iostream>
 
+#include "TerminalInfo.h"
+
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavformat/avformat.h>
@@ -38,7 +40,7 @@ struct VideoServerRequisites
 class RealTimeVideoStreamer
 {
 public:
-    RealTimeVideoStreamer(const std::vector<uint8_t> &hex, const std::string &rtsp);
+    RealTimeVideoStreamer(const std::vector<uint8_t> &hex, const std::string &rtsp, const TerminalInfo &tInfo);
     ~RealTimeVideoStreamer();
 
     bool establishConnection();
@@ -59,6 +61,8 @@ private:
 
     int socketFd;
     bool isConnected = false;
+
+    TerminalInfo terminalInfo;
 
     //FFMPEG
     AVFormatContext *decoderFormatContext = nullptr;

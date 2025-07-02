@@ -5,10 +5,13 @@
 
 struct RTPParams
 {
-
+    uint16_t serialNumber = 0;
+    uint8_t logicalNumber = 0;
+    uint16_t lastIFrameInterval = 0;
+    uint16_t lastFrameInterval = 0;
 };
 
-class JT1078StreamTransmitRequest : public JT808MessageFormatter
+class  JT1078StreamTransmitRequest : public JT808MessageFormatter
 {
 public:
     JT1078StreamTransmitRequest(const TerminalInfo &tInfo, const RTPParams &p, const std::vector<uint8_t> &d);
