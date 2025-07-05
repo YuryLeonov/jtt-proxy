@@ -32,6 +32,8 @@ JT808Client::JT808Client()
 JT808Client::JT808Client(const TerminalInfo &tInfo, const PlatformInfo &pInfo) :
     terminalInfo(tInfo),platformInfo(pInfo)
 {
+    videoStreamer = std::make_shared<RealTimeVideoStreamer>();
+
     connectToPlatform();
 }
 
@@ -274,6 +276,8 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
         parseGeneralResponse(answer);
     } else if(header.messageID == 0x9101){
         parseRealTimeVideoRequest(answer);
+    } else if(header.messageID == 0x9102){
+        parseRealTimeVideoControlRequest(answer);
     }
 }
 
@@ -300,7 +304,7 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 {
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
-    std::cout << "Отвечаем на: " << std::endl;
+    std::cout << "Отвечаем на запрос с параметрами: " << std::endl;
     std::cout << "Reply ID = " << header.messageID << std::endl;
     std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
 
@@ -325,11 +329,27 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
     return true;
 }
 
+bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &request)
+{
+    JT808HeaderParser headerParser;
+    JT808Header header = headerParser.getHeader(request);
+    std::cout << "Отвечаем на запрос с параметрами: " << std::endl;
+    std::cout << "Reply ID = " << header.messageID << std::endl;
+    std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
+
+
+
+    return true;
+
+}
+
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
 {
-    RealTimeVideoStreamer streamer(request, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101", terminalInfo);
-    if(streamer.establishConnection()) {
-        streamer.startStreaming();
+    videoStreamer->setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    videoStreamer->setTerminalInfo(terminalInfo);
+    videoStreamer->setVideoServerParams(request);
+    if(videoStreamer->establishConnection()) {
+        videoStreamer->startStreaming();
     }
 }
 

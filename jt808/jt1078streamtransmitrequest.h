@@ -3,12 +3,22 @@
 
 #include "jt808messageformatter.h"
 
+enum class FrameType
+{
+    IFrame = 0,
+    PFrame,
+    BFrame,
+    Undefined
+};
+
 struct RTPParams
 {
     uint16_t serialNumber = 0;
     uint8_t logicalNumber = 0;
     uint16_t lastIFrameInterval = 0;
     uint16_t lastFrameInterval = 0;
+    bool mMarker = false;
+    FrameType frameType;
 };
 
 class  JT1078StreamTransmitRequest : public JT808MessageFormatter

@@ -40,11 +40,18 @@ struct VideoServerRequisites
 class RealTimeVideoStreamer
 {
 public:
-    RealTimeVideoStreamer(const std::vector<uint8_t> &hex, const std::string &rtsp, const TerminalInfo &tInfo);
+    RealTimeVideoStreamer() = default;
     ~RealTimeVideoStreamer();
 
+    void setVideoServerParams(const std::vector<uint8_t> &hex);
+    void setRtsp(const std::string &rtsp);
+    void setTerminalInfo(const TerminalInfo &tInfo);
+
     bool establishConnection();
-    void startStreaming();
+    bool startStreaming();
+    void stopStreaming();
+    void pauseStreaming();
+    bool isStreaming();
 
 private:
     void parseHex(const std::vector<uint8_t> &hex);
@@ -58,6 +65,8 @@ private:
 private:
     std::string rtspLink = "";
     VideoServerRequisites videoServer;
+
+    bool isStreamingInProgress = false;
 
     int socketFd;
     bool isConnected = false;

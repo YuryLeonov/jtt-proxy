@@ -9,6 +9,8 @@
 #include <thread>
 #include <stdexcept>
 
+class RealTimeVideoStreamer;
+
 class JT808ConnectionErrorException : public std::runtime_error
 {
 public:
@@ -54,6 +56,7 @@ private:
 
     bool parseGeneralResponse(const std::vector<uint8_t> &response);
     bool parseRealTimeVideoRequest(const std::vector<uint8_t> &request);
+    bool parseRealTimeVideoControlRequest(const std::vector<uint8_t> &request);
 
     void streamVideo(const std::vector<uint8_t> &request);
 
@@ -76,6 +79,8 @@ private:
 
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
+
+    std::shared_ptr<RealTimeVideoStreamer> videoStreamer;
 };
 
 #endif // JT808CONNECTIONHANDLER_H

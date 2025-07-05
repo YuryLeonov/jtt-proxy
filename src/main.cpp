@@ -17,7 +17,7 @@
 
 #include "realtimevideostreamer.h"
 
-//#define REQUESTTEST
+#define REQUESTTEST
 
 
 struct FullConfiguration
@@ -123,7 +123,12 @@ int main(int argc, char **argv)
     std::vector<uint8_t> testRequest = {
         0x7e , 0x91 , 0x1  , 0x0 , 0x14  , 0x19 , 0x11 , 0x11 , 0x78 , 0x13 , 0x17 , 0x0 , 0x5 , 0xc , 0x34 , 0x36 , 0x2e , 0x34 , 0x37 , 0x2e , 0x32 , 0x32 , 0x39 , 0x2e , 0x36 , 0x32 , 0x4b , 0x1 , 0x4b , 0x3 , 0x1 , 0x1 , 0x1 , 0xf9, 0x7e };
 
-    RealTimeVideoStreamer streamer(testRequest, "rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    TerminalInfo info;
+    info.phoneNumber = "19-11-11-78-13-17";
+    RealTimeVideoStreamer streamer;
+    streamer.setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    streamer.setTerminalInfo(info);
+    streamer.setVideoServerParams(testRequest);
     streamer.startStreaming();
 
     return 0;

@@ -17,12 +17,13 @@ namespace tools {
 
     uint8_t from_bcd(uint8_t bcd);
 
-    void addToStdVector(std::vector<uint8_t> &vec, uint16_t num);
+    void addToStdVector(std::vector<uint8_t> &vec, uint16_t num); //Записывает в порядке big-endian двухбайтовое число num в буфер vec
 
-    void addToStdVector(std::vector<uint8_t> &vec, uint32_t num);
+    void addToStdVector(std::vector<uint8_t> &vec, uint32_t num); //Записывает в порядке big-endian четырехбайтовое число num в буфер vec
 
     void addToStdVector(std::vector<uint8_t> &vec, int32_t num);
 
+    //Установка битов
     void setBit(uint16_t &num, uint8_t bitPos);
 
     void setBit(uint32_t &num, uint8_t bitPos);
@@ -34,6 +35,8 @@ namespace tools {
     void clearBit(uint32_t &num, uint8_t bitPos);
 
     bool getBit(uint16_t num, uint8_t bitPos);
+
+
 
     void replaceByteInVectorWithTwo(std::vector<uint8_t> &vec, uint8_t oldValue, uint8_t firstReplacer, uint8_t secondReplacer);
 
