@@ -183,6 +183,7 @@ void RealTimeVideoStreamer::startPacketsReading()
     std::chrono::system_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::system_clock::time_point startIFrame = std::chrono::high_resolution_clock::now();
 
+    std::chrono::system_clock::time_point firstPackageTime = start;
     isStreamingInProgress = true;
 
     std::vector<std::vector<uint8_t>> packets;
@@ -196,17 +197,17 @@ void RealTimeVideoStreamer::startPacketsReading()
         avcodec_send_packet(decoderVideoCodecContext, input_packet);
         avcodec_receive_frame(decoderVideoCodecContext, input_frame);
 
-        RTPParams params;
+        rtp::RTPParams params;
         params.logicalNumber = videoServer.channel;
 
         if (input_frame->pict_type == AV_PICTURE_TYPE_I) {
-            params.frameType = FrameType::IFrame;
+            params.frameType = rtp::FrameType::IFrame;
         } else if(input_frame->pict_type == AV_PICTURE_TYPE_P) {
-            params.frameType = FrameType::PFrame;
+            params.frameType = rtp::FrameType::PFrame;
         } else if(input_frame->pict_type == AV_PICTURE_TYPE_B) {
-            params.frameType = FrameType::BFrame;
+            params.frameType = rtp::FrameType::BFrame;
         } else {
-            params.frameType = FrameType::Undefined;
+            params.frameType = rtp::FrameType::Undefined;
         }
 
         int segments = 0;
@@ -243,10 +244,23 @@ void RealTimeVideoStreamer::startPacketsReading()
             if(i == (segments - 1)) {
                 packetSize = lastSegmentSize;
                 params.mMarker = true;
+                if(segments == 1) {
+                    params.subcontractType = rtp::SubcontractType::Atomic;
+                } else  {
+                    params.subcontractType = rtp::SubcontractType::Last;
+                }
             } else {
                 params.mMarker = false;
+                if(i == 0) {
+                    params.subcontractType = rtp::SubcontractType::First;
+                } else {
+                    params.subcontractType = rtp::SubcontractType::Intermediate;
+                }
             }
             params.serialNumber = packageNumber++;
+
+            std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
+            params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
 
             JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
@@ -264,6 +278,8 @@ void RealTimeVideoStreamer::startPacketsReading()
 //            }
 
         }
+
+        std::cout << std::endl << std::endl << std::endl << std::endl;
 
         std::cout << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
         packets.clear();

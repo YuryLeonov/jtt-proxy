@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-JT1078StreamTransmitRequest::JT1078StreamTransmitRequest(const TerminalInfo &tInfo, const RTPParams &p, const std::vector<uint8_t> &d) :
+JT1078StreamTransmitRequest::JT1078StreamTransmitRequest(const TerminalInfo &tInfo, const rtp::RTPParams &p, const std::vector<uint8_t> &d) :
     JT808MessageFormatter(tInfo),
     rtpParams(p),
     rtpData(d)
@@ -58,17 +58,26 @@ std::vector<uint8_t> JT1078StreamTransmitRequest::getRequest()
 
     //Type of data and subcontract
     uint8_t byte3 = 0;
-    if(rtpParams.frameType == FrameType::PFrame) {
+
+    if(rtpParams.frameType == rtp::FrameType::PFrame) {
         tools::setBit(byte3, 4);
-    } else if(rtpParams.frameType == FrameType::BFrame) {
+    } else if(rtpParams.frameType == rtp::FrameType::BFrame) {
         tools::setBit(byte3, 5);
     }
+
+    if(rtpParams.subcontractType == rtp::SubcontractType::First) {
+        tools::setBit(byte3, 0);
+    } else if(rtpParams.subcontractType == rtp::SubcontractType::Last) {
+        tools::setBit(byte3, 1);
+    } if(rtpParams.subcontractType == rtp::SubcontractType::Intermediate) {
+        tools::setBit(byte3, 0);
+        tools::setBit(byte3, 1);
+    }
+
     bodyStream.push_back(byte3);
 
     //timestamp
-    for(int i = 0; i < 8; ++i) {
-        bodyStream.push_back(0x01);
-    }
+    tools::addToStdVector(bodyStream, rtpParams.timestamp);
 
     //Last I frame interval
     tools::addToStdVector(bodyStream, rtpParams.lastIFrameInterval);

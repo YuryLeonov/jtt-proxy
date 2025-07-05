@@ -160,6 +160,13 @@ namespace tools {
         vec.push_back(static_cast<uint8_t>(num & 0xFF));
     }
 
+    void addToStdVector(std::vector<uint8_t> &vec, uint64_t num)
+    {
+        for (int i = 7; i >= 0; --i) {  // от старшего к младшему
+            vec.push_back(static_cast<uint8_t>((num >> (8 * i)) & 0xFF));
+        }
+    }
+
     bool isByteInStream(const std::vector<uint8_t> &vec, const uint8_t &byte)
     {
         for(const auto &el : vec) {
@@ -197,5 +204,6 @@ namespace tools {
 
         return oss.str();
     }
+
 
 }

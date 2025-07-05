@@ -23,6 +23,8 @@ namespace tools {
 
     void addToStdVector(std::vector<uint8_t> &vec, int32_t num);
 
+    void addToStdVector(std::vector<uint8_t> &vec, uint64_t num);
+
     //Установка битов
     void setBit(uint16_t &num, uint8_t bitPos);
 

@@ -278,6 +278,8 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
         parseRealTimeVideoRequest(answer);
     } else if(header.messageID == 0x9102){
         parseRealTimeVideoControlRequest(answer);
+    } else if(header.messageID == 0x9105) {
+        parseRealTimeVideoStatusRequest(answer);
     }
 }
 
@@ -341,6 +343,31 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
 
     return true;
 
+}
+
+bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &request)
+{
+    JT808HeaderParser headerParser;
+    JT808Header header = headerParser.getHeader(request);
+    std::cout << "Прилетел статус передачи видео(0x9105): " << std::endl;
+
+    const uint8_t channelNumber = static_cast<int>(request[12]);
+    const uint8_t packetLossRate = static_cast<int>(request[13])*100;
+    std::cout << "Channel number = " << channelNumber << std::endl;
+    std::cout << "Packet loss number = " << packetLossRate << std::endl;
+
+    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+    unsigned char *message = requestBuffer.data();
+    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+    if (bytes_sent == -1) {
+        std::cerr << "Ошибка отправки video general response" << std::endl;
+        return false;
+    } else {
+        std::cout << "Отправлен general response в ответ на статус передачи видео." << std::endl;
+    }
+
+    return true;
 }
 
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
