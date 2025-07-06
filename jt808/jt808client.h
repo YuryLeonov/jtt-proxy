@@ -4,12 +4,12 @@
 #include "TerminalInfo.h"
 #include "PlatformInfo.h"
 #include "terminalparams.h"
+#include "realtimevideostreamer.h"
 
 #include <vector>
 #include <thread>
 #include <stdexcept>
 
-class RealTimeVideoStreamer;
 
 class JT808ConnectionErrorException : public std::runtime_error
 {
@@ -21,14 +21,14 @@ class JT808Client
 {
 public:
     JT808Client();
-    JT808Client(const TerminalInfo &tInfo, const PlatformInfo &pInfo);
+    JT808Client(const TerminalInfo &tInfo, const platform::PlatformInfo &pInfo);
     ~JT808Client();
 
     void connectToPlatform();
 
-    void setConfiguration(const TerminalInfo &tInfo, const PlatformInfo &pInfo);
+    void setConfiguration(const TerminalInfo &tInfo, const platform::PlatformInfo &pInfo);
     void setTerminalInfo(TerminalInfo info);
-    void setPlatformInfo(PlatformInfo info);
+    void setPlatformInfo(platform::PlatformInfo info);
     void setTerminalParameters();
 
     void sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody);
@@ -65,7 +65,7 @@ private:
 
 private:
     TerminalInfo terminalInfo;
-    PlatformInfo platformInfo;
+    platform::PlatformInfo platformInfo;
     TerminalParameters terminalParams;
 
     int socketFd;
@@ -81,7 +81,7 @@ private:
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
 
-    std::shared_ptr<RealTimeVideoStreamer> videoStreamer;
+    std::shared_ptr<streamer::RealTimeVideoStreamer> videoStreamer;
 };
 
 #endif // JT808CONNECTIONHANDLER_H

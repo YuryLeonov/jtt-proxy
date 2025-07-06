@@ -8,7 +8,6 @@
 #include "jt808mediauploadeventinforequest.h"
 #include "jt808terminalparametersrequest.h"
 #include "jt808headerparser.h"
-#include "realtimevideostreamer.h"
 
 #include "tools.h"
 #include "easylogging++.h"
@@ -29,10 +28,10 @@ JT808Client::JT808Client()
 
 }
 
-JT808Client::JT808Client(const TerminalInfo &tInfo, const PlatformInfo &pInfo) :
+JT808Client::JT808Client(const TerminalInfo &tInfo, const platform::PlatformInfo &pInfo) :
     terminalInfo(tInfo),platformInfo(pInfo)
 {
-    videoStreamer = std::make_shared<RealTimeVideoStreamer>();
+    videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
 
     connectToPlatform();
 }
@@ -372,9 +371,14 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
 
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
 {
-    videoStreamer->setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    videoStreamer->setRtsp(platformInfo.videoServer.rtspLink);
     videoStreamer->setTerminalInfo(terminalInfo);
     videoStreamer->setVideoServerParams(request);
+    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
+        videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
+    else
+        videoStreamer->setConnectionType(streamer::ConnectionType::UDP);
+
     if(videoStreamer->establishConnection()) {
         videoStreamer->startStreaming();
     }
@@ -391,7 +395,7 @@ void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         return;
     } else {
         std::cout << "Аларм отправлен на платформу!" << std::endl << std::endl;
-        tools::printHexBitStream(request);
+//        tools::printHexBitStream(request);
     }
 
 //    std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -405,7 +409,6 @@ void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
 
 void JT808Client::connectToPlatform()
 {
-
     isAuthenticationKeyExists = checkIfAuthenticationKeyExists();
 
     while(!connectToHost()) {
@@ -419,7 +422,7 @@ void JT808Client::connectToPlatform()
     }
 }
 
-void JT808Client::setConfiguration(const TerminalInfo &tInfo, const PlatformInfo &pInfo)
+void JT808Client::setConfiguration(const TerminalInfo &tInfo, const platform::PlatformInfo &pInfo)
 {
     setTerminalInfo(tInfo);
     setPlatformInfo(pInfo);
@@ -505,7 +508,7 @@ void JT808Client::setTerminalInfo(TerminalInfo info)
     setTerminalParameters();
 }
 
-void JT808Client::setPlatformInfo(PlatformInfo info)
+void JT808Client::setPlatformInfo(platform::PlatformInfo info)
 {
     platformInfo = info;
 }

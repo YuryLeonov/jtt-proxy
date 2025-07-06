@@ -16,70 +16,91 @@ extern "C" {
     #include <libavutil/opt.h>
 }
 
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include "netdb.h"
+#include "unistd.h"
 
-struct VideoServerRequisites
+namespace streamer
 {
-    std::string host = "";
-    uint16_t tcpPort = 0;
-    uint16_t udpPort = 0;
-    uint8_t channel = 0;
-    uint8_t dataType = 0;
-    uint8_t streamType = 0;
+    struct VideoServerRequisites
+    {
+        std::string host = "";
+        uint16_t tcpPort = 0;
+        uint16_t udpPort = 0;
+        uint8_t channel = 0;
+        uint8_t dataType = 0;
+        uint8_t streamType = 0;
 
-    void printInfo() {
-        std::cout << "Реквизиты видеосервера: " << std::endl;
-        std::cout << "IP-адрес: " << host << std::endl;
-        std::cout << "TCP-порт: " << std::dec << tcpPort << std::endl;
-        std::cout << "UDP-порт: " << static_cast<int>(udpPort) << std::endl;
-        std::cout << "Номер логического канала: " << static_cast<int>(channel) << std::endl;
-        std::cout << "Тип данных: " << static_cast<int>(dataType) << std::endl;
-        std::cout << "Тип потока: " << static_cast<int>(streamType) << std::endl;
-    }
-};
+        void printInfo() {
+            std::cout << "Реквизиты видеосервера: " << std::endl;
+            std::cout << "IP-адрес: " << host << std::endl;
+            std::cout << "TCP-порт: " << std::dec << tcpPort << std::endl;
+            std::cout << "UDP-порт: " << static_cast<int>(udpPort) << std::endl;
+            std::cout << "Номер логического канала: " << static_cast<int>(channel) << std::endl;
+            std::cout << "Тип данных: " << static_cast<int>(dataType) << std::endl;
+            std::cout << "Тип потока: " << static_cast<int>(streamType) << std::endl;
+        }
+    };
 
-class RealTimeVideoStreamer
-{
-public:
-    RealTimeVideoStreamer() = default;
-    ~RealTimeVideoStreamer();
+    enum class ConnectionType
+    {
+        TCP = 0,
+        UDP
+    };
 
-    void setVideoServerParams(const std::vector<uint8_t> &hex);
-    void setRtsp(const std::string &rtsp);
-    void setTerminalInfo(const TerminalInfo &tInfo);
+    class RealTimeVideoStreamer
+    {
+    public:
 
-    bool establishConnection();
-    bool startStreaming();
-    void stopStreaming();
-    void pauseStreaming();
-    bool isStreaming();
+        RealTimeVideoStreamer() = default;
+        ~RealTimeVideoStreamer();
 
-private:
-    void parseHex(const std::vector<uint8_t> &hex);
+        void setVideoServerParams(const std::vector<uint8_t> &hex);
+        void setRtsp(const std::string &rtsp);
+        void setTerminalInfo(const TerminalInfo &tInfo);
+        void setConnectionType(ConnectionType type);
 
-    bool initDecoder();
-    bool fillDecoderVideoStreamInfo();
-    bool fillStreamInfo(AVStream *stream, AVCodec **codec, AVCodecContext **codecContext);
+        bool establishTCPConnection();
+        bool establishUDPConnection();
+        bool establishConnection();
+        bool startStreaming();
+        void stopStreaming();
+        void pauseStreaming();
+        bool isStreaming();
 
-    void startPacketsReading();
+    private:
+        void parseHex(const std::vector<uint8_t> &hex);
 
-private:
-    std::string rtspLink = "";
-    VideoServerRequisites videoServer;
+        bool initDecoder();
+        bool fillDecoderVideoStreamInfo();
+        bool fillStreamInfo(AVStream *stream, AVCodec **codec, AVCodecContext **codecContext);
 
-    bool isStreamingInProgress = false;
+        void startPacketsReading();
+        int sendMessage(const std::vector<uint8_t> &message);
 
-    int socketFd;
-    bool isConnected = false;
+    private:
+        std::string rtspLink = "";
+        VideoServerRequisites videoServer;
 
-    TerminalInfo terminalInfo;
+        bool isStreamingInProgress = false;
 
-    //FFMPEG
-    AVFormatContext *decoderFormatContext = nullptr;
-    AVCodec *decoderVideoCodec = nullptr;
-    AVCodecContext *decoderVideoCodecContext = nullptr;
-    AVStream *decoderVideoStream = nullptr;
-    int decoderVideoIndex = 0;
+        int socketFd;
+        struct sockaddr_in server_addr;
+        bool isConnected = false;
 
-};
+        TerminalInfo terminalInfo;
+
+        ConnectionType connType = ConnectionType::TCP;
+
+        //FFMPEG
+        AVFormatContext *decoderFormatContext = nullptr;
+        AVCodec *decoderVideoCodec = nullptr;
+        AVCodecContext *decoderVideoCodecContext = nullptr;
+        AVStream *decoderVideoStream = nullptr;
+        int decoderVideoIndex = 0;
+
+    };
+}
 
 #endif // REALTIMEVIDEOSTREAMER_H

@@ -5,14 +5,20 @@
 
 #include "tools.h"
 
-Module::Module(TerminalInfo tInfo, PlatformInfo pInfo, EventServerInfo esInfo) :
+Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo esInfo) :
     terminalInfo(tInfo),
     platformInfo(pInfo),
     eventServerInfo(esInfo)
 {
+    std::cout << "RTSP = " << platformInfo.videoServer.rtspLink << std::endl;
+    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP) {
+        std::cout << "Transport = TCP" << std::endl;
+    } else if(platformInfo.videoServer.connType == platform::ConnectionType::UDP) {
+        std::cout << "Transport = UDP" << std::endl;
+    }
 //    initPlatformServer();
 //    initWebSocketClient();
-    initPlatformClient();
+//    initPlatformClient();
 }
 
 Module::~Module()
@@ -26,7 +32,7 @@ void Module::setTerminalInfo(const TerminalInfo &info)
     platformConnector.setTerminalInfo(terminalInfo);
 }
 
-void Module::setPlatformInfo(const PlatformInfo &info)
+void Module::setPlatformInfo(const platform::PlatformInfo &info)
 {
     platformInfo = info;
     platformConnector.setPlatformInfo(platformInfo);

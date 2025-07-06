@@ -3,12 +3,29 @@
 
 #include <string>
 
-struct PlatformInfo
+namespace platform
 {
-    std::string ipAddress = "";
-    int port = 0;
-    int heartBeatTimeout = 1000;
-    int reconnectTimeout = 2000;
-};
+    enum class ConnectionType
+    {
+        TCP = 0,
+        UDP
+    };
+
+    struct VideoServer
+    {
+        std::string rtspLink = "";
+        ConnectionType connType;
+    };
+
+    struct PlatformInfo
+    {
+        std::string ipAddress = "";
+        int port = 0;
+        int heartBeatTimeout = 1000;
+        int reconnectTimeout = 2000;
+        VideoServer videoServer;
+    };
+}
+
 
 #endif // PLATFORMINFO_H

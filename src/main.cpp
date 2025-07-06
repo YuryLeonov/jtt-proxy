@@ -17,13 +17,13 @@
 
 #include "realtimevideostreamer.h"
 
-#define REQUESTTEST
+//#define REQUESTTEST
 
 
 struct FullConfiguration
 {
     TerminalInfo terminalInfo;
-    PlatformInfo platformInfo;
+    platform::PlatformInfo platformInfo;
     EventServerInfo eventServerInfo;
 };
 
@@ -53,11 +53,18 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     terminalInfo.licencePlateColor = configuration.licencePlateColor;
     terminalInfo.vin = configuration.vin;
 
-    PlatformInfo platformInfo;
+    platform::PlatformInfo platformInfo;
     platformInfo.ipAddress = configuration.platformServerIP;
     platformInfo.port = configuration.platformServerPort;
     platformInfo.heartBeatTimeout = configuration.platformHeartBeatTimeout;
     platformInfo.reconnectTimeout = configuration.platformReconnectTimeout;
+    platform::VideoServer videoServer;
+    videoServer.rtspLink = configuration.rtspLink;
+    if(configuration.videoServerConnectionType == "tcp")
+        videoServer.connType = platform::ConnectionType::TCP;
+    else
+        videoServer.connType = platform::ConnectionType::UDP;
+    platformInfo.videoServer = videoServer;
 
     EventServerInfo eventServerInfo;
     eventServerInfo.ipAddress = configuration.eventsServerIP;
@@ -125,11 +132,12 @@ int main(int argc, char **argv)
 
     TerminalInfo info;
     info.phoneNumber = "19-11-11-78-13-17";
-    RealTimeVideoStreamer streamer;
-    streamer.setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
-    streamer.setTerminalInfo(info);
-    streamer.setVideoServerParams(testRequest);
-    streamer.startStreaming();
+    streamer::RealTimeVideoStreamer rtpStreamer;
+    rtpStreamer.setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    rtpStreamer.setTerminalInfo(info);
+    rtpStreamer.setVideoServerParams(testRequest);
+    rtpStreamer.setConnectionType(streamer::ConnectionType::TCP);
+    rtpStreamer.startStreaming();
 
     return 0;
 #endif

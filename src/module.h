@@ -12,11 +12,11 @@
 class Module
 {
 public:
-    Module(TerminalInfo tInfo, PlatformInfo pInfo, EventServerInfo esInfo);
+    Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo esInfo);
     ~Module();
 
     void setTerminalInfo(const TerminalInfo &info);
-    void setPlatformInfo(const PlatformInfo &info);
+    void setPlatformInfo(const platform::PlatformInfo &info);
     void setEventServerInfo(const EventServerInfo &info);
 
 private:
@@ -33,7 +33,7 @@ private:
     std::unique_ptr<JT808Server> platformServer;
 
     TerminalInfo terminalInfo;
-    PlatformInfo platformInfo;
+    platform::PlatformInfo platformInfo;
     EventServerInfo eventServerInfo;
 
     std::vector<uint8_t> currentAlarmBody;

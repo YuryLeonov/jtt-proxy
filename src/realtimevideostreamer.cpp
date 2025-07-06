@@ -2,12 +2,10 @@
 #include "tools.h"
 #include "jt1078streamtransmitrequest.h"
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include "netdb.h"
-#include "unistd.h"
 #include <thread>
 
+namespace streamer
+{
 RealTimeVideoStreamer::~RealTimeVideoStreamer()
 {
     isConnected = false;
@@ -265,21 +263,12 @@ void RealTimeVideoStreamer::startPacketsReading()
             JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-            std::cout << "Отправлен буфер размером: " << std::dec << requestBuffer.size() << std::endl;
-            tools::printHexBitStream(requestBuffer);
-            std::cout << "********" << std::endl;
+//            tools::printHexBitStream(requestBuffer);
+//            std::cout << "********" << std::endl;
 
-//            unsigned char *message = requestBuffer.data();
-//            ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-//            if (bytes_sent == -1) {
-//                std::cerr << "Ошибка отправки видеопакета" << std::endl;
-//            } else {
-//                std::cout << "Отправлен" << std::endl;
-//            }
+            sendMessage(requestBuffer);
 
         }
-
-        std::cout << std::endl << std::endl << std::endl << std::endl;
 
         std::cout << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
         packets.clear();
@@ -296,7 +285,29 @@ void RealTimeVideoStreamer::startPacketsReading()
     isStreamingInProgress = false;
 }
 
-bool RealTimeVideoStreamer::establishConnection()
+int RealTimeVideoStreamer::sendMessage(const std::vector<uint8_t> &requestBuffer)
+{
+    const unsigned char *message = requestBuffer.data();
+    ssize_t bytes_sent = 0;
+
+    if(connType == streamer::ConnectionType::TCP) {
+        bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        if (bytes_sent == -1) {
+            std::cerr << "Ошибка отправки видеопакета" << std::endl;
+        } else {
+            std::cout << "Пакет отправлен" << std::endl;
+        }
+    } else {
+        bytes_sent = sendto(socketFd, message, requestBuffer.size(),
+              MSG_CONFIRM, (const struct sockaddr *)&server_addr,
+              sizeof(server_addr));
+    }
+
+    return bytes_sent;
+
+}
+
+bool RealTimeVideoStreamer::establishTCPConnection()
 {
     socketFd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -318,7 +329,6 @@ bool RealTimeVideoStreamer::establishConnection()
         return false;
     }
 
-    sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(videoServer.tcpPort);
     inet_pton(AF_INET, videoServer.host.c_str(), &server_addr.sin_addr);
@@ -333,4 +343,35 @@ bool RealTimeVideoStreamer::establishConnection()
     }
 
     return true;
+}
+
+bool RealTimeVideoStreamer::establishUDPConnection()
+{
+    socketFd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (socketFd == -1) {
+        std::cerr << "Ошибка подключения к видео-серверу(ошибка создания сокета)" << std::endl;
+        return false;
+    }
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(videoServer.udpPort);
+
+    return true;
+
+}
+
+bool RealTimeVideoStreamer::establishConnection()
+{
+    if(connType == streamer::ConnectionType::TCP)
+        return establishTCPConnection();
+    else
+        return establishUDPConnection();
+}
+
+void streamer::RealTimeVideoStreamer::setConnectionType(streamer::ConnectionType type)
+{
+    connType = type;
+}
+
 }
