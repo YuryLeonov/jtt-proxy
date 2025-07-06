@@ -177,11 +177,6 @@ namespace tools {
         return false;
     }
 
-    uint16_t make_uint16(uint8_t high_byte, uint8_t low_byte)
-    {
-        return (static_cast<uint16_t>(high_byte) << 8) | low_byte;
-    }
-
     std::string hex_bytes_to_string(const std::vector<uint8_t>& hex_bytes)
     {
         return std::string(hex_bytes.begin(), hex_bytes.end());
@@ -205,5 +200,29 @@ namespace tools {
         return oss.str();
     }
 
+    uint16_t make_uint16(uint8_t high_byte, uint8_t low_byte)
+    {
+        return (static_cast<uint16_t>(high_byte) << 8) | low_byte;
+    }
+
+    uint32_t make_uint32(const std::vector<uint8_t> &bytes)
+    {
+        return (static_cast<uint32_t>(bytes[0]) << 24) |
+               (static_cast<uint32_t>(bytes[1]) << 16) |
+               (static_cast<uint32_t>(bytes[2]) << 8) |
+               static_cast<uint32_t>(bytes[3]);
+    }
+
+    uint64_t make_uint64(const std::vector<uint8_t> &bytes)
+    {
+        return (static_cast<uint64_t>(bytes[0]) << 56) |
+               (static_cast<uint64_t>(bytes[1]) << 48) |
+               (static_cast<uint64_t>(bytes[2]) << 40) |
+               (static_cast<uint64_t>(bytes[3]) << 32) |
+               (static_cast<uint64_t>(bytes[4]) << 24) |
+               (static_cast<uint64_t>(bytes[5]) << 16) |
+               (static_cast<uint64_t>(bytes[6]) << 8) |
+               static_cast<uint64_t>(bytes[7]);
+    }
 
 }

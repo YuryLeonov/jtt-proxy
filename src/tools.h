@@ -38,8 +38,6 @@ namespace tools {
 
     bool getBit(uint16_t num, uint8_t bitPos);
 
-
-
     void replaceByteInVectorWithTwo(std::vector<uint8_t> &vec, uint8_t oldValue, uint8_t firstReplacer, uint8_t secondReplacer);
 
     bool isByteInStream(const std::vector<uint8_t> &vec, const uint8_t &byte);
@@ -63,6 +61,9 @@ namespace tools {
    void parseJT808Request(const std::vector<uint8_t> &vec);
 
    uint16_t make_uint16(uint8_t high_byte, uint8_t low_byte);
+   uint32_t make_uint32(const std::vector<uint8_t> &bytes);
+   uint64_t make_uint64(const std::vector<uint8_t> &bytes);
+
 }
 
 

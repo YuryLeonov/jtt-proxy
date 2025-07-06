@@ -72,13 +72,13 @@ void RealTimeVideoStreamer::parseHex(const std::vector<uint8_t> &hex)
     offset += ipLength;
     std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
 
-    //        videoServer.host = "192.168.0.10";
-    //        videoServer.udpPort = 8185;
+            videoServer.host = "192.168.0.10";
+            videoServer.udpPort = 8185;
 
-    videoServer.host = tools::hex_bytes_to_string(ipBuffer);
+//    videoServer.host = tools::hex_bytes_to_string(ipBuffer);
     videoServer.tcpPort = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
-    videoServer.udpPort = tools::make_uint16(body[offset], body[offset+1]);
+//    videoServer.udpPort = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
     videoServer.channel = body[offset++];
     videoServer.dataType = body[offset++];
