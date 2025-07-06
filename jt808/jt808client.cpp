@@ -337,7 +337,21 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
     std::cout << "Reply ID = " << header.messageID << std::endl;
     std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
 
+    const uint8_t channelNumber = static_cast<int>(request[12]);
+    const uint8_t controlInstruction = static_cast<int>(request[13]);
+    const uint8_t closeType = static_cast<int>(request[14]);
+    const uint8_t switchStreamType = static_cast<int>(request[15]);
 
+    std::cout << "Channel: " << channelNumber << std::endl;
+    std::cout << "ControlInstruction: " << controlInstruction << std::endl;
+    std::cout << "CloseType: " << closeType << std::endl;
+    std::cout << "SwitchStreamType: " << switchStreamType << std::endl;
+    std::cout << std::endl;
+
+    if(controlInstruction == 0) {
+        if(videoStreamer->isStreaming())
+            videoStreamer->stopStreaming();
+    }
 
     return true;
 
