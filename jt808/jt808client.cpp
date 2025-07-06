@@ -318,7 +318,6 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
         return false;
     } else {
         std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
-        tools::printHexBitStream(requestBuffer);
     }
 
     std::thread streamThread([this, request]() {

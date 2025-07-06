@@ -17,8 +17,7 @@
 
 #include "realtimevideostreamer.h"
 
-//#define REQUESTTEST
-
+#define REQUESTTEST
 
 struct FullConfiguration
 {
@@ -136,8 +135,10 @@ int main(int argc, char **argv)
     rtpStreamer.setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
     rtpStreamer.setTerminalInfo(info);
     rtpStreamer.setVideoServerParams(testRequest);
-    rtpStreamer.setConnectionType(streamer::ConnectionType::TCP);
-    rtpStreamer.startStreaming();
+    rtpStreamer.setConnectionType(streamer::ConnectionType::UDP);
+    if(rtpStreamer.establishConnection())
+        std::cout << "Connection established" << std::endl;
+        rtpStreamer.startStreaming();
 
     return 0;
 #endif
