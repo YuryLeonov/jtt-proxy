@@ -48,8 +48,6 @@ Configuration ConfigurationParser::parseConfiguration()
     conf.eventsServerSurveyInterval = eventsServerJson.at("surveyInterval");
     conf.videoRootPath = eventsServerJson.at("videoRootPath");
 
-    json debugJson = confJson.at("debug");
-
     json platformJson = confJson.at("platform");
     conf.platformServerIP = platformJson.at("serverIP");
     conf.platformServerPort = platformJson.at("serverPort");
