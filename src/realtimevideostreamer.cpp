@@ -40,10 +40,6 @@ bool RealTimeVideoStreamer::startStreaming()
     //Стрим пакетов платформе
     startPacketsReading();
 
-//    std::vector<uint8_t> testRequest = {
-//        0x7e , 0x91 , 0x1  , 0x0 , 0x14  , 0x19 , 0x11 , 0x11 , 0x7e };
-//    sendMessage(testRequest);
-
     return true;
 }
 

@@ -17,7 +17,7 @@
 
 #include "realtimevideostreamer.h"
 
-#define REQUESTTEST
+//#define REQUESTTEST
 
 struct FullConfiguration
 {

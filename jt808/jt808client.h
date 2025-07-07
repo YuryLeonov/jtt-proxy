@@ -9,6 +9,7 @@
 #include <vector>
 #include <thread>
 #include <stdexcept>
+#include <memory>
 
 
 class JT808ConnectionErrorException : public std::runtime_error
