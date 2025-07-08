@@ -17,7 +17,7 @@ Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo
         std::cout << "Transport = UDP" << std::endl;
     }
 //    initPlatformServer();
-//    initWebSocketClient();
+    initWebSocketClient();
     initPlatformClient();
 }
 

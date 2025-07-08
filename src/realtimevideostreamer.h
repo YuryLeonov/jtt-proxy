@@ -4,6 +4,7 @@
 #include <vector>
 #include <inttypes.h>
 #include <iostream>
+#include <thread>
 
 #include "TerminalInfo.h"
 
@@ -69,6 +70,8 @@ namespace streamer
         void pauseStreaming();
         bool isStreaming();
 
+        void startServerAnswerHandler();
+
     private:
         void parseHex(const std::vector<uint8_t> &hex);
 
@@ -92,6 +95,8 @@ namespace streamer
         TerminalInfo terminalInfo;
 
         ConnectionType connType = ConnectionType::TCP;
+
+        std::thread serverAnswerHandlerThread;
 
         //FFMPEG
         AVFormatContext *decoderFormatContext = nullptr;
