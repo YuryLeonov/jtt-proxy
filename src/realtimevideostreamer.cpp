@@ -1,8 +1,10 @@
 #include "realtimevideostreamer.h"
 #include "tools.h"
 #include "jt1078streamtransmitrequest.h"
+#include "easylogging++.h"
 
 #include <thread>
+#include <csignal>
 
 namespace streamer
 {
@@ -20,6 +22,7 @@ void RealTimeVideoStreamer::setVideoServerParams(const std::vector<uint8_t> &hex
 void RealTimeVideoStreamer::setRtsp(const std::string &rtsp)
 {
     rtspLink = rtsp;
+    std::cout << "Установлена ссылка: " << rtspLink << std::endl;
 }
 
 void RealTimeVideoStreamer::setTerminalInfo(const TerminalInfo &tInfo)
@@ -168,6 +171,7 @@ bool RealTimeVideoStreamer::fillStreamInfo(AVStream *stream, AVCodec **codec, AV
 
 void RealTimeVideoStreamer::startPacketsReading()
 {
+    std::cout << "1" << std::endl;
     AVPacket *input_packet = av_packet_alloc();
     AVFrame *input_frame = av_frame_alloc();
 
@@ -175,6 +179,7 @@ void RealTimeVideoStreamer::startPacketsReading()
         std::cerr << "Ошибка выделения памяти под объект пакета" << std::endl;
         return;
     }
+    std::cout << "2" << std::endl;
 
     int packageNumber = 0;
     int i = 0;
@@ -185,12 +190,13 @@ void RealTimeVideoStreamer::startPacketsReading()
     isStreamingInProgress = true;
 
     std::vector<std::vector<uint8_t>> packets;
+    std::cout << "3" << std::endl;
 
     while((av_read_frame(decoderFormatContext, input_packet) >= 0) && isStreamingInProgress) {
-
         if(decoderFormatContext->streams[input_packet->stream_index]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
             continue;
         }
+        std::cout << "4" << std::endl;
 
         avcodec_send_packet(decoderVideoCodecContext, input_packet);
         avcodec_receive_frame(decoderVideoCodecContext, input_frame);
@@ -223,8 +229,6 @@ void RealTimeVideoStreamer::startPacketsReading()
             startIFrame = std::chrono::high_resolution_clock::now();
         }
         start = std::chrono::high_resolution_clock::now();
-
-
 
         int offset = 0;
         for(int i = 0; i < segments; ++i) {
@@ -264,20 +268,16 @@ void RealTimeVideoStreamer::startPacketsReading()
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
 //            tools::printHexBitStream(requestBuffer);
-//            std::cout << "********" << std::endl;
-
-            sendMessage(requestBuffer);
+            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
+//            sendMessage(requestBuffer);
 
         }
-
         packets.clear();
-
-        if(i == 10)
-            break;
     }
 
     av_packet_free(&input_packet);
-    input_packet = nullptr;
+    input_packet = nullptr
+            ;
     av_frame_free(&input_frame);
     input_frame = nullptr;
 
@@ -290,12 +290,9 @@ int RealTimeVideoStreamer::sendMessage(const std::vector<uint8_t> &requestBuffer
     ssize_t bytes_sent = 0;
 
     if(connType == streamer::ConnectionType::TCP) {
+
         bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-//        if (bytes_sent == -1) {
-//            std::cerr << "Ошибка отправки видеопакета" << std::endl;
-//        } else {
-//            std::cout << "Пакет отправлен" << std::endl;
-//        }
+
     } else {
         bytes_sent = sendto(socketFd, message, requestBuffer.size(),
               MSG_CONFIRM, (const struct sockaddr *)&server_addr,
@@ -367,10 +364,14 @@ bool RealTimeVideoStreamer::establishUDPConnection()
 
 bool RealTimeVideoStreamer::establishConnection()
 {
-    if(connType == streamer::ConnectionType::TCP)
+    if(connType == streamer::ConnectionType::TCP) {
+        std::cout << "Transport TCP" << std::endl;
         return establishTCPConnection();
-    else
+    }
+    else {
+        std::cout << "Transport UDP" << std::endl;
         return establishUDPConnection();
+    }
 }
 
 void RealTimeVideoStreamer::startServerAnswerHandler()

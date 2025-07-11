@@ -9,6 +9,7 @@
 #include <vector>
 #include <thread>
 #include <stdexcept>
+#include <memory>
 
 
 class JT808ConnectionErrorException : public std::runtime_error
@@ -81,7 +82,7 @@ private:
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
 
-    std::shared_ptr<streamer::RealTimeVideoStreamer> videoStreamer;
+//    std::shared_ptr<streamer::RealTimeVideoStreamer> videoStreamer;
 };
 
 #endif // JT808CONNECTIONHANDLER_H

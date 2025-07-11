@@ -239,7 +239,6 @@ void JT808Client::sendTerminalParametersRequest()
         std::cerr << "Ошибка отправки данных" << std::endl;
         return;
     } else {
-        tools::printHexBitStream(requestBuffer);
         LOG(TRACE) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
 }
@@ -346,10 +345,10 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
     std::cout << "SwitchStreamType: " << switchStreamType << std::endl;
     std::cout << std::endl;
 
-    if(controlInstruction == 0) {
-        if(videoStreamer->isStreaming())
-            videoStreamer->stopStreaming();
-    }
+//    if(controlInstruction == 0) {
+//        if(videoStreamer->isStreaming())
+//            videoStreamer->stopStreaming();
+//    }
 
     return true;
 
@@ -382,17 +381,17 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
 
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
 {
+    std::cout << "Начинаем стриминг..." << std::endl;
     streamer::RealTimeVideoStreamer videoStreamer;
-
     videoStreamer.setRtsp(platformInfo.videoServer.rtspLink);
     videoStreamer.setTerminalInfo(terminalInfo);
     videoStreamer.setVideoServerParams(request);
-    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP) {
+    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
         videoStreamer.setConnectionType(streamer::ConnectionType::TCP);
-    }
     else
         videoStreamer.setConnectionType(streamer::ConnectionType::UDP);
 
+    std::cout << "Параметры стриминга настроены" << std::endl;
     if(videoStreamer.establishConnection()) {
         videoStreamer.startStreaming();
     }
@@ -559,7 +558,7 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
     JT808MediaUploadEventInfoRequest mediaEventInfoRequest(terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(mediaEventInfoRequest.getRequest());
     unsigned char *message = requestBuffer.data();
-    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
     if (bytes_sent == -1) {
         std::cout << "Ошибка запроса на передачу информации о медиафайле" << std::endl;
         return;
@@ -576,7 +575,7 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
         JT808MediaUploadRequest request(terminalInfo, chunks.at(i), alarmBody);
         requestBuffer = std::move(request.getRequest());
         message = requestBuffer.data();
-        bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
         if (bytes_sent == -1) {
             std::cout << "error sending chank" << std::endl;
             continue;

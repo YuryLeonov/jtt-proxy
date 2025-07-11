@@ -4,6 +4,7 @@
 #include <vector>
 #include <inttypes.h>
 #include <iostream>
+#include <thread>
 
 #include "TerminalInfo.h"
 
@@ -93,6 +94,8 @@ namespace streamer
         TerminalInfo terminalInfo;
 
         ConnectionType connType = ConnectionType::TCP;
+
+        std::thread serverAnswerHandlerThread;
 
         //FFMPEG
         AVFormatContext *decoderFormatContext = nullptr;

@@ -136,8 +136,8 @@ int main(int argc, char **argv)
     rtpStreamer.setTerminalInfo(info);
     rtpStreamer.setVideoServerParams(testRequest);
     rtpStreamer.setConnectionType(streamer::ConnectionType::UDP);
-    if(rtpStreamer.establishConnection())
-        std::cout << "Connection established" << std::endl;
+//    if(rtpStreamer.establishConnection())
+//        std::cout << "Connection established" << std::endl;
         rtpStreamer.startStreaming();
 
     return 0;

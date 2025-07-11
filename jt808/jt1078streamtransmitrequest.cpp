@@ -37,6 +37,8 @@ std::vector<uint8_t> JT1078StreamTransmitRequest::getRequest()
     uint8_t byte2 = 0;
     if(rtpParams.mMarker)
         tools::setBit(byte2, 7);
+    tools::setBit(byte2,6);
+    tools::setBit(byte2,5);
     bodyStream.push_back(byte2);
 
     //Package serial number
