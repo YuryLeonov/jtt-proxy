@@ -17,8 +17,8 @@ Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo
         std::cout << "Transport = UDP" << std::endl;
     }
 //    initPlatformServer();
-//    initWebSocketClient();
-//    initPlatformClient();
+    initWebSocketClient();
+    initPlatformClient();
 }
 
 Module::~Module()
@@ -61,9 +61,6 @@ void Module::wsClientMessageHandler(const std::string &message)
     if(vec.empty()) {
         std::cout << "Задетектированных событий нет" << std::endl;
         return;
-    } else {
-        std::cout << "Найдено событие" << std::endl;
-        std::cout << message << std::endl;
     }
 
 //    std::cout << "Получил сообщение от сервера: " << std::endl;

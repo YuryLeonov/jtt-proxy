@@ -1,0 +1,16 @@
+1 - Danger warning
+2 - Fatigue driving warning
+3 - Danger warning
+4 - Danger warning
+5 - Fatigue driving
+6 - Danger warning
+7 - Danger warning
+8 - Danger warning
+9 - Danger warning
+10 - Danger warning
+14 - Fatigue driving warning
+15 - Fatigue driving warning
+16 - Fatigue driving warning
+17 - Danger warning, Collision warning, Rollover warning, Fatigue driving
+30 - Camera failure
+31 - Camera failure

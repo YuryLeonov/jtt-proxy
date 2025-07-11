@@ -25,7 +25,7 @@ struct BCDTime {
 
 struct TerminalStatus
 {
-    bool isACCOn = false;
+    bool isACCOn = true;
     bool isPositioned = false;
     bool isSouthLatitude = false;
     bool isWestLongitude = false;

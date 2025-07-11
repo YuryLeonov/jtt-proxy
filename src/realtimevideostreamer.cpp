@@ -40,10 +40,6 @@ bool RealTimeVideoStreamer::startStreaming()
     //Стрим пакетов платформе
     startPacketsReading();
 
-//    std::vector<uint8_t> testRequest = {
-//        0x7e , 0x91 , 0x1  , 0x0 , 0x14  , 0x19 , 0x11 , 0x11 , 0x7e };
-//    sendMessage(testRequest);
-
     return true;
 }
 
@@ -72,13 +68,10 @@ void RealTimeVideoStreamer::parseHex(const std::vector<uint8_t> &hex)
     offset += ipLength;
     std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
 
-            videoServer.host = "192.168.0.10";
-            videoServer.udpPort = 8185;
-
-//    videoServer.host = tools::hex_bytes_to_string(ipBuffer);
+    videoServer.host = tools::hex_bytes_to_string(ipBuffer);
     videoServer.tcpPort = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
-//    videoServer.udpPort = tools::make_uint16(body[offset], body[offset+1]);
+    videoServer.udpPort = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
     videoServer.channel = body[offset++];
     videoServer.dataType = body[offset++];
@@ -277,7 +270,6 @@ void RealTimeVideoStreamer::startPacketsReading()
 
         }
 
-        std::cout << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
         packets.clear();
 
         if(i == 10)
@@ -299,11 +291,11 @@ int RealTimeVideoStreamer::sendMessage(const std::vector<uint8_t> &requestBuffer
 
     if(connType == streamer::ConnectionType::TCP) {
         bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-        if (bytes_sent == -1) {
-            std::cerr << "Ошибка отправки видеопакета" << std::endl;
-        } else {
-            std::cout << "Пакет отправлен" << std::endl;
-        }
+//        if (bytes_sent == -1) {
+//            std::cerr << "Ошибка отправки видеопакета" << std::endl;
+//        } else {
+//            std::cout << "Пакет отправлен" << std::endl;
+//        }
     } else {
         bytes_sent = sendto(socketFd, message, requestBuffer.size(),
               MSG_CONFIRM, (const struct sockaddr *)&server_addr,
@@ -345,9 +337,14 @@ bool RealTimeVideoStreamer::establishTCPConnection()
         std::cerr << "Ошибка подключения к видео-серверу(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
-         std::cout << "Соединение с видео-сервером установлено" << std::endl << std::endl;
+         std::cout << "Соединение с видео-сервером(" << videoServer.host << ":" << std::to_string(videoServer.tcpPort) << ")" << " установлено" << std::endl << std::endl;
          isConnected = true;
     }
+
+    std::thread serverAnswerThread([this](){
+        startServerAnswerHandler();
+    });
+    serverAnswerThread.detach();
 
     return true;
 }
@@ -374,6 +371,25 @@ bool RealTimeVideoStreamer::establishConnection()
         return establishTCPConnection();
     else
         return establishUDPConnection();
+}
+
+void RealTimeVideoStreamer::startServerAnswerHandler()
+{
+    while (isConnected) {
+            char buffer[1024];
+            int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
+
+            if(bytes_recieved == 0) {
+                std::cout << "Видео-сервер отключился" << std::endl;
+                close(socketFd);
+                isConnected = false;
+                isStreamingInProgress = false;
+            } else if(bytes_recieved > 0) {
+                std::vector<uint8_t> answer(bytes_recieved);
+                std::copy(buffer, buffer + bytes_recieved, answer.begin());
+                std::cout << "Получено сообщение от видео-сервера: " << tools::getStringFromBitStream(answer) << std::endl;
+            }
+    }
 }
 
 void streamer::RealTimeVideoStreamer::setConnectionType(streamer::ConnectionType type)

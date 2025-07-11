@@ -31,7 +31,7 @@ JT808Client::JT808Client()
 JT808Client::JT808Client(const TerminalInfo &tInfo, const platform::PlatformInfo &pInfo) :
     terminalInfo(tInfo),platformInfo(pInfo)
 {
-    videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
+//    videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
 
     connectToPlatform();
 }
@@ -305,20 +305,18 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 {
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
-    std::cout << "Отвечаем на запрос с параметрами: " << std::endl;
-    std::cout << "Reply ID = " << header.messageID << std::endl;
-    std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
+    std::cout << "Прилетел запрос: " << header.messageID << std::endl;
 
-    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
-    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
-    unsigned char *message = requestBuffer.data();
-    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-    if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки video general response" << std::endl;
-        return false;
-    } else {
-        std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
-    }
+//    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+//    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+//    unsigned char *message = requestBuffer.data();
+//    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+//    if (bytes_sent == -1) {
+//        std::cerr << "Ошибка отправки video general response" << std::endl;
+//        return false;
+//    } else {
+//        std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
+//    }
 
     std::thread streamThread([this, request]() {
         this->streamVideo(request);
@@ -333,9 +331,9 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
 {
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
-    std::cout << "Отвечаем на запрос с параметрами: " << std::endl;
-    std::cout << "Reply ID = " << header.messageID << std::endl;
-    std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
+//    std::cout << "Отвечаем на запрос с параметрами: " << std::endl;
+//    std::cout << "Reply ID = " << header.messageID << std::endl;
+//    std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
 
     const uint8_t channelNumber = static_cast<int>(request[12]);
     const uint8_t controlInstruction = static_cast<int>(request[13]);
@@ -384,21 +382,27 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
 
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
 {
-    videoStreamer->setRtsp(platformInfo.videoServer.rtspLink);
-    videoStreamer->setTerminalInfo(terminalInfo);
-    videoStreamer->setVideoServerParams(request);
-    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
-        videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
-    else
-        videoStreamer->setConnectionType(streamer::ConnectionType::UDP);
+    streamer::RealTimeVideoStreamer videoStreamer;
 
-    if(videoStreamer->establishConnection()) {
-        videoStreamer->startStreaming();
+    videoStreamer.setRtsp(platformInfo.videoServer.rtspLink);
+    videoStreamer.setTerminalInfo(terminalInfo);
+    videoStreamer.setVideoServerParams(request);
+    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP) {
+        videoStreamer.setConnectionType(streamer::ConnectionType::TCP);
+    }
+    else
+        videoStreamer.setConnectionType(streamer::ConnectionType::UDP);
+
+    if(videoStreamer.establishConnection()) {
+        videoStreamer.startStreaming();
     }
 }
 
 void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)
 {
+    if(socketFd <= 0)
+        return;
+
     unsigned char *message = const_cast<unsigned char *>(request.data());
 
     ssize_t bytes_sent = send(socketFd, message, request.size(), 0);
