@@ -63,7 +63,7 @@ void JT808Client::sendRegistrationRequest()
                 }
                 continue;
             } else {
-                LOG(TRACE) << "Отправлен запрос на регистрацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+                LOG(DEBUG) << "Отправлен запрос на регистрацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
             }
         } else {
             std::cerr << "Сокет закрыт" << std::endl;
@@ -94,7 +94,7 @@ void JT808Client::sendRegistrationRequest()
 
 void JT808Client::parseRegistrationAnswer(std::vector<uint8_t> answer)
 {
-    LOG(TRACE) << "Ответ на запрос регистрации: " << tools::getStringFromBitStream(answer) << std::endl;
+    LOG(DEBUG) << "Ответ на запрос регистрации: " << tools::getStringFromBitStream(answer) << std::endl;
     const uint8_t registrationResult = answer[11];
     if(registrationResult) {
         std::cerr << "Ошибка регистрации: " << std::dec << registrationResult << std::endl;
@@ -162,7 +162,7 @@ void JT808Client::sendAuthenticationRequest()
             continue;
         } else {
             std::cout << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
-            LOG(TRACE) << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+            LOG(DEBUG) << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
         }
 
         bytes_read = read(socketFd, buffer, 1024);
@@ -224,7 +224,7 @@ void JT808Client::sendHeartBeatRequest()
         LOG(DEBUG) << "Ошибка запроса heartbeat" << std::endl;
         return;
     } else {
-        LOG(TRACE) << "Отправлен heartbeat: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+        LOG(DEBUG) << "Отправлен heartbeat: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
 }
 
@@ -239,7 +239,7 @@ void JT808Client::sendTerminalParametersRequest()
         std::cerr << "Ошибка отправки данных" << std::endl;
         return;
     } else {
-        LOG(TRACE) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+        LOG(DEBUG) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
 }
 
@@ -257,7 +257,7 @@ void JT808Client::startPlatformAnswerHandler()
             } else if(bytes_recieved > 0) {
                 std::vector<uint8_t> answer(bytes_recieved);
                 std::copy(buffer, buffer + bytes_recieved, answer.begin());
-                LOG(TRACE) << "Получен запрос от сервера: " << tools::getStringFromBitStream(answer) << std::endl;
+                LOG(DEBUG) << "Получен запрос от сервера: " << tools::getStringFromBitStream(answer) << std::endl;
                 handlePlatformAnswer(answer);
             } else {
                 if(errno != EAGAIN) {
@@ -306,16 +306,16 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
     JT808Header header = headerParser.getHeader(request);
     std::cout << "Прилетел запрос: " << header.messageID << std::endl;
 
-//    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
-//    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
-//    unsigned char *message = requestBuffer.data();
-//    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-//    if (bytes_sent == -1) {
-//        std::cerr << "Ошибка отправки video general response" << std::endl;
-//        return false;
-//    } else {
-//        std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
-//    }
+    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+    unsigned char *message = requestBuffer.data();
+    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+    if (bytes_sent == -1) {
+        std::cerr << "Ошибка отправки video general response" << std::endl;
+        return false;
+    } else {
+        std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
+    }
 
     std::thread streamThread([this, request]() {
         this->streamVideo(request);

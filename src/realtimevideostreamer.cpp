@@ -171,7 +171,6 @@ bool RealTimeVideoStreamer::fillStreamInfo(AVStream *stream, AVCodec **codec, AV
 
 void RealTimeVideoStreamer::startPacketsReading()
 {
-    std::cout << "1" << std::endl;
     AVPacket *input_packet = av_packet_alloc();
     AVFrame *input_frame = av_frame_alloc();
 
@@ -179,10 +178,8 @@ void RealTimeVideoStreamer::startPacketsReading()
         std::cerr << "Ошибка выделения памяти под объект пакета" << std::endl;
         return;
     }
-    std::cout << "2" << std::endl;
 
     int packageNumber = 0;
-    int i = 0;
     std::chrono::system_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::system_clock::time_point startIFrame = std::chrono::high_resolution_clock::now();
 
@@ -190,13 +187,11 @@ void RealTimeVideoStreamer::startPacketsReading()
     isStreamingInProgress = true;
 
     std::vector<std::vector<uint8_t>> packets;
-    std::cout << "3" << std::endl;
 
     while((av_read_frame(decoderFormatContext, input_packet) >= 0) && isStreamingInProgress) {
         if(decoderFormatContext->streams[input_packet->stream_index]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
             continue;
         }
-        std::cout << "4" << std::endl;
 
         avcodec_send_packet(decoderVideoCodecContext, input_packet);
         avcodec_receive_frame(decoderVideoCodecContext, input_frame);
@@ -216,10 +211,11 @@ void RealTimeVideoStreamer::startPacketsReading()
 
         int segments = 0;
         int lastSegmentSize = 0;
-        int packetSize = 940;
-        if(input_packet->buf->size > 940) {
-            segments = (input_packet->buf->size / 940) + 1;
-            lastSegmentSize = input_packet->buf->size % 940;
+        int packetSize = 1400;
+        std::cout << "Получен кадр размером: " << input_packet->buf->size << std::endl;
+        if(input_packet->buf->size > packetSize) {
+            segments = (input_packet->buf->size / packetSize) + 1;
+            lastSegmentSize = input_packet->buf->size % packetSize;
         }
 
         auto stop = std::chrono::high_resolution_clock::now();
@@ -230,6 +226,8 @@ void RealTimeVideoStreamer::startPacketsReading()
         }
         start = std::chrono::high_resolution_clock::now();
 
+
+
         int offset = 0;
         for(int i = 0; i < segments; ++i) {
 
@@ -239,7 +237,6 @@ void RealTimeVideoStreamer::startPacketsReading()
         }
 
         av_packet_unref(input_packet);
-        ++i;
 
         for(int i = 0; i < packets.size(); ++i) {
 
@@ -267,9 +264,8 @@ void RealTimeVideoStreamer::startPacketsReading()
             JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-//            tools::printHexBitStream(requestBuffer);
-            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
-//            sendMessage(requestBuffer);
+//            std::cout << tools::getStringFromBitStream(requestBuffer) << std::endl;
+            sendMessage(requestBuffer);
 
         }
         packets.clear();
@@ -381,10 +377,10 @@ void RealTimeVideoStreamer::startServerAnswerHandler()
             int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
 
             if(bytes_recieved == 0) {
-                std::cout << "Видео-сервер отключился" << std::endl;
-                close(socketFd);
-                isConnected = false;
-                isStreamingInProgress = false;
+//                std::cout << "Видео-сервер отключился" << std::endl;
+//                isConnected = false;
+//                isStreamingInProgress = false;
+//                close(socketFd);
             } else if(bytes_recieved > 0) {
                 std::vector<uint8_t> answer(bytes_recieved);
                 std::copy(buffer, buffer + bytes_recieved, answer.begin());

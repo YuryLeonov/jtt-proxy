@@ -20,19 +20,16 @@ std::vector<uint8_t> JT1078StreamTransmitRequest::getRequest()
     clearMessageStream();
 
     //body
-    const uint32_t frameHeaderID = 0x30;
+    const uint32_t frameHeaderID = 0x30316364;
     tools::addToStdVector(bodyStream, frameHeaderID);
-
 
     uint8_t byte1 = 0;
     //V bits
     tools::setBit(byte1, 7);
-
     //CC bits
     tools::setBit(byte1, 0);
 
     bodyStream.push_back(byte1);
-
 
     uint8_t byte2 = 0;
     if(rtpParams.mMarker)
@@ -94,11 +91,11 @@ std::vector<uint8_t> JT1078StreamTransmitRequest::getRequest()
     //Frame body
     bodyStream.insert(bodyStream.end(), rtpData.begin(), rtpData.end());
 
+    messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
 
+//    setHeader(0x9101);
 
-    setHeader(0x9101);
-
-    formFullMessage();
+//    formFullMessage();
 
     return messageStream;
 }
