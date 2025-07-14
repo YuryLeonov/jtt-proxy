@@ -330,25 +330,22 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
 {
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
-//    std::cout << "Отвечаем на запрос с параметрами: " << std::endl;
-//    std::cout << "Reply ID = " << header.messageID << std::endl;
-//    std::cout << "Serial number = " << header.messageSerialNumber << std::endl;
 
     const uint8_t channelNumber = static_cast<int>(request[12]);
     const uint8_t controlInstruction = static_cast<int>(request[13]);
     const uint8_t closeType = static_cast<int>(request[14]);
     const uint8_t switchStreamType = static_cast<int>(request[15]);
 
-    std::cout << "Channel: " << channelNumber << std::endl;
-    std::cout << "ControlInstruction: " << controlInstruction << std::endl;
-    std::cout << "CloseType: " << closeType << std::endl;
-    std::cout << "SwitchStreamType: " << switchStreamType << std::endl;
+    std::cout << "Channel: " << static_cast<int>(channelNumber) << std::endl;
+    std::cout << "ControlInstruction: " << static_cast<int>(controlInstruction) << std::endl;
+    std::cout << "CloseType: " << static_cast<int>(closeType) << std::endl;
+    std::cout << "SwitchStreamType: " << static_cast<int>(switchStreamType) << std::endl;
     std::cout << std::endl;
 
-//    if(controlInstruction == 0) {
-//        if(videoStreamer->isStreaming())
-//            videoStreamer->stopStreaming();
-//    }
+    if(controlInstruction == 1) {
+        if(videoStreamer->isStreaming())
+            videoStreamer->stopStreaming();
+    }
 
     return true;
 
@@ -382,19 +379,21 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
 void JT808Client::streamVideo(const std::vector<uint8_t> &request)
 {
     std::cout << "Начинаем стриминг..." << std::endl;
-    streamer::RealTimeVideoStreamer videoStreamer;
-    videoStreamer.setRtsp(platformInfo.videoServer.rtspLink);
-    videoStreamer.setTerminalInfo(terminalInfo);
-    videoStreamer.setVideoServerParams(request);
+    if(videoStreamer.use_count() == 0)
+        videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
+    videoStreamer->setRtsp(platformInfo.videoServer.rtspLink);
+    videoStreamer->setTerminalInfo(terminalInfo);
+    videoStreamer->setVideoServerParams(request);
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
-        videoStreamer.setConnectionType(streamer::ConnectionType::TCP);
+        videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
     else
-        videoStreamer.setConnectionType(streamer::ConnectionType::UDP);
+        videoStreamer->setConnectionType(streamer::ConnectionType::UDP);
 
     std::cout << "Параметры стриминга настроены" << std::endl;
-    if(videoStreamer.establishConnection()) {
-        videoStreamer.startStreaming();
+    if(videoStreamer->establishConnection()) {
+        videoStreamer->startStreaming();
     }
+    std::cout << "Поток закрыт" << std::endl;
 }
 
 void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)
