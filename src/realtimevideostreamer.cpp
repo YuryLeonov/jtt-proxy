@@ -211,7 +211,7 @@ void RealTimeVideoStreamer::startPacketsReading()
 
         int segments = 0;
         int lastSegmentSize = 0;
-        int packetSize = 1400;
+        int packetSize = 950;
         std::cout << "Получен кадр размером: " << input_packet->buf->size << std::endl;
         if(input_packet->buf->size > packetSize) {
             segments = (input_packet->buf->size / packetSize) + 1;
@@ -233,6 +233,7 @@ void RealTimeVideoStreamer::startPacketsReading()
 
             std::vector<uint8_t> vec(input_packet->buf->data + offset, input_packet->buf->data + offset + packetSize);
             packets.push_back(vec);
+            offset+= packetSize;
 
         }
 
@@ -249,10 +250,11 @@ void RealTimeVideoStreamer::startPacketsReading()
                     params.subcontractType = rtp::SubcontractType::Last;
                 }
             } else {
-                params.mMarker = false;
                 if(i == 0) {
+                    params.mMarker = true;
                     params.subcontractType = rtp::SubcontractType::First;
                 } else {
+                    params.mMarker = false;
                     params.subcontractType = rtp::SubcontractType::Intermediate;
                 }
             }
@@ -263,8 +265,7 @@ void RealTimeVideoStreamer::startPacketsReading()
 
             JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-
-//            std::cout << tools::getStringFromBitStream(requestBuffer) << std::endl;
+            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
             sendMessage(requestBuffer);
 
         }
