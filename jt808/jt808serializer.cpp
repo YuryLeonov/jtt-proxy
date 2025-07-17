@@ -158,6 +158,9 @@ void JT808EventSerializer::setTerminalStatus()
         terminalStatus.isWestLongitude = true;
     else
         terminalStatus.isWestLongitude = false;
+
+    terminalStatus.isPositioned = true;
+    terminalStatus.isGPSUsing = true;
 }
 
 void JT808EventSerializer::setStateFlag()

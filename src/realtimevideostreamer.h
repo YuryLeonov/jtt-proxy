@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <iostream>
 #include <thread>
-
+#include <mutex>
 #include "TerminalInfo.h"
 
 extern "C" {
@@ -53,11 +53,12 @@ namespace streamer
     class RealTimeVideoStreamer
     {
     public:
-
         RealTimeVideoStreamer() = default;
         ~RealTimeVideoStreamer();
 
-        void setVideoServerParams(const std::vector<uint8_t> &hex);
+        void setVideoServerSocketFd(int fd);
+
+        void setVideoServerParams(const streamer::VideoServerRequisites &r);
         void setRtsp(const std::string &rtsp);
         void setTerminalInfo(const TerminalInfo &tInfo);
         void setConnectionType(ConnectionType type);
@@ -71,8 +72,9 @@ namespace streamer
         void pauseStreaming();
         bool isStreaming();
 
+        bool isConnectionValid();
+
     private:
-        void parseHex(const std::vector<uint8_t> &hex);
 
         bool initDecoder();
         bool fillDecoderVideoStreamInfo();
@@ -86,6 +88,8 @@ namespace streamer
         VideoServerRequisites videoServer;
 
         bool isStreamingInProgress = false;
+
+        std::mutex streamMutex;
 
         int socketFd;
         struct sockaddr_in server_addr;

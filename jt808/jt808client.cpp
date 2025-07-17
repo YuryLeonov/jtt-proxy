@@ -306,22 +306,46 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
     JT808Header header = headerParser.getHeader(request);
     std::cout << "Прилетел запрос: " << header.messageID << std::endl;
 
-    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
-    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
-    unsigned char *message = requestBuffer.data();
-    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-    if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки video general response" << std::endl;
+    streamer::VideoServerRequisites vsRequisites;
+
+    std::vector<uint8_t> body(request.begin() + 13, request.end() - 2);
+    uint8_t offset = 0;
+
+    const int ipLength = static_cast<int>(body[offset++]);
+    offset += ipLength;
+    std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
+
+    vsRequisites.host = tools::hex_bytes_to_string(ipBuffer);
+    vsRequisites.tcpPort = tools::make_uint16(body[offset], body[offset+1]);
+
+    offset+=2;
+    vsRequisites.udpPort = tools::make_uint16(body[offset], body[offset+1]);
+    offset+=2;
+    vsRequisites.channel = body[offset++];
+    vsRequisites.dataType = body[offset++];
+    vsRequisites.streamType = body[offset++];
+    vsRequisites.printInfo();
+
+    if(videoStreamers.count(vsRequisites.channel) > 0) {
+        std::cout << "По этому каналу уже ведется стриминг, игнорируем запрос" << std::endl;
         return false;
-    } else {
-        std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
     }
 
-    std::thread streamThread([this, request]() {
-        this->streamVideo(request);
-    });
-    streamThread.detach();
+    if(isVideoServerConnected || connectToVideoServer(vsRequisites.host, vsRequisites.tcpPort)) {
+        JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+        std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+        unsigned char *message = requestBuffer.data();
+        ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        if (bytes_sent == -1) {
+            std::cerr << "Ошибка отправки video general response" << std::endl;
+            return false;
+        } else {
+            std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
+        }
+    } else
+        return false;
 
+    this->streamVideo(vsRequisites, request);
 
     return true;
 }
@@ -343,8 +367,10 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
     std::cout << std::endl;
 
     if(controlInstruction == 1) {
-        if(videoStreamer->isStreaming())
-            videoStreamer->stopStreaming();
+        if(videoStreamers.count(channelNumber) > 0) {
+            videoStreamers.at(channelNumber)->stopStreaming();
+            videoStreamers.erase(channelNumber);
+        }
     }
 
     return true;
@@ -376,24 +402,28 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
     return true;
 }
 
-void JT808Client::streamVideo(const std::vector<uint8_t> &request)
-{
-    std::cout << "Начинаем стриминг..." << std::endl;
-    if(videoStreamer.use_count() == 0)
-        videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
+void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request)
+{   
+    std::shared_ptr<streamer::RealTimeVideoStreamer> videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
+
+    videoStreamer->setVideoServerSocketFd(videoServerSocketId);
+    videoStreamer->setVideoServerParams(vsRequisites);
     videoStreamer->setRtsp(platformInfo.videoServer.rtspLink);
     videoStreamer->setTerminalInfo(terminalInfo);
-    videoStreamer->setVideoServerParams(request);
+
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
         videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
     else
         videoStreamer->setConnectionType(streamer::ConnectionType::UDP);
 
-    std::cout << "Параметры стриминга настроены" << std::endl;
-    if(videoStreamer->establishConnection()) {
+    videoStreamers[vsRequisites.channel] = videoStreamer;
+
+    std::cout << "Начинаем стриминг по каналу " << static_cast<int>(vsRequisites.channel) << std::endl;
+    std::thread streamerThread([videoStreamer](){
         videoStreamer->startStreaming();
-    }
-    std::cout << "Поток закрыт" << std::endl;
+    });
+    streamerThread.detach();
+
 }
 
 void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)
@@ -409,17 +439,18 @@ void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         std::cerr << "Ошибка отправки данных alarm" << std::endl;
         return;
     } else {
-        std::cout << "Аларм отправлен на платформу!" << std::endl << std::endl;
-//        tools::printHexBitStream(request);
+        std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
+        LOG(TRACE) << "Аларм: ";
+        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
     }
 
-//    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//    if(!isFileUploadingInProgress) {
-//        isFileUploadingInProgress = true;
-//        sendVideoFile("../tests/test.mp4", alarmBody);
-//    } else {
-//        std::cout << "Файл выгружается..." << std::endl;
-//    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if(!isFileUploadingInProgress) {
+        isFileUploadingInProgress = true;
+        sendVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
+    } else {
+        std::cout << "Файл выгружается..." << std::endl;
+    }
 }
 
 void JT808Client::connectToPlatform()
@@ -516,6 +547,68 @@ bool JT808Client::connectIp()
     return true;
 }
 
+bool JT808Client::connectToVideoServer(const std::string &host, int port)
+{
+    videoServerSocketId = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (videoServerSocketId == -1) {
+        std::cerr << "Ошибка подключения к видео-серверу(ошибка создания сокета)" << std::endl;
+        return false;
+    }
+
+    struct timeval timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
+    if(setsockopt(videoServerSocketId, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout))) {
+         std::cerr << "Ошибка установки таймаута переподключения к видео-серверу" << std::endl;
+        return false;
+    }
+
+    if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))) {
+        std::cerr << "Ошибка установки таймаута на чтение из сокета видео-сервера" << std::endl;
+        return false;
+    }
+
+    sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr);
+    if(connect(videoServerSocketId, (sockaddr*)&server_addr, sizeof(server_addr))) {
+        close(videoServerSocketId);
+        std::cerr << "Ошибка подключения к видео-серверу(проверьте реквизиты сервера)" << std::endl;
+        return false;
+    } else {
+         std::cout << "Соединение с видео-сервером установлено(" << videoServerSocketId << ")" << std::endl << std::endl;
+         isVideoServerConnected = true;
+         std::thread videoServerAnswerThread([this](){
+             startVideoServerAnswerHandler();
+         });
+         videoServerAnswerThread.detach();
+
+    }
+
+    return true;
+
+}
+
+void JT808Client::startVideoServerAnswerHandler()
+{
+    while (isVideoServerConnected) {
+            char buffer[1024];
+            int bytes_recieved = recv(videoServerSocketId, buffer, sizeof(buffer), 0);
+
+            if(bytes_recieved == 0) {
+                std::cout << "Видео-сервер отключился" << std::endl;
+                isVideoServerConnected = false;
+                close(videoServerSocketId);
+            } else if(bytes_recieved > 0) {
+                std::vector<uint8_t> answer(bytes_recieved);
+                std::copy(buffer, buffer + bytes_recieved, answer.begin());
+                std::cout << "Получено сообщение от видео-сервера: " << tools::getStringFromBitStream(answer) << std::endl;
+            }
+    }
+}
+
 
 void JT808Client::setTerminalInfo(TerminalInfo info)
 {
@@ -566,10 +659,11 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
 
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     std::cout << "Выгрузка медиафайла..." << std::endl;
     std::vector<std::vector<uint8_t>> chunks = std::move(tools::splitFileIntoChunks(filePath, 470));
+    int size = 0;
     for(int i = 0; i < chunks.size(); ++i) {
         JT808MediaUploadRequest request(terminalInfo, chunks.at(i), alarmBody);
         requestBuffer = std::move(request.getRequest());
@@ -578,12 +672,13 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
         if (bytes_sent == -1) {
             std::cout << "error sending chank" << std::endl;
             continue;
+        } else {
+            size += bytes_sent;
         }
 
-//        std::cout << "Выгружено: " << std::dec << bytes_sent << " байт" << std::endl;
     }
 
-    std::cout << "Файл выгружен!" << std::endl;
+    std::cout << "Файл выгружен!(отправлено " << size << " байт)" << std::endl;
     isFileUploadingInProgress = false;
 }
 

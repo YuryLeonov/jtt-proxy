@@ -14,9 +14,14 @@ RealTimeVideoStreamer::~RealTimeVideoStreamer()
     close(socketFd);
 }
 
-void RealTimeVideoStreamer::setVideoServerParams(const std::vector<uint8_t> &hex)
+void RealTimeVideoStreamer::setVideoServerSocketFd(int fd)
 {
-    parseHex(hex);
+    socketFd = fd;
+}
+
+void RealTimeVideoStreamer::setVideoServerParams(const streamer::VideoServerRequisites &r)
+{
+    videoServer = r;
 }
 
 void RealTimeVideoStreamer::setRtsp(const std::string &rtsp)
@@ -62,29 +67,18 @@ bool RealTimeVideoStreamer::isStreaming()
     return isStreamingInProgress;
 }
 
-void RealTimeVideoStreamer::parseHex(const std::vector<uint8_t> &hex)
+bool RealTimeVideoStreamer::isConnectionValid()
 {
-    std::vector<uint8_t> body(hex.begin() + 13, hex.end() - 2);
-    uint8_t offset = 0;
-
-    const int ipLength = static_cast<int>(body[offset++]);
-    offset += ipLength;
-    std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
-
-    videoServer.host = tools::hex_bytes_to_string(ipBuffer);
-    videoServer.tcpPort = tools::make_uint16(body[offset], body[offset+1]);
-    offset+=2;
-    videoServer.udpPort = tools::make_uint16(body[offset], body[offset+1]);
-    offset+=2;
-    videoServer.channel = body[offset++];
-    videoServer.dataType = body[offset++];
-    videoServer.streamType = body[offset++];
-
-    videoServer.printInfo();
+    if(connType == ConnectionType::TCP)
+        return isConnected;
+    else
+        return true;
 }
 
 bool RealTimeVideoStreamer::initDecoder()
 {
+    av_log_set_level(AV_LOG_QUIET);
+
     decoderFormatContext = avformat_alloc_context();
     if(!decoderFormatContext) {
         std::cerr << "Ошибка выделения памяти под контекста формата для декодера" << std::endl;
@@ -189,6 +183,7 @@ void RealTimeVideoStreamer::startPacketsReading()
     std::vector<std::vector<uint8_t>> packets;
 
     while((av_read_frame(decoderFormatContext, input_packet) >= 0) && isStreamingInProgress) {
+
         if(decoderFormatContext->streams[input_packet->stream_index]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
             continue;
         }
@@ -212,7 +207,6 @@ void RealTimeVideoStreamer::startPacketsReading()
         int segments = 0;
         int lastSegmentSize = 0;
         int packetSize = 950;
-        std::cout << "Получен кадр размером: " << input_packet->buf->size << std::endl;
         if(input_packet->buf->size > packetSize) {
             segments = (input_packet->buf->size / packetSize) + 1;
             lastSegmentSize = input_packet->buf->size % packetSize;
@@ -273,8 +267,8 @@ void RealTimeVideoStreamer::startPacketsReading()
     }
 
     av_packet_free(&input_packet);
-    input_packet = nullptr
-            ;
+    input_packet = nullptr;
+
     av_frame_free(&input_frame);
     input_frame = nullptr;
 
@@ -362,11 +356,11 @@ bool RealTimeVideoStreamer::establishUDPConnection()
 bool RealTimeVideoStreamer::establishConnection()
 {
     if(connType == streamer::ConnectionType::TCP) {
-        std::cout << "Transport TCP" << std::endl;
+        std::cout << "Протокол для передачи видео: TCP" << std::endl;
         return establishTCPConnection();
     }
     else {
-        std::cout << "Transport UDP" << std::endl;
+        std::cout << "Протокол для передачи видео: UDP" << std::endl;
         return establishUDPConnection();
     }
 }
@@ -378,10 +372,10 @@ void RealTimeVideoStreamer::startServerAnswerHandler()
             int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
 
             if(bytes_recieved == 0) {
-//                std::cout << "Видео-сервер отключился" << std::endl;
-//                isConnected = false;
-//                isStreamingInProgress = false;
-//                close(socketFd);
+                std::cout << "Видео-сервер отключился" << std::endl;
+                isConnected = false;
+                isStreamingInProgress = false;
+                close(socketFd);
             } else if(bytes_recieved > 0) {
                 std::vector<uint8_t> answer(bytes_recieved);
                 std::copy(buffer, buffer + bytes_recieved, answer.begin());

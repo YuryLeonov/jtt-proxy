@@ -26,7 +26,7 @@ struct BCDTime {
 struct TerminalStatus
 {
     bool isACCOn = true;
-    bool isPositioned = false;
+    bool isPositioned = true;
     bool isSouthLatitude = false;
     bool isWestLongitude = false;
     bool isRunningStatus = false;
@@ -40,7 +40,7 @@ struct TerminalStatus
     bool isDoor3Opened = false;
     bool isDoor4Opened = false;
     bool isDoor5Opened = false;
-    bool isGPSUsing = false;
+    bool isGPSUsing = true;
     bool isBeidouUsing = false;
     bool isGlonasUsing = false;
     bool isGalileoUsing = false;
@@ -87,7 +87,6 @@ private:
     std::vector<uint8_t> headerStream;
     std::vector<uint8_t> bodyStream;
     uint8_t checkSum;
-
     uint16_t messageSerialNum = 0;
 
     uint32_t alarmFlag = 0x00000000;

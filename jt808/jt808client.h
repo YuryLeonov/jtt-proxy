@@ -6,10 +6,10 @@
 #include "terminalparams.h"
 #include "realtimevideostreamer.h"
 
-#include <vector>
 #include <thread>
 #include <stdexcept>
 #include <memory>
+#include <map>
 
 
 class JT808ConnectionErrorException : public std::runtime_error
@@ -42,6 +42,10 @@ private:
     bool connectDomain();
     bool connectIp();
 
+    bool connectToVideoServer(const std::string &host, int port);
+    void startVideoServerAnswerHandler();
+
+
     void sendVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
     void sendRegistrationRequest();
@@ -60,7 +64,7 @@ private:
     bool parseRealTimeVideoControlRequest(const std::vector<uint8_t> &request);
     bool parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &request);
 
-    void streamVideo(const std::vector<uint8_t> &request);
+    void streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request);
 
     bool isIPAddress(const std::string &socketAddr);
 
@@ -72,6 +76,9 @@ private:
     int socketFd;
     bool isConnected = false;
 
+    int videoServerSocketId;
+    bool isVideoServerConnected = false;
+
     bool isFileUploadingInProgress = false;
 
     bool isAuthenticationKeyExists = false;
@@ -82,7 +89,7 @@ private:
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
 
-    std::shared_ptr<streamer::RealTimeVideoStreamer> videoStreamer;
+    std::map<int, std::shared_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
 
 };
 

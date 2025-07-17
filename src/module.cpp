@@ -63,9 +63,6 @@ void Module::wsClientMessageHandler(const std::string &message)
         return;
     }
 
-//    std::cout << "Получил сообщение от сервера: " << std::endl;
-//    std::cout << message << std::endl;
-
     //Отправка на платформу
     platformConnector.sendAlarmMessage(vec, serializer.getBodyStream());
 }
