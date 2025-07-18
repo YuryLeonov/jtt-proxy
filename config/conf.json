@@ -10,9 +10,9 @@
 		"VIN" : "WVGZZZCAZJC559100"
 	},
 	"eventsServer" : {
-		"serverIP" : "10.2.0.110",
-		"serverPort" : 8111,
-		"eventsTable" : "monitoringdriver_10_2_0_110",
+		"serverIP" : "10.2.0.85",
+		"serverPort" : 8182,
+		"eventsTable" : "monitoringdriver_172_16_10_206",
 		"reconnectTimeout" : 1000,
 		"surveyInterval" : 2000,
 		"videoRootPath" : ""
@@ -23,8 +23,11 @@
 		"heartbeatTimeout" : 5000,
 		"reconnectTimeout" : 5000,
 		"videoserver" : {
-			"transport" : "udp",
-			"rtsp" : ""
+			"transport" : "tcp",
+			"rtsp" : [
+				"rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101",
+				"rtsp://admin:a1234567@10.2.0.15:554/Streaming/Channels/101"
+			]
 		}
 	},
 	"localServer" : {
