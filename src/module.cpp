@@ -10,14 +10,16 @@ Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo
     platformInfo(pInfo),
     eventServerInfo(esInfo)
 {
-    std::cout << "RTSP = " << platformInfo.videoServer.rtspLink << std::endl;
+    std::string protocolTransport = "";
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP) {
-        std::cout << "Transport = TCP" << std::endl;
+        protocolTransport = "TCP";
     } else if(platformInfo.videoServer.connType == platform::ConnectionType::UDP) {
-        std::cout << "Transport = UDP" << std::endl;
+        protocolTransport = "UDP";
     }
-//    initPlatformServer();
-//    initWebSocketClient();
+    std::cout << "Transport for video: " << protocolTransport << std::endl;
+
+//  initPlatformServer();
+//  initWebSocketClient();
     initPlatformClient();
 }
 

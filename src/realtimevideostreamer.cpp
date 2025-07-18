@@ -173,7 +173,7 @@ void RealTimeVideoStreamer::startPacketsReading()
         return;
     }
 
-    int packageNumber = 0;
+    long int packageNumber = 0;
     std::chrono::system_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::system_clock::time_point startIFrame = std::chrono::high_resolution_clock::now();
 
@@ -188,82 +188,87 @@ void RealTimeVideoStreamer::startPacketsReading()
             continue;
         }
 
-        avcodec_send_packet(decoderVideoCodecContext, input_packet);
-        avcodec_receive_frame(decoderVideoCodecContext, input_frame);
-
-        rtp::RTPParams params;
-        params.logicalNumber = videoServer.channel;
-
-        if (input_frame->pict_type == AV_PICTURE_TYPE_I) {
-            params.frameType = rtp::FrameType::IFrame;
-        } else if(input_frame->pict_type == AV_PICTURE_TYPE_P) {
-            params.frameType = rtp::FrameType::PFrame;
-        } else if(input_frame->pict_type == AV_PICTURE_TYPE_B) {
-            params.frameType = rtp::FrameType::BFrame;
-        } else {
-            params.frameType = rtp::FrameType::Undefined;
+        if((packageNumber % 10) == 0) {
+            std::cout << "Стриминг в процессе: " << std::this_thread::get_id() << packageNumber << std::endl;
         }
 
-        int segments = 0;
-        int lastSegmentSize = 0;
-        int packetSize = 950;
-        if(input_packet->buf->size > packetSize) {
-            segments = (input_packet->buf->size / packetSize) + 1;
-            lastSegmentSize = input_packet->buf->size % packetSize;
-        }
+        packageNumber++;
+//        avcodec_send_packet(decoderVideoCodecContext, input_packet);
+//        avcodec_receive_frame(decoderVideoCodecContext, input_frame);
 
-        auto stop = std::chrono::high_resolution_clock::now();
-        params.lastFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-        params.lastIFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - startIFrame).count();
-        if(input_packet->flags & AV_PKT_FLAG_KEY) {
-            startIFrame = std::chrono::high_resolution_clock::now();
-        }
-        start = std::chrono::high_resolution_clock::now();
+//        rtp::RTPParams params;
+//        params.logicalNumber = videoServer.channel;
+
+//        if (input_frame->pict_type == AV_PICTURE_TYPE_I) {
+//            params.frameType = rtp::FrameType::IFrame;
+//        } else if(input_frame->pict_type == AV_PICTURE_TYPE_P) {
+//            params.frameType = rtp::FrameType::PFrame;
+//        } else if(input_frame->pict_type == AV_PICTURE_TYPE_B) {
+//            params.frameType = rtp::FrameType::BFrame;
+//        } else {
+//            params.frameType = rtp::FrameType::Undefined;
+//        }
+
+//        int segments = 0;
+//        int lastSegmentSize = 0;
+//        int packetSize = 950;
+//        if(input_packet->buf->size > packetSize) {
+//            segments = (input_packet->buf->size / packetSize) + 1;
+//            lastSegmentSize = input_packet->buf->size % packetSize;
+//        }
+
+//        auto stop = std::chrono::high_resolution_clock::now();
+//        params.lastFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+//        params.lastIFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - startIFrame).count();
+//        if(input_packet->flags & AV_PKT_FLAG_KEY) {
+//            startIFrame = std::chrono::high_resolution_clock::now();
+//        }
+//        start = std::chrono::high_resolution_clock::now();
 
 
 
-        int offset = 0;
-        for(int i = 0; i < segments; ++i) {
+//        int offset = 0;
+//        for(int i = 0; i < segments; ++i) {
 
-            std::vector<uint8_t> vec(input_packet->buf->data + offset, input_packet->buf->data + offset + packetSize);
-            packets.push_back(vec);
-            offset+= packetSize;
+//            std::vector<uint8_t> vec(input_packet->buf->data + offset, input_packet->buf->data + offset + packetSize);
+//            packets.push_back(vec);
+//            offset+= packetSize;
 
-        }
+//        }
 
-        av_packet_unref(input_packet);
+//        av_packet_unref(input_packet);
 
-        for(int i = 0; i < packets.size(); ++i) {
+//        for(int i = 0; i < packets.size(); ++i) {
 
-            if(i == (segments - 1)) {
-                packetSize = lastSegmentSize;
-                params.mMarker = true;
-                if(segments == 1) {
-                    params.subcontractType = rtp::SubcontractType::Atomic;
-                } else  {
-                    params.subcontractType = rtp::SubcontractType::Last;
-                }
-            } else {
-                if(i == 0) {
-                    params.mMarker = true;
-                    params.subcontractType = rtp::SubcontractType::First;
-                } else {
-                    params.mMarker = false;
-                    params.subcontractType = rtp::SubcontractType::Intermediate;
-                }
-            }
-            params.serialNumber = packageNumber++;
+//            if(i == (segments - 1)) {
+//                packetSize = lastSegmentSize;
+//                params.mMarker = true;
+//                if(segments == 1) {
+//                    params.subcontractType = rtp::SubcontractType::Atomic;
+//                } else  {
+//                    params.subcontractType = rtp::SubcontractType::Last;
+//                }
+//            } else {
+//                if(i == 0) {
+//                    params.mMarker = true;
+//                    params.subcontractType = rtp::SubcontractType::First;
+//                } else {
+//                    params.mMarker = false;
+//                    params.subcontractType = rtp::SubcontractType::Intermediate;
+//                }
+//            }
+//            params.serialNumber = packageNumber++;
 
-            std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
-            params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
+//            std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
+//            params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
 
-            JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
-            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
-            sendMessage(requestBuffer);
+//            JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
+//            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+//            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
+//            sendMessage(requestBuffer);
 
-        }
-        packets.clear();
+//        }
+//        packets.clear();
     }
 
     av_packet_free(&input_packet);
@@ -294,6 +299,26 @@ int RealTimeVideoStreamer::sendMessage(const std::vector<uint8_t> &requestBuffer
 
 }
 
+//bool RealTimeVideoStreamer::establishUDPConnection()
+//{
+//    socketFd = socket(AF_INET, SOCK_DGRAM, 0);
+
+//    if (socketFd == -1) {
+//        std::cerr << "Ошибка подключения к видео-серверу(ошибка создания сокета)" << std::endl;
+//        return false;
+//    }
+
+//    server_addr.sin_family = AF_INET;
+//    server_addr.sin_port = htons(videoServer.udpPort);
+
+//    return true;
+//}
+
+void streamer::RealTimeVideoStreamer::setConnectionType(streamer::ConnectionType type)
+{
+    connType = type;
+}
+
 bool RealTimeVideoStreamer::establishTCPConnection()
 {
     socketFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -316,77 +341,25 @@ bool RealTimeVideoStreamer::establishTCPConnection()
         return false;
     }
 
+    sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(videoServer.tcpPort);
     inet_pton(AF_INET, videoServer.host.c_str(), &server_addr.sin_addr);
-    std::cout << "Попытка подключения к видео-серверу:" << videoServer.host << ":" << std::to_string(videoServer.tcpPort) << std::endl;
     if(connect(socketFd, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(socketFd);
         std::cerr << "Ошибка подключения к видео-серверу(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
-         std::cout << "Соединение с видео-сервером(" << videoServer.host << ":" << std::to_string(videoServer.tcpPort) << ")" << " установлено" << std::endl << std::endl;
+         std::cout << "Соединение с видео-сервером установлено(" << socketFd << ")" << std::endl << std::endl;
          isConnected = true;
-    }
+//         std::thread videoServerAnswerThread([this](){
+//             startVideoServerAnswerHandler();
+//         });
+//         videoServerAnswerThread.detach();
 
-    std::thread serverAnswerThread([this](){
-        startServerAnswerHandler();
-    });
-    serverAnswerThread.detach();
+    }
 
     return true;
-}
-
-bool RealTimeVideoStreamer::establishUDPConnection()
-{
-    socketFd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (socketFd == -1) {
-        std::cerr << "Ошибка подключения к видео-серверу(ошибка создания сокета)" << std::endl;
-        return false;
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(videoServer.udpPort);
-
-    return true;
-
-}
-
-bool RealTimeVideoStreamer::establishConnection()
-{
-    if(connType == streamer::ConnectionType::TCP) {
-        std::cout << "Протокол для передачи видео: TCP" << std::endl;
-        return establishTCPConnection();
-    }
-    else {
-        std::cout << "Протокол для передачи видео: UDP" << std::endl;
-        return establishUDPConnection();
-    }
-}
-
-void RealTimeVideoStreamer::startServerAnswerHandler()
-{
-    while (isConnected) {
-            char buffer[1024];
-            int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
-
-            if(bytes_recieved == 0) {
-                std::cout << "Видео-сервер отключился" << std::endl;
-                isConnected = false;
-                isStreamingInProgress = false;
-                close(socketFd);
-            } else if(bytes_recieved > 0) {
-                std::vector<uint8_t> answer(bytes_recieved);
-                std::copy(buffer, buffer + bytes_recieved, answer.begin());
-                std::cout << "Получено сообщение от видео-сервера: " << tools::getStringFromBitStream(answer) << std::endl;
-            }
-    }
-}
-
-void streamer::RealTimeVideoStreamer::setConnectionType(streamer::ConnectionType type)
-{
-    connType = type;
 }
 
 }

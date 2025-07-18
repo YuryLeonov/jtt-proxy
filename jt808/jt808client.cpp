@@ -269,6 +269,7 @@ void JT808Client::startPlatformAnswerHandler()
 
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
+    std::cout << "Запрос" << std::endl;
     JT808Header header = JT808HeaderParser::getHeader(answer);
     if(header.messageID == 0x8001) {
         parseGeneralResponse(answer);
@@ -278,6 +279,10 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
         parseRealTimeVideoControlRequest(answer);
     } else if(header.messageID == 0x9105) {
         parseRealTimeVideoStatusRequest(answer);
+    } else {
+        std::cout << "Неизвестный запрос: ";
+        std::cout << tools::getStringFromBitStream(answer);
+        LOG(TRACE) << tools::getStringFromBitStream(answer);
     }
 }
 
@@ -331,34 +336,35 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
         return false;
     }
 
-    if(isVideoServerConnected || connectToVideoServer(vsRequisites.host, vsRequisites.tcpPort)) {
-        JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
-        std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
-        unsigned char *message = requestBuffer.data();
-        ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-        if (bytes_sent == -1) {
-            std::cerr << "Ошибка отправки video general response" << std::endl;
-            return false;
-        } else {
-            std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
-        }
-    } else
-        return false;
+//    if(isVideoServerConnected || connectToVideoServer(vsRequisites.host, vsRequisites.tcpPort)) {
+//        JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+//        std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+//        unsigned char *message = requestBuffer.data();
+//        ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+//        if (bytes_sent == -1) {
+//            std::cerr << "Ошибка отправки video general response" << std::endl;
+//            return false;
+//        } else {
+//            std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
+//        }
+//    } else
+//        return false;
 
-    this->streamVideo(vsRequisites, request);
+    streamVideo(vsRequisites, request);
 
     return true;
 }
 
 bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &request)
 {
+    std::cout << tools::getStringFromBitStream(request) << std::endl;
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
 
-    const uint8_t channelNumber = static_cast<int>(request[12]);
-    const uint8_t controlInstruction = static_cast<int>(request[13]);
-    const uint8_t closeType = static_cast<int>(request[14]);
-    const uint8_t switchStreamType = static_cast<int>(request[15]);
+    const uint8_t channelNumber = static_cast<int>(request[13]);
+    const uint8_t controlInstruction = static_cast<int>(request[14]);
+    const uint8_t closeType = static_cast<int>(request[15]);
+    const uint8_t switchStreamType = static_cast<int>(request[16]);
 
     std::cout << "Channel: " << static_cast<int>(channelNumber) << std::endl;
     std::cout << "ControlInstruction: " << static_cast<int>(controlInstruction) << std::endl;
@@ -366,7 +372,7 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
     std::cout << "SwitchStreamType: " << static_cast<int>(switchStreamType) << std::endl;
     std::cout << std::endl;
 
-    if(controlInstruction == 1) {
+    if(controlInstruction == 0) {
         if(videoStreamers.count(channelNumber) > 0) {
             videoStreamers.at(channelNumber)->stopStreaming();
             videoStreamers.erase(channelNumber);
@@ -385,8 +391,8 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
 
     const uint8_t channelNumber = static_cast<int>(request[12]);
     const uint8_t packetLossRate = static_cast<int>(request[13])*100;
-    std::cout << "Channel number = " << channelNumber << std::endl;
-    std::cout << "Packet loss number = " << packetLossRate << std::endl;
+    std::cout << "Channel number = " << static_cast<int>(channelNumber) << std::endl;
+    std::cout << "Packet loss number = " << static_cast<int>(packetLossRate) << std::endl;
 
     JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
     std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
@@ -408,9 +414,8 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
 
     videoStreamer->setVideoServerSocketFd(videoServerSocketId);
     videoStreamer->setVideoServerParams(vsRequisites);
-    videoStreamer->setRtsp(platformInfo.videoServer.rtspLink);
+    videoStreamer->setRtsp(platformInfo.videoServer.rtspLinks.at(videoStreamers.size()));
     videoStreamer->setTerminalInfo(terminalInfo);
-
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
         videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
     else
@@ -419,10 +424,9 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
     videoStreamers[vsRequisites.channel] = videoStreamer;
 
     std::cout << "Начинаем стриминг по каналу " << static_cast<int>(vsRequisites.channel) << std::endl;
-    std::thread streamerThread([videoStreamer](){
+    if(videoStreamer->establishTCPConnection()) {
         videoStreamer->startStreaming();
-    });
-    streamerThread.detach();
+    }
 
 }
 

@@ -2,6 +2,7 @@
 #define PLATFORMINFO_H
 
 #include <string>
+#include <vector>
 
 namespace platform
 {
@@ -13,7 +14,7 @@ namespace platform
 
     struct VideoServer
     {
-        std::string rtspLink = "";
+        std::vector<std::string> rtspLinks;
         ConnectionType connType;
     };
 

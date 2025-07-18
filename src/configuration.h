@@ -26,7 +26,7 @@ struct Configuration
     int platformHeartBeatTimeout = 0;
     int platformReconnectTimeout = 1000;
     std::string videoServerConnectionType = "udp";
-    std::string rtspLink = "";
+    std::vector<std::string> rtspLinks;
 
     std::string localServerHost = "";
     int localServerPort = 8095;
@@ -54,7 +54,7 @@ struct Configuration
         LOG(INFO) << "Platform server heartbeat timeout: " << platformHeartBeatTimeout;
         LOG(INFO) << "Platform reconnect timeout: " << platformReconnectTimeout;
         LOG(INFO) << "Video server connection type: " << videoServerConnectionType;
-        LOG(INFO) << "RTSP link to translate to video server: " << rtspLink;
+//        LOG(INFO) << "RTSP links to translate to video server: " << rtspLinks;
 
         LOG(INFO) << "Local server host: " << localServerHost;
         LOG(INFO) << "Local server port: " << localServerPort;

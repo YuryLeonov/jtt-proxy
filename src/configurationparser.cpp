@@ -55,7 +55,9 @@ Configuration ConfigurationParser::parseConfiguration()
     conf.platformReconnectTimeout = platformJson.at("reconnectTimeout");
     json videoServerJson = platformJson.at("videoserver");
     conf.videoServerConnectionType = videoServerJson.at("transport");
-    conf.rtspLink = videoServerJson.at("rtsp");
+    for(auto &el : videoServerJson["rtsp"]) {
+        conf.rtspLinks.push_back(el);
+    }
 
     json localServerInfoJson = confJson.at("localServer");
     conf.localServerHost = localServerInfoJson.at("host");

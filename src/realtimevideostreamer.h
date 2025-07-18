@@ -65,8 +65,6 @@ namespace streamer
 
         bool establishTCPConnection();
         bool establishUDPConnection();
-        bool establishConnection();
-        void startServerAnswerHandler();
         bool startStreaming();
         void stopStreaming();
         void pauseStreaming();

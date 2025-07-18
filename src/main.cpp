@@ -58,7 +58,7 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     platformInfo.heartBeatTimeout = configuration.platformHeartBeatTimeout;
     platformInfo.reconnectTimeout = configuration.platformReconnectTimeout;
     platform::VideoServer videoServer;
-    videoServer.rtspLink = configuration.rtspLink;
+    videoServer.rtspLinks = std::move(configuration.rtspLinks);
     if(configuration.videoServerConnectionType == "tcp")
         videoServer.connType = platform::ConnectionType::TCP;
     else
