@@ -7,6 +7,7 @@
 #include "jt808mediauploadrequest.h"
 #include "jt808mediauploadeventinforequest.h"
 #include "jt808terminalparametersrequest.h"
+#include "jt1078uploadedresourceslistrequest.h"
 #include "jt808headerparser.h"
 
 #include "tools.h"
@@ -399,27 +400,53 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
 
-    const uint8_t channelNumber = static_cast<int>(request[13]);
-    const uint8_t startYear = tools::from_bcd(static_cast<int>(request[14]));
-    const uint8_t startMonth = tools::from_bcd(static_cast<int>(request[15]));
-    const uint8_t startDay = tools::from_bcd(static_cast<int>(request[16]));
-    const uint8_t startHours = tools::from_bcd(static_cast<int>(request[17]));
-    const uint8_t startMin = tools::from_bcd(static_cast<int>(request[18]));
-    const uint8_t startSec = tools::from_bcd(static_cast<int>(request[19]));
+    UploadedResource resource;
 
-    const uint8_t stopYear = tools::from_bcd(static_cast<int>(request[20]));
-    const uint8_t stopMonth = tools::from_bcd(static_cast<int>(request[21]));
-    const uint8_t stopDay = tools::from_bcd(static_cast<int>(request[22]));
-    const uint8_t stopHours = tools::from_bcd(static_cast<int>(request[23]));
-    const uint8_t stopMin = tools::from_bcd(static_cast<int>(request[24]));
-    const uint8_t stopSec = tools::from_bcd(static_cast<int>(request[25]));
+    resource.channelNumber = static_cast<int>(request[13]);
+    std::cout << "Канал: " << static_cast<int>(resource.channelNumber) << std::endl;
+    resource.startYear = tools::from_bcd(static_cast<int>(request[14]));
+    resource.startMonth = tools::from_bcd(static_cast<int>(request[15]));
+    resource.startDay = tools::from_bcd(static_cast<int>(request[16]));
+    resource.startHour = tools::from_bcd(static_cast<int>(request[17]));
+    resource.startMin = tools::from_bcd(static_cast<int>(request[18]));
+    resource.startSec = tools::from_bcd(static_cast<int>(request[19]));
+
+    resource.stopYear = tools::from_bcd(static_cast<int>(request[20]));
+    resource.stopMonth = tools::from_bcd(static_cast<int>(request[21]));
+    resource.stopDay = tools::from_bcd(static_cast<int>(request[22]));
+    resource.stopHour = tools::from_bcd(static_cast<int>(request[23]));
+    resource.stopMin = tools::from_bcd(static_cast<int>(request[24]));
+    resource.stopSec = tools::from_bcd(static_cast<int>(request[25]));
 
     std::vector<uint8_t> alarmBytes{request[26], request[27], request[28], request[29]};
-    const uint64_t alarmSign = tools::make_uint64(alarmBytes);
+    resource.alarmSign = tools::make_uint64(alarmBytes);
 
-    const uint8_t resourceType = static_cast<int>(request[30]);
-    const uint8_t streamType = static_cast<int>(request[31]);
-    const uint8_t memoryType = static_cast<int>(request[32]);
+    resource.resourceType = static_cast<int>(request[30]);
+    resource.streamType = static_cast<int>(request[31]);
+    resource.memoryType = static_cast<int>(request[32]);
+
+    const std::string filePath = "/opt/lms/mtp-808-proxy/tests/test.mp4";
+    resource.fileSize = std::filesystem::file_size(filePath);
+
+    try {
+        resource.fileSize = std::filesystem::file_size(filePath);
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Ошибка: " << e.what() << std::endl;
+    }
+
+    JT1078UploadedResourcesListRequest answer(header.messageSerialNumber, resource, terminalInfo);
+    std::vector<uint8_t> answerBuffer = std::move(answer.getRequest());
+
+    unsigned char *message = answerBuffer.data();
+    ssize_t bytes_sent = send(socketFd, message, answerBuffer.size(), MSG_NOSIGNAL);
+    if (bytes_sent == -1) {
+        std::cout << "Ошибка отправки данных о видеофайлах" << std::endl;
+        return false;
+    } else {
+        std::cout << "Запрос JT1078UploadedResourcesList отправлен" << std::endl;
+
+    }
+
 
     return true;
 }
@@ -464,13 +491,13 @@ void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if(!isFileUploadingInProgress) {
-        isFileUploadingInProgress = true;
-        sendVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
-    } else {
-        std::cout << "Файл выгружается..." << std::endl;
-    }
+//    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//    if(!isFileUploadingInProgress) {
+//        isFileUploadingInProgress = true;
+//        sendVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
+//    } else {
+//        std::cout << "Файл выгружается..." << std::endl;
+//    }
 
 }
 

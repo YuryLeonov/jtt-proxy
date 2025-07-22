@@ -60,6 +60,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./jt808/jt808mediauploadeventinforequest.h
             ./jt808/jt1078mediatransmissionrequest.h
             ./jt808/jt1078streamtransmitrequest.h
+            ./jt808/jt1078uploadedresourceslistrequest.h
             ./websocket/websocketclient.h
             ./websocket/websocketserver.h
 
@@ -91,6 +92,7 @@ set(SOURCES ./src/main.cpp
             ./jt808/jt808mediauploadeventinforequest.cpp
             ./jt808/jt1078mediatransmissionrequest.cpp
             ./jt808/jt1078streamtransmitrequest.cpp
+            ./jt808/jt1078uploadedresourceslistrequest.cpp
             ./websocket/websocketclient.cpp
             ./websocket/websocketserver.cpp
             ./easylogging/easylogging++.cc)
