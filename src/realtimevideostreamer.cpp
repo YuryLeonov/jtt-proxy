@@ -187,88 +187,82 @@ void RealTimeVideoStreamer::startPacketsReading()
         if(decoderFormatContext->streams[input_packet->stream_index]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
             continue;
         }
+        avcodec_send_packet(decoderVideoCodecContext, input_packet);
+        avcodec_receive_frame(decoderVideoCodecContext, input_frame);
 
-        if((packageNumber % 10) == 0) {
-            std::cout << "Стриминг в процессе: " << std::this_thread::get_id() << packageNumber << std::endl;
+        rtp::RTPParams params;
+        params.logicalNumber = videoServer.channel;
+
+        if (input_frame->pict_type == AV_PICTURE_TYPE_I) {
+            params.frameType = rtp::FrameType::IFrame;
+        } else if(input_frame->pict_type == AV_PICTURE_TYPE_P) {
+            params.frameType = rtp::FrameType::PFrame;
+        } else if(input_frame->pict_type == AV_PICTURE_TYPE_B) {
+            params.frameType = rtp::FrameType::BFrame;
+        } else {
+            params.frameType = rtp::FrameType::Undefined;
         }
 
-        packageNumber++;
-//        avcodec_send_packet(decoderVideoCodecContext, input_packet);
-//        avcodec_receive_frame(decoderVideoCodecContext, input_frame);
+        int segments = 0;
+        int lastSegmentSize = 0;
+        int packetSize = 950;
+        if(input_packet->buf->size > packetSize) {
+            segments = (input_packet->buf->size / packetSize) + 1;
+            lastSegmentSize = input_packet->buf->size % packetSize;
+        }
 
-//        rtp::RTPParams params;
-//        params.logicalNumber = videoServer.channel;
-
-//        if (input_frame->pict_type == AV_PICTURE_TYPE_I) {
-//            params.frameType = rtp::FrameType::IFrame;
-//        } else if(input_frame->pict_type == AV_PICTURE_TYPE_P) {
-//            params.frameType = rtp::FrameType::PFrame;
-//        } else if(input_frame->pict_type == AV_PICTURE_TYPE_B) {
-//            params.frameType = rtp::FrameType::BFrame;
-//        } else {
-//            params.frameType = rtp::FrameType::Undefined;
-//        }
-
-//        int segments = 0;
-//        int lastSegmentSize = 0;
-//        int packetSize = 950;
-//        if(input_packet->buf->size > packetSize) {
-//            segments = (input_packet->buf->size / packetSize) + 1;
-//            lastSegmentSize = input_packet->buf->size % packetSize;
-//        }
-
-//        auto stop = std::chrono::high_resolution_clock::now();
-//        params.lastFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-//        params.lastIFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - startIFrame).count();
-//        if(input_packet->flags & AV_PKT_FLAG_KEY) {
-//            startIFrame = std::chrono::high_resolution_clock::now();
-//        }
-//        start = std::chrono::high_resolution_clock::now();
+        auto stop = std::chrono::high_resolution_clock::now();
+        params.lastFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+        params.lastIFrameInterval = std::chrono::duration_cast<std::chrono::milliseconds>(stop - startIFrame).count();
+        if(input_packet->flags & AV_PKT_FLAG_KEY) {
+            startIFrame = std::chrono::high_resolution_clock::now();
+        }
+        start = std::chrono::high_resolution_clock::now();
 
 
 
-//        int offset = 0;
-//        for(int i = 0; i < segments; ++i) {
+        int offset = 0;
+        for(int i = 0; i < segments; ++i) {
 
-//            std::vector<uint8_t> vec(input_packet->buf->data + offset, input_packet->buf->data + offset + packetSize);
-//            packets.push_back(vec);
-//            offset+= packetSize;
+            std::vector<uint8_t> vec(input_packet->buf->data + offset, input_packet->buf->data + offset + packetSize);
+            packets.push_back(vec);
+            offset+= packetSize;
 
-//        }
+        }
 
-//        av_packet_unref(input_packet);
+        av_packet_unref(input_packet);
 
-//        for(int i = 0; i < packets.size(); ++i) {
+        for(int i = 0; i < packets.size(); ++i) {
 
-//            if(i == (segments - 1)) {
-//                packetSize = lastSegmentSize;
-//                params.mMarker = true;
-//                if(segments == 1) {
-//                    params.subcontractType = rtp::SubcontractType::Atomic;
-//                } else  {
-//                    params.subcontractType = rtp::SubcontractType::Last;
-//                }
-//            } else {
-//                if(i == 0) {
-//                    params.mMarker = true;
-//                    params.subcontractType = rtp::SubcontractType::First;
-//                } else {
-//                    params.mMarker = false;
-//                    params.subcontractType = rtp::SubcontractType::Intermediate;
-//                }
-//            }
-//            params.serialNumber = packageNumber++;
+            if(i == (segments - 1)) {
+                packetSize = lastSegmentSize;
+                params.mMarker = true;
+                if(segments == 1) {
+                    params.subcontractType = rtp::SubcontractType::Atomic;
+                } else  {
+                    params.subcontractType = rtp::SubcontractType::Last;
+                }
+            } else {
+                if(i == 0) {
+                    params.mMarker = true;
+                    params.subcontractType = rtp::SubcontractType::First;
+                } else {
+                    params.mMarker = false;
+                    params.subcontractType = rtp::SubcontractType::Intermediate;
+                }
+            }
+            params.serialNumber = packageNumber++;
 
-//            std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
-//            params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
+            std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
+            params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
 
-//            JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
-//            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-//            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
-//            sendMessage(requestBuffer);
+            JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
+            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
+            sendMessage(requestBuffer);
 
-//        }
-//        packets.clear();
+        }
+        packets.clear();
     }
 
     av_packet_free(&input_packet);

@@ -18,8 +18,7 @@ Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo
     }
     std::cout << "Transport for video: " << protocolTransport << std::endl;
 
-//  initPlatformServer();
-//  initWebSocketClient();
+//    initWebSocketClient();
     initPlatformClient();
 }
 
@@ -73,19 +72,6 @@ void Module::initPlatformClient()
 {
     platformConnector.setConfiguration(terminalInfo, platformInfo);
     platformConnector.connectToPlatform();
-}
-
-void Module::initPlatformServer()
-{
-    platformServer = std::make_unique<JT808Server>(terminalInfo.localServerInfo.host, terminalInfo.localServerInfo.port, terminalInfo.localServerInfo.connectionsCount);
-    platformServer->start();
-    platformServer->setPlatformRequestHandler([this](const std::vector<uint8_t> &answer){
-        handlePlatformAnswer(std::move(answer));
-    });
-    std::thread platformServerThread([this](){
-        platformServer->run();
-    });
-    platformServerThread.detach();
 }
 
 void Module::handlePlatformAnswer(const std::vector<uint8_t> &answer)

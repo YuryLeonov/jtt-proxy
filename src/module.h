@@ -23,7 +23,6 @@ private:
     void initWebSocketClient();
     void wsClientMessageHandler(const std::string &message);
     void initPlatformClient();
-    void initPlatformServer();
 
     void handlePlatformAnswer(const std::vector<uint8_t> &answer);
 

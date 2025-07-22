@@ -269,20 +269,20 @@ void JT808Client::startPlatformAnswerHandler()
 
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
-    std::cout << "Запрос" << std::endl;
     JT808Header header = JT808HeaderParser::getHeader(answer);
     if(header.messageID == 0x8001) {
-        parseGeneralResponse(answer);
+        parseGeneralResponse(std::move(answer));
     } else if(header.messageID == 0x9101){
-        parseRealTimeVideoRequest(answer);
+        parseRealTimeVideoRequest(std::move(answer));
     } else if(header.messageID == 0x9102){
-        parseRealTimeVideoControlRequest(answer);
+        parseRealTimeVideoControlRequest(std::move(answer));
     } else if(header.messageID == 0x9105) {
-        parseRealTimeVideoStatusRequest(answer);
-    } else {
-        std::cout << "Неизвестный запрос: ";
-        std::cout << tools::getStringFromBitStream(answer);
-        LOG(TRACE) << tools::getStringFromBitStream(answer);
+        parseRealTimeVideoStatusRequest(std::move(answer));
+    } else if(header.messageID == 0x9205) {
+        parseArchiveListRequest(std::move(answer));
+    }
+    else {
+        std::cout << "Неизвестный запрос: " << tools::getStringFromBitStream(answer) << std::endl;
     }
 }
 
@@ -307,10 +307,6 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
 
 bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 {
-    JT808HeaderParser headerParser;
-    JT808Header header = headerParser.getHeader(request);
-    std::cout << "Прилетел запрос: " << header.messageID << std::endl;
-
     streamer::VideoServerRequisites vsRequisites;
 
     std::vector<uint8_t> body(request.begin() + 13, request.end() - 2);
@@ -329,28 +325,18 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
     vsRequisites.channel = body[offset++];
     vsRequisites.dataType = body[offset++];
     vsRequisites.streamType = body[offset++];
-    vsRequisites.printInfo();
 
     if(videoStreamers.count(vsRequisites.channel) > 0) {
         std::cout << "По этому каналу уже ведется стриминг, игнорируем запрос" << std::endl;
         return false;
     }
 
-//    if(isVideoServerConnected || connectToVideoServer(vsRequisites.host, vsRequisites.tcpPort)) {
-//        JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
-//        std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
-//        unsigned char *message = requestBuffer.data();
-//        ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-//        if (bytes_sent == -1) {
-//            std::cerr << "Ошибка отправки video general response" << std::endl;
-//            return false;
-//        } else {
-//            std::cout << "Отправлен general response в ответ на запрос видео." << std::endl;
-//        }
-//    } else
-//        return false;
+    if(vsRequisites.channel == 1) {
+        vsRequisites.printInfo();
+        streamVideo(vsRequisites, request);
+    } else
+        return false;
 
-    streamVideo(vsRequisites, request);
 
     return true;
 }
@@ -358,8 +344,6 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &request)
 {
     std::cout << tools::getStringFromBitStream(request) << std::endl;
-    JT808HeaderParser headerParser;
-    JT808Header header = headerParser.getHeader(request);
 
     const uint8_t channelNumber = static_cast<int>(request[13]);
     const uint8_t controlInstruction = static_cast<int>(request[14]);
@@ -404,6 +388,38 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
     } else {
         std::cout << "Отправлен general response в ответ на статус передачи видео." << std::endl;
     }
+
+    return true;
+}
+
+bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
+{
+    std::cout << "Запрос на список архивных данных: " << tools::getStringFromBitStream(request) << std::endl;
+
+    JT808HeaderParser headerParser;
+    JT808Header header = headerParser.getHeader(request);
+
+    const uint8_t channelNumber = static_cast<int>(request[13]);
+    const uint8_t startYear = tools::from_bcd(static_cast<int>(request[14]));
+    const uint8_t startMonth = tools::from_bcd(static_cast<int>(request[15]));
+    const uint8_t startDay = tools::from_bcd(static_cast<int>(request[16]));
+    const uint8_t startHours = tools::from_bcd(static_cast<int>(request[17]));
+    const uint8_t startMin = tools::from_bcd(static_cast<int>(request[18]));
+    const uint8_t startSec = tools::from_bcd(static_cast<int>(request[19]));
+
+    const uint8_t stopYear = tools::from_bcd(static_cast<int>(request[20]));
+    const uint8_t stopMonth = tools::from_bcd(static_cast<int>(request[21]));
+    const uint8_t stopDay = tools::from_bcd(static_cast<int>(request[22]));
+    const uint8_t stopHours = tools::from_bcd(static_cast<int>(request[23]));
+    const uint8_t stopMin = tools::from_bcd(static_cast<int>(request[24]));
+    const uint8_t stopSec = tools::from_bcd(static_cast<int>(request[25]));
+
+    std::vector<uint8_t> alarmBytes{request[26], request[27], request[28], request[29]};
+    const uint64_t alarmSign = tools::make_uint64(alarmBytes);
+
+    const uint8_t resourceType = static_cast<int>(request[30]);
+    const uint8_t streamType = static_cast<int>(request[31]);
+    const uint8_t memoryType = static_cast<int>(request[32]);
 
     return true;
 }
@@ -455,9 +471,10 @@ void JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
     } else {
         std::cout << "Файл выгружается..." << std::endl;
     }
+
 }
 
-void JT808Client::connectToPlatform()
+void JT808Client::  connectToPlatform()
 {
     isAuthenticationKeyExists = checkIfAuthenticationKeyExists();
 
@@ -663,18 +680,19 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
 
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    std::cout << "Выгрузка медиафайла..." << std::endl;
+    static uint32_t multimediaID = 0x00000001;
     std::vector<std::vector<uint8_t>> chunks = std::move(tools::splitFileIntoChunks(filePath, 470));
+    std::cout << "Выгрузка медиафайла(" << chunks.size() << " чанков)..." << std::endl;
     int size = 0;
     for(int i = 0; i < chunks.size(); ++i) {
-        JT808MediaUploadRequest request(terminalInfo, chunks.at(i), alarmBody);
+        JT808MediaUploadRequest request(multimediaID++, terminalInfo, chunks.at(i), alarmBody);
         requestBuffer = std::move(request.getRequest());
         message = requestBuffer.data();
         bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
         if (bytes_sent == -1) {
-            std::cout << "error sending chank" << std::endl;
+            std::cout << "error sending chunk" << std::endl;
             continue;
         } else {
             size += bytes_sent;
