@@ -14,11 +14,6 @@ RealTimeVideoStreamer::~RealTimeVideoStreamer()
     close(socketFd);
 }
 
-void RealTimeVideoStreamer::setVideoServerSocketFd(int fd)
-{
-    socketFd = fd;
-}
-
 void RealTimeVideoStreamer::setVideoServerParams(const streamer::VideoServerRequisites &r)
 {
     videoServer = r;
@@ -53,6 +48,7 @@ bool RealTimeVideoStreamer::startStreaming()
 
 void RealTimeVideoStreamer::stopStreaming()
 {
+    std::cout << "Прекращаем стриминг..." << std::endl;
     isStreamingInProgress = false;
     close(socketFd);
 }
@@ -187,6 +183,11 @@ void RealTimeVideoStreamer::startPacketsReading()
         if(decoderFormatContext->streams[input_packet->stream_index]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
             continue;
         }
+
+        if(packageNumber && (packageNumber % 100 == 0)) {
+            std::cout << "Стриминг по каналу " << static_cast<int>(videoServer.channel) << std::endl;
+        }
+
         avcodec_send_packet(decoderVideoCodecContext, input_packet);
         avcodec_receive_frame(decoderVideoCodecContext, input_frame);
 
@@ -205,7 +206,7 @@ void RealTimeVideoStreamer::startPacketsReading()
 
         int segments = 0;
         int lastSegmentSize = 0;
-        int packetSize = 950;
+        int packetSize = 1400;
         if(input_packet->buf->size > packetSize) {
             segments = (input_packet->buf->size / packetSize) + 1;
             lastSegmentSize = input_packet->buf->size % packetSize;
@@ -218,8 +219,6 @@ void RealTimeVideoStreamer::startPacketsReading()
             startIFrame = std::chrono::high_resolution_clock::now();
         }
         start = std::chrono::high_resolution_clock::now();
-
-
 
         int offset = 0;
         for(int i = 0; i < segments; ++i) {
@@ -258,12 +257,15 @@ void RealTimeVideoStreamer::startPacketsReading()
 
             JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
-            sendMessage(requestBuffer);
+            if(!sendMessage(requestBuffer)) {
+                std::cerr << "Ошибка отправки RTP-пакета" << std::endl;
+            }
 
         }
         packets.clear();
     }
+
+    std::cout << "Стриминг по каналу " << videoServer.channel << "остановлен..." << std::endl;
 
     av_packet_free(&input_packet);
     input_packet = nullptr;
@@ -281,7 +283,16 @@ int RealTimeVideoStreamer::sendMessage(const std::vector<uint8_t> &requestBuffer
 
     if(connType == streamer::ConnectionType::TCP) {
 
-        bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+        bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+
+        if (bytes_sent == -1) {
+            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                while(bytes_sent == -1) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+                }
+            }
+        }
 
     } else {
         bytes_sent = sendto(socketFd, message, requestBuffer.size(),

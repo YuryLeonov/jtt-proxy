@@ -34,9 +34,14 @@ void WebSocketClient::setSurveyInterval(int interval)
     surveyInterval = interval;
 }
 
-void WebSocketClient::setExternalMessageRecievedHandler(const std::function<void (const std::string &)> &f)
+void WebSocketClient::setExternalMessageAlarmHandler(const std::function<void (const std::string &)> &f)
 {
-    externalMessageRecievedHandler = f;
+    externalMessageAlarmHandler = f;
+}
+
+void WebSocketClient::setExternalMessageMediaInfoHandler(const std::function<void (const std::string &)> &f)
+{
+    externalMessageMediaInfoHandler = f;
 }
 
 void WebSocketClient::formServerURI()
@@ -100,13 +105,9 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     }
 
     if(answerInfo.answer == "getAll" && answerInfo.isData/* && answerInfo.mtp == eventInfoMTP*/) {
-//        const std::string time = tools::getPastTime(10);
-//        const std::string getEventMediaInfoRequest = EventRequests::createGetAllRequest(eventMediaInfoMTP, time, "archivewriter_events");
-//        std::cout << "Отправка запроса на информацию о видео события...  " << std::endl;
-//        client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
-        externalMessageRecievedHandler(message->get_payload());
+        externalMessageAlarmHandler(message->get_payload());
     } else if(answerInfo.answer == "getAll" &&  answerInfo.mtp == eventMediaInfoMTP) {
-//        externalMessageRecievedHandler(message->get_payload());
+        externalMessageMediaInfoHandler(message->get_payload());
     }
 }
 
@@ -142,8 +143,9 @@ void WebSocketClient::startPeriodicSurvey()
         if (auto con = currentConnectionHandler.lock()) {
             const std::string time = tools::getPastTime(10);
             const std::string getEventInfoRequest = EventRequests::createGetAllRequest(eventInfoMTP, time, eventsTableName);
-//            std::cout << "Отправка запроса на события после " << time << std::endl;
+            const std::string getEventMediaInfoRequest = EventRequests::createGetAllRequest(eventMediaInfoMTP, time, "archivewriter_events");
             client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
+            client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
         }
 
         startPeriodicSurvey(); // Перезапуск таймера

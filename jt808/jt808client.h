@@ -32,7 +32,8 @@ public:
     void setPlatformInfo(platform::PlatformInfo info);
     void setTerminalParameters();
 
-    void sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody);
+    bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody);
+    void sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
 private:
     bool checkIfAuthenticationKeyExists();
@@ -41,10 +42,6 @@ private:
     void reconnectToHost();
     bool connectDomain();
     bool connectIp();
-
-    bool connectToVideoServer(const std::string &host, int port);
-    void startVideoServerAnswerHandler();
-
 
     void sendVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
@@ -78,10 +75,8 @@ private:
     int socketFd;
     bool isConnected = false;
 
-    int videoServerSocketId;
-    bool isVideoServerConnected = false;
-
     bool isFileUploadingInProgress = false;
+    uint32_t multimediaID = 0x000011001;
 
     bool isAuthenticationKeyExists = false;
     std::vector<uint8_t> authenticationKey;
@@ -91,7 +86,9 @@ private:
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
 
-    std::map<int, std::shared_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
+    std::mutex sendingMessageMutex;
+
+    std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
 
 };
 

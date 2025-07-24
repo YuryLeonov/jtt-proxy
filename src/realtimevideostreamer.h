@@ -56,8 +56,6 @@ namespace streamer
         RealTimeVideoStreamer() = default;
         ~RealTimeVideoStreamer();
 
-        void setVideoServerSocketFd(int fd);
-
         void setVideoServerParams(const streamer::VideoServerRequisites &r);
         void setRtsp(const std::string &rtsp);
         void setTerminalInfo(const TerminalInfo &tInfo);

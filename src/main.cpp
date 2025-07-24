@@ -153,18 +153,18 @@ int main(int argc, char **argv)
     Module module(fullConf.terminalInfo, fullConf.platformInfo, fullConf.eventServerInfo);
 
     //---------Configuration changes watcher------
-    ConfModificationWatcher confWatcher(pathToConf);
-    std::thread confWatcherThread([&confWatcher, &module, &pathToConf](){
-        while(isRunning) {
-            if(confWatcher.checkIfFileWasModified()) {
-                FullConfiguration fullConf = getFullConfiguration(pathToConf);
-                module.setTerminalInfo(fullConf.terminalInfo);
-                module.setPlatformInfo(fullConf.platformInfo);
-                module.setEventServerInfo(fullConf.eventServerInfo);
-            }
-            this_thread::sleep_for(std::chrono::milliseconds(1000));
-        }
-    });
+//    ConfModificationWatcher confWatcher(pathToConf);
+//    std::thread confWatcherThread([&confWatcher, &module, &pathToConf](){
+//        while(isRunning) {
+//            if(confWatcher.checkIfFileWasModified()) {
+//                FullConfiguration fullConf = getFullConfiguration(pathToConf);
+//                module.setTerminalInfo(fullConf.terminalInfo);
+//                module.setPlatformInfo(fullConf.platformInfo);
+//                module.setEventServerInfo(fullConf.eventServerInfo);
+//            }
+//            this_thread::sleep_for(std::chrono::milliseconds(1000));
+//        }
+//    });
 
 //    std::thread watchdogNotofierThread(sdNotify, 10000);
 
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     }
 
 
-    confWatcherThread.join();
+//    confWatcherThread.join();
 //    watchdogNotofierThread.join();
 
     return 0;

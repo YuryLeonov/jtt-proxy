@@ -23,7 +23,8 @@ public:
 
     void setReconnectTimeout(int timeout);
     void setSurveyInterval(int interval);
-    void setExternalMessageRecievedHandler(const std::function<void(const std::string &message)> &f);
+    void setExternalMessageAlarmHandler(const std::function<void(const std::string &message)> &f);
+    void setExternalMessageMediaInfoHandler(const std::function<void(const std::string &message)> &f);
 
     void connect();
 
@@ -60,7 +61,8 @@ private:
     int surveyInterval = 5000;
     std::string serverURI = "";
 
-    std::function<void(const std::string &message)> externalMessageRecievedHandler;
+    std::function<void(const std::string &message)> externalMessageAlarmHandler;
+    std::function<void(const std::string &message)> externalMessageMediaInfoHandler;
 
     std::thread connectionLoopThread;
     websocketpp::connection_hdl currentConnectionHandler;

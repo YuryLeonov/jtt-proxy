@@ -2,23 +2,18 @@
 #include "jt808headerparser.h"
 
 #include "easylogging++.h"
-
 #include "tools.h"
+
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
 
 Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo esInfo) :
     terminalInfo(tInfo),
     platformInfo(pInfo),
     eventServerInfo(esInfo)
 {
-    std::string protocolTransport = "";
-    if(platformInfo.videoServer.connType == platform::ConnectionType::TCP) {
-        protocolTransport = "TCP";
-    } else if(platformInfo.videoServer.connType == platform::ConnectionType::UDP) {
-        protocolTransport = "UDP";
-    }
-    std::cout << "Transport for video: " << protocolTransport << std::endl;
-
-//    initWebSocketClient();
+    initWebSocketClient();
     initPlatformClient();
 }
 
@@ -49,11 +44,12 @@ void Module::initWebSocketClient()
     wsClient = std::make_shared<WebSocketClient>(eventServerInfo.ipAddress, eventServerInfo.port, eventServerInfo.eventsTableName);
     wsClient->setReconnectTimeout(eventServerInfo.reconnectTimeout);
     wsClient->setSurveyInterval(eventServerInfo.surveyInterval);
-    wsClient->setExternalMessageRecievedHandler(std::bind(&Module::wsClientMessageHandler, this, ::_1));
+    wsClient->setExternalMessageAlarmHandler(std::bind(&Module::wsClientMessageAlarmHandler, this, ::_1));
+    wsClient->setExternalMessageMediaInfoHandler(std::bind(&Module::wsClientMessageMediaInfoHandler, this, ::_1));
     wsClient->connect();
 }
 
-void Module::wsClientMessageHandler(const std::string &message)
+void Module::wsClientMessageAlarmHandler(const std::string &message)
 {
     JT808EventSerializer serializer;
     serializer.setTerminalPhoneNumber(terminalInfo.phoneNumber);
@@ -64,8 +60,16 @@ void Module::wsClientMessageHandler(const std::string &message)
         return;
     }
 
+    std::vector<uint8_t> alarmBody = serializer.getBodyStream();
     //Отправка на платформу
-    platformConnector.sendAlarmMessage(vec, serializer.getBodyStream());
+    if(platformConnector.sendAlarmMessage(vec, alarmBody)) {
+        platformConnector.sendAlarmVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
+    }
+}
+
+void Module::wsClientMessageMediaInfoHandler(const std::string &message)
+{
+
 }
 
 void Module::initPlatformClient()

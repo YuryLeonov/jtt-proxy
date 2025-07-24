@@ -6,13 +6,13 @@
 class JT808MediaUploadEventInfoRequest : public JT808MessageFormatter
 {
 public:
-    JT808MediaUploadEventInfoRequest(const TerminalInfo &info);
+    JT808MediaUploadEventInfoRequest(uint32_t mID, const TerminalInfo &info);
     ~JT808MediaUploadEventInfoRequest();
 
     std::vector<uint8_t> getRequest() override;
 
 private:
-    const uint32_t multimediaID = 0x00000100;
+    uint32_t multimediaID = 0x00000100;
 
 };
 

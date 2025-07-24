@@ -24,7 +24,7 @@ std::vector<uint8_t> JT808MediaUploadRequest::getRequest()
     bodyStream.push_back(0x02);
     bodyStream.push_back(0x04);
     bodyStream.push_back(0x01);
-    bodyStream.push_back(0x02);
+    bodyStream.push_back(0x01);
 
     bodyStream.insert(bodyStream.end(), alarmBody.begin(), alarmBody.end());
     bodyStream.insert(bodyStream.end(), chunk.begin(), chunk.end());

@@ -21,7 +21,8 @@ public:
 
 private:
     void initWebSocketClient();
-    void wsClientMessageHandler(const std::string &message);
+    void wsClientMessageAlarmHandler(const std::string &message);
+    void wsClientMessageMediaInfoHandler(const std::string &message);
     void initPlatformClient();
 
     void handlePlatformAnswer(const std::vector<uint8_t> &answer);
