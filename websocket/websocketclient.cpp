@@ -4,6 +4,7 @@
 #include "tools.h"
 
 #include <thread>
+#include <memory>
 
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
@@ -46,7 +47,7 @@ void WebSocketClient::setExternalMessageMediaInfoHandler(const std::function<voi
 
 void WebSocketClient::formServerURI()
 {
-    serverURI = "ws://" + serverHostIP + ":" + std::to_string(serverPort);
+    serverURI = "ws://" + serverHostIP + ":" + std::to_string(serverPort) + "/jsonrpc";
 }
 
 void WebSocketClient::registerHandlers()
@@ -79,6 +80,16 @@ void WebSocketClient::connectionEstablishedHandler(websocketpp::connection_hdl h
 {
     LOG(INFO) << "Установлено соединение вебсокет с сервером: " << serverURI;
     currentConnectionHandler = handler;
+
+    auto token = IDbMessagesHelper::getSavedToken();
+    if(token) {
+        dbMessageHelper = std::make_unique<DbMessagesHelper>(TokenAuth{token.value()});
+    }
+    else {
+        std::cout << "Не задан токен MTP_ES_TOKEN! ";
+        closeConnection();
+        exit(1);
+    }
 
     //Запускаем периодический опрос сервера
     startPeriodicSurvey();
@@ -142,10 +153,10 @@ void WebSocketClient::startPeriodicSurvey()
 
         if (auto con = currentConnectionHandler.lock()) {
             const std::string time = tools::getPastTime(10);
-            const std::string getEventInfoRequest = EventRequests::createGetAllRequest(eventInfoMTP, time, eventsTableName);
-            const std::string getEventMediaInfoRequest = EventRequests::createGetAllRequest(eventMediaInfoMTP, time, "archivewriter_events");
-            client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
-            client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
+//            const std::string getEventInfoRequest = EventRequests::createGetAllRequest(eventInfoMTP, time, eventsTableName);
+//            const std::string getEventMediaInfoRequest = EventRequests::createGetAllRequest(eventMediaInfoMTP, time, "archivewriter_events");
+//            client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
+//            client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
         }
 
         startPeriodicSurvey(); // Перезапуск таймера

@@ -476,7 +476,6 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
         });
         streamThread.detach();
     }
-
 }
 
 bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)

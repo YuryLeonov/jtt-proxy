@@ -6,6 +6,7 @@
 #include "websocketpp/config/asio_no_tls_client.hpp"
 #include "websocketpp/client.hpp"
 #include "eventrequests.h"
+#include "DbMessagesHelper.h"
 
 using wsclient = websocketpp::client<websocketpp::config::asio_client>;
 using message_ptr = websocketpp::config::asio_client::message_type::ptr;
@@ -71,6 +72,8 @@ private:
 
     std::string eventInfoMTP = "b53e1c02-3f8e-3708-995c-6db8c457c356";
     std::string eventMediaInfoMTP = "b53e1c02-3f8e-3708-995c-6db8c457c312";
+
+    std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
 };
 
 #endif // WEBSOCKETCLIENT_H

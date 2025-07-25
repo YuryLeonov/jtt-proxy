@@ -14,7 +14,7 @@ Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo
     eventServerInfo(esInfo)
 {
     initWebSocketClient();
-    initPlatformClient();
+//    initPlatformClient();
 }
 
 Module::~Module()
@@ -69,7 +69,7 @@ void Module::wsClientMessageAlarmHandler(const std::string &message)
 
 void Module::wsClientMessageMediaInfoHandler(const std::string &message)
 {
-
+//    std::cout << message << std::endl;
 }
 
 void Module::initPlatformClient()

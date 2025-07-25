@@ -25,6 +25,7 @@ include_directories(
         ./websocket
         ./jt808
         ./tests
+        ./jsonrpc
     )
 
 set(HEADERS ./nlohmann/json.hpp
@@ -36,11 +37,11 @@ set(HEADERS ./nlohmann/json.hpp
             ./src/tools.h
             ./src/requestsmap.h
             ./src/eventrequests.h
-            ./src/terminalinfo.h
+            ./src/TerminalInfo.h
             ./src/terminalparams.h
             ./src/videoserverinfo.h
             ./src/mediatransmissionparams.h
-            ./src/platforminfo.h
+            ./src/PlatformInfo.h
             ./src/eventserverinfo.h
             ./src/realtimevideostreamer.h
             ./jt808/jt808serializer.h
@@ -63,9 +64,11 @@ set(HEADERS ./nlohmann/json.hpp
             ./jt808/jt1078uploadedresourceslistrequest.h
             ./websocket/websocketclient.h
             ./websocket/websocketserver.h
-
-            ./tests/jt808serializer.h
-            ./tests/jt808requeststest.h
+            ./jsonrpc/DbMessagesHelper.h
+            ./jsonrpc/DbMessagesHelperOld.h
+            ./jsonrpc/EntityError.h
+            ./jsonrpc/files.h
+            ./jsonrpc/uuid.h
             )
 
 set(SOURCES ./src/main.cpp
@@ -95,7 +98,13 @@ set(SOURCES ./src/main.cpp
             ./jt808/jt1078uploadedresourceslistrequest.cpp
             ./websocket/websocketclient.cpp
             ./websocket/websocketserver.cpp
-            ./easylogging/easylogging++.cc)
+            ./easylogging/easylogging++.cc
+            ./jsonrpc/DbMessagesHelper.cpp
+            ./jsonrpc/DbMessagesHelperOld.cpp
+            ./jsonrpc/files.cpp
+            ./jsonrpc/uuid.cpp
+
+            )
 
 
 add_executable(mtp-808-proxy ${SOURCES})
