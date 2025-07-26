@@ -45,6 +45,9 @@ private:
     void connectionClosedHandler(websocketpp::connection_hdl handler);
     void messageHandler(websocketpp::connection_hdl handler, message_ptr message);
 
+    void sendRequestForEvents();
+    void sendRequestForMediaInfo();
+
     void runConnectionThread();
 
     void closeConnection();

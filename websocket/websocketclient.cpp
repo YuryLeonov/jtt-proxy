@@ -112,6 +112,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 {
     const std::string answerMessage = message->get_payload();
     json data = json::parse(answerMessage);
+
     std::optional<std::map<std::string, json> > eventEntities = dbMessageHelper->parseQueryResponse(data,eventInfoMTP);
     std::optional<std::map<std::string, json> > videoEntities = dbMessageHelper->parseQueryResponse(data,eventMediaInfoMTP);
 
@@ -119,10 +120,19 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
         for(const auto &pair : eventEntities.value()) {
             const json eventJson = pair.second;
             std::cout << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
-//            std::cout << "Old: " <<  eventJson.at("timestamp") << std::endl;
-//            std::cout << "New: " << tools::add10MillisecondsToTime(eventJson.at("timestamp"));
+
+            sendRequestForMediaInfo();
+
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
             externalMessageAlarmHandler(eventJson.dump());
+        }
+    }
+
+    if(videoEntities != std::nullopt) {
+        std::cout << "Получена информация о видео для события: " << videoEntities->size() << std::endl;
+        for(const auto &pair : videoEntities.value()) {
+            const json eventJson = pair.second;
+            std::cout << eventJson.dump() << std::endl;
         }
     }
 
@@ -138,7 +148,43 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 //        externalMessageAlarmHandler(message->get_payload());
 //    } else if(answerInfo.answer == "getAll" &&  answerInfo.mtp == eventMediaInfoMTP) {
 //        externalMessageMediaInfoHandler(message->get_payload());
-//    }
+    //    }
+}
+
+void WebSocketClient::sendRequestForEvents()
+{
+    eventInfoMTP = UuId::generate_uuid_v4();
+    const std::string getEventInfoRequest = dbMessageHelper->buildGetRequest(eventInfoMTP,
+                                                                            "event",
+                                                                             std::nullopt,
+                                                                             std::nullopt,
+                                                                             20,
+                                                                             "timestamp",
+                                                                             lastEventTime,
+                                                                             std::nullopt,
+                                                                             std::nullopt,
+                                                                             "asc",
+                                                                             std::nullopt);
+
+    client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
+}
+
+void WebSocketClient::sendRequestForMediaInfo()
+{
+    eventMediaInfoMTP = UuId::generate_uuid_v4();
+    const std::string getEventMediaInfoRequest = dbMessageHelper->buildGetRequest(eventMediaInfoMTP,
+                                                                                  "video",
+                                                                                  std::nullopt,
+                                                                                  std::nullopt,
+                                                                                  20,
+                                                                                  "timestamp-begin",
+                                                                                  lastEventTime,
+                                                                                  std::nullopt,
+                                                                                  std::nullopt,
+                                                                                  "asc",
+                                                                                  std::nullopt);
+
+    client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
 }
 
 void WebSocketClient::runConnectionThread()
@@ -171,33 +217,7 @@ void WebSocketClient::startPeriodicSurvey()
         }
 
         if (auto con = currentConnectionHandler.lock()) {
-            eventInfoMTP = UuId::generate_uuid_v4();
-            const std::string getEventInfoRequest = dbMessageHelper->buildGetRequest(eventInfoMTP,
-                                                                                    "event",
-                                                                                     std::nullopt,
-                                                                                     std::nullopt,
-                                                                                     20,
-                                                                                     "timestamp",
-                                                                                     lastEventTime,
-                                                                                     std::nullopt,
-                                                                                     std::nullopt,
-                                                                                     "asc",
-                                                                                     std::nullopt);
-
-            client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
-
-//            const std::string getEventMediaInfoRequest = dbMessageHelper->buildGetRequest("video",
-//                                                                                          std::nullopt,
-//                                                                                          std::nullopt,
-//                                                                                          20,
-//                                                                                          "timestamp-begin",
-//                                                                                          time,
-//                                                                                          std::nullopt,
-//                                                                                          std::nullopt,
-//                                                                                          "asc",
-//                                                                                          std::nullopt);
-
-//            client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
+            sendRequestForEvents();
         }
 
         startPeriodicSurvey(); // Перезапуск таймера

@@ -490,7 +490,6 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
     } else {
         std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
         tools::printHexBitStream(request);
-        std::cout << tools::getStringFromBitStream(request);
 //        LOG(TRACE) << "Аларм: ";
 //        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
 //        LOG(TRACE) << "**********************";
