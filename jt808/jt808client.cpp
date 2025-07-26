@@ -477,7 +477,7 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
     }
 }
 
-bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody)
+bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request)
 {
     if(socketFd <= 0)
         return false;
@@ -489,18 +489,11 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         return false;
     } else {
         std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
-        tools::printHexBitStream(request);
-//        LOG(TRACE) << "Аларм: ";
-//        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
-//        LOG(TRACE) << "**********************";
+        LOG(TRACE) << "Аларм: ";
+        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
+        LOG(TRACE) << "**********************";
         return true;
     }
-
-//    std::thread uploadVideoThread(&JT808Client::sendVideoFile, this,  "/opt/lms/mtp-808-proxy/tests/test.mp4", std::move(alarmBody));
-//    uploadVideoThread.detach();
-
-//    sendVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", std::move(alarmBody));
-
 }
 
 void JT808Client::sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody)

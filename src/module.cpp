@@ -4,6 +4,8 @@
 #include "easylogging++.h"
 #include "tools.h"
 
+#include <filesystem>
+
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
@@ -60,16 +62,24 @@ void Module::wsClientMessageAlarmHandler(const std::string &message)
         return;
     }
 
-    std::vector<uint8_t> alarmBody = serializer.getBodyStream();
+    currentAlarmBody = serializer.getBodyStream();
     //Отправка на платформу
-    if(platformConnector.sendAlarmMessage(vec, alarmBody)) {
-//        platformConnector.sendAlarmVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
-    }
+    platformConnector.sendAlarmMessage(vec);
 }
 
 void Module::wsClientMessageMediaInfoHandler(const std::string &message)
 {
-//    std::cout << message << std::endl;
+    json data = json::parse(message);
+
+//    const std::string pathToVideo = data.at("path2video");
+      const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/test.mp4";
+    if(!std::filesystem::exists(pathToVideo)) {
+        std::cerr << "Не найден видео файл " << pathToVideo << std::endl;
+        return;
+    }
+
+    platformConnector.sendAlarmVideoFile(pathToVideo, currentAlarmBody);
+
 }
 
 void Module::initPlatformClient()

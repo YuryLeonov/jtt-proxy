@@ -32,7 +32,7 @@ public:
     void setPlatformInfo(platform::PlatformInfo info);
     void setTerminalParameters();
 
-    bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &alarmBody);
+    bool sendAlarmMessage(const std::vector<uint8_t> &request);
     void sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
 private:
