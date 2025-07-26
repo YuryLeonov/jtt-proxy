@@ -255,17 +255,20 @@ void RealTimeVideoStreamer::startPacketsReading()
             std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
             params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
 
-            JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
-            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-            if(!sendMessage(requestBuffer)) {
-                std::cerr << "Ошибка отправки RTP-пакета" << std::endl;
-            }
+//            if(videoServer.channel == 1) {
+
+                JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
+                std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+                if(!sendMessage(requestBuffer)) {
+                    std::cerr << "Ошибка отправки RTP-пакета" << std::endl;
+                }
+//            }
 
         }
         packets.clear();
     }
 
-    std::cout << "Стриминг по каналу " << videoServer.channel << "остановлен..." << std::endl;
+    std::cout << "Стриминг по каналу " << static_cast<int>(videoServer.channel) << "остановлен..." << std::endl;
 
     av_packet_free(&input_packet);
     input_packet = nullptr;

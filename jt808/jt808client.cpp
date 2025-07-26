@@ -159,12 +159,16 @@ void JT808Client::sendAuthenticationRequest()
         bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
         if (bytes_sent == -1) {
             std::cerr << "Ошибка отправки запроса на авторизацию." << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(30000));
-            continue;
-        } else {
-            std::cout << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
-            LOG(DEBUG) << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                while(bytes_sent == -1) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    std::cout << "Повторная отправка запроса на авторизацию..." << std::endl;
+                    bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+                }
+            }
         }
+
+        std::cout << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
 
         bytes_read = read(socketFd, buffer, 1024);
         if (bytes_read <= 0) {
@@ -237,11 +241,18 @@ void JT808Client::sendTerminalParametersRequest()
     unsigned char *message = requestBuffer.data();
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
     if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки данных" << std::endl;
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            while(bytes_sent == -1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::cout << "Повторная отправка параметров терминала..." << std::endl;
+                bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+            }
+        }
         return;
-    } else {
-        LOG(DEBUG) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
+
+    LOG(DEBUG) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+
 }
 
 void JT808Client::startPlatformAnswerHandler()
@@ -336,7 +347,7 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
         return false;
     }
 
-    if(vsRequisites.channel == 1/* || vsRequisites.channel == 2*/) {
+    if(vsRequisites.channel == 1 || vsRequisites.channel == 2) {
         vsRequisites.printInfo();
         streamVideo(vsRequisites, request);
     } else
@@ -459,7 +470,8 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
     std::unique_ptr<streamer::RealTimeVideoStreamer> videoStreamer = std::make_unique<streamer::RealTimeVideoStreamer>();
 
     videoStreamer->setVideoServerParams(vsRequisites);
-    videoStreamer->setRtsp(platformInfo.videoServer.rtspLinks.at(videoStreamers.size()));
+//    videoStreamer->setRtsp(platformInfo.videoServer.rtspLinks.at(videoStreamers.size()));
+    videoStreamer->setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
     videoStreamer->setTerminalInfo(terminalInfo);
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
         videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
@@ -486,14 +498,20 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request)
     ssize_t bytes_sent = send(socketFd, message, request.size(), 0);
     if (bytes_sent == -1) {
         std::cerr << "Ошибка отправки данных alarm" << std::endl;
-        return false;
-    } else {
-        std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
-        LOG(TRACE) << "Аларм: ";
-        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
-        LOG(TRACE) << "**********************";
-        return true;
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            while(bytes_sent == -1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::cout << "Повторная отправка аларма..." << std::endl;
+                bytes_sent = send(socketFd, message, request.size(), MSG_NOSIGNAL);
+            }
+        }
     }
+
+    std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
+    LOG(TRACE) << "Аларм: ";
+    LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
+    LOG(TRACE) << "**********************";
+    return true;
 }
 
 void JT808Client::sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody)
@@ -641,13 +659,20 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
     if (bytes_sent == -1) {
         std::cout << "Ошибка запроса на передачу информации о медиафайле" << std::endl;
-        return;
-    } else {
-        std::cout << "Запрос JT808MediaUploadEventInfo отправлен" << std::endl;
-        LOG(TRACE) << "MediaInfo:";
-        LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
-        LOG(TRACE) << "************************";
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            while(bytes_sent == -1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::cout << "Повторная отправка запроса на передачу информации о медиафайле..." << std::endl;
+                bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+            }
+        }
     }
+
+    std::cout << "Запрос JT808MediaUploadEventInfo отправлен" << std::endl;
+    LOG(TRACE) << "MediaInfo:";
+    LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
+    LOG(TRACE) << "************************";
+
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -668,13 +693,14 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
                 }
             }
             continue;
-        } else {
-            if(i == 0 || i == 20) {
-                LOG(TRACE) << "Chunk:";
-                LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
-            }
-            size += bytes_sent;
         }
+
+        if(i == 0 || i == 20) {
+            LOG(TRACE) << "Chunk:";
+            LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
+        }
+        size += bytes_sent;
+
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
