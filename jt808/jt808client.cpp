@@ -451,7 +451,6 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
 
     }
 
-
     return true;
 }
 
@@ -490,9 +489,11 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         return false;
     } else {
         std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
-        LOG(TRACE) << "Аларм: ";
-        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
-        LOG(TRACE) << "**********************";
+        tools::printHexBitStream(request);
+        std::cout << tools::getStringFromBitStream(request);
+//        LOG(TRACE) << "Аларм: ";
+//        LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
+//        LOG(TRACE) << "**********************";
         return true;
     }
 

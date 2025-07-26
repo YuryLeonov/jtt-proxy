@@ -59,7 +59,8 @@ public:
     virtual JSON buildDeleteRequest(const std::string& declaration,
                           const std::vector<std::string> &entityListId) const = 0;
 
-    virtual JSON buildGetRequest(
+    virtual std::string buildGetRequest(
+        const std::string &uuid,
         const std::string& declaration,
         const std::optional<std::vector<std::string>>& entityListId       = std::nullopt,
         const std::optional<int>& offset                                  = std::nullopt,

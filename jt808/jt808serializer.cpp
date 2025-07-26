@@ -33,28 +33,28 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::strin
 std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 {
     eventJson = j;
-    if(eventJson["data"].is_array() && !eventJson["data"].empty()) {
-        setEventData();
-        setTerminalStatus();
-        setAlarmFlag();
-        setStateFlag();
 
-        fillAlarmFlag();
-        fillStateFlag();
-        fillEventDada();
+    setEventData();
+    setTerminalStatus();
+    setAlarmFlag();
+    setStateFlag();
 
-        setHeader();
-        messageStream.clear();
+    fillAlarmFlag();
+    fillStateFlag();
+    fillEventDada();
 
-        messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
-        messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
-        tools::replaceByteInVectorWithTwo(messageStream, 0x7d, 0x7d, 0x01);
-        tools::replaceByteInVectorWithTwo(messageStream, 0x7e, 0x7d, 0x02);
-        setCheckSum();
+    setHeader();
+    messageStream.clear();
 
-        addStartByte();
-        addStopByte();
-    }
+    messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
+    messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
+    tools::replaceByteInVectorWithTwo(messageStream, 0x7d, 0x7d, 0x01);
+    tools::replaceByteInVectorWithTwo(messageStream, 0x7e, 0x7d, 0x02);
+    setCheckSum();
+
+    addStartByte();
+    addStopByte();
+
 
     return messageStream;
 }
@@ -83,8 +83,8 @@ void JT808EventSerializer::  setAlarmFlag()
 {
     alarmFlag = 0;
 
-    for(const auto &event: eventJson["data"]) {
-        const int eventID = event.at("event_type");
+//    for(const auto &event: eventJson["data"]) {
+        const int eventID = eventJson.at("event_type");
         switch(eventID) {
             case 1 :
                 tools::setBit(alarmFlag, 3);
@@ -138,7 +138,7 @@ void JT808EventSerializer::  setAlarmFlag()
                 tools::setBit(alarmFlag, 11);
                 break;
         }
-    }
+//    }
 
 }
 
@@ -224,10 +224,8 @@ void JT808EventSerializer::fillStateFlag()
 
 void JT808EventSerializer::setEventData()
 {
-    const json event = eventJson["data"][0];
-
     //Coordinates
-    const std::string gps = event.at("gps");
+    const std::string gps = eventJson.at("gps");
     std::vector<std::string> coordinates = tools::split(gps, ',');
     try {
         latitude = static_cast<int32_t>(std::stod(coordinates.at(0))*1000000);
@@ -242,13 +240,13 @@ void JT808EventSerializer::setEventData()
     direction = 100;
 
     //speed
-    const int8_t s = event.at("speed");
+    const int8_t s = eventJson.at("speed");
     if(s >= 0) {
         speed = static_cast<uint16_t>(s);
     }
 
     //Time
-    const std::string timestamp = event.at("timestamp");
+    const std::string timestamp = eventJson.at("timestamp");
     std::vector<std::string> splittedTimestamp = tools::split(timestamp, ' ');
     const std::string dateStr = splittedTimestamp.at(0);
     const std::string timeStr = splittedTimestamp.at(1);

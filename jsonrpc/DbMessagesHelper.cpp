@@ -54,11 +54,11 @@ JSON DbMessagesHelper::buildDeleteRequest(const std::string &declaration, const 
     return j;
 }
 
-JSON DbMessagesHelper::buildGetRequest(const std::string &declaration, const std::optional<std::vector<std::string> > &entityListId, const std::optional<int> &offset, const std::optional<int> &limit, const std::optional<std::string> &attribute, const std::optional<JSON> &minValue, const std::optional<JSON> &maxValue, const std::optional<JSON> &value, const std::optional<std::string> &order, const std::optional<JSON> &schema) const
+std::string DbMessagesHelper::buildGetRequest(const std::string &uuid, const std::string &declaration, const std::optional<std::vector<std::string> > &entityListId, const std::optional<int> &offset, const std::optional<int> &limit, const std::optional<std::string> &attribute, const std::optional<JSON> &minValue, const std::optional<JSON> &maxValue, const std::optional<JSON> &value, const std::optional<std::string> &order, const std::optional<JSON> &schema) const
 {
     JSON j;
     j["jsonrpc"] = "2.0";
-    std::string id = UuId::generate_uuid_v4();
+    std::string id = uuid;
     j["id"]      = id;
     j["method"]  = "query";
 
@@ -83,7 +83,7 @@ JSON DbMessagesHelper::buildGetRequest(const std::string &declaration, const std
 
     j["params"] = params;
     recordRequestId(id);
-    return j;
+    return j.dump();
 }
 
 bool DbMessagesHelper::isSuccessResponse(const JSON &response, const std::optional<std::string> &expectedId) const

@@ -71,6 +71,7 @@ private:
     std::shared_ptr<websocketpp::lib::asio::steady_timer> surveyTimer;
 
     std::string eventInfoMTP = "b53e1c02-3f8e-3708-995c-6db8c457c356";
+    std::string lastEventTime = "";
     std::string eventMediaInfoMTP = "b53e1c02-3f8e-3708-995c-6db8c457c312";
 
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;

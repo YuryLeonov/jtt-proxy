@@ -51,6 +51,8 @@ namespace tools {
     std::vector<uint8_t> getUint8VectorFromString(const std::string &str);
 
     const std::string getPastTime(int seconds);
+    const std::string addSecondsToTime(const std::string &time, int secs);
+    const std::string add10MillisecondsToTime(const std::string &time);
 
     uint8_t calculateChecksum(const std::vector<uint8_t>& data);
 

@@ -14,7 +14,7 @@ Module::Module(TerminalInfo tInfo, platform::PlatformInfo pInfo, EventServerInfo
     eventServerInfo(esInfo)
 {
     initWebSocketClient();
-//    initPlatformClient();
+    initPlatformClient();
 }
 
 Module::~Module()
@@ -63,7 +63,7 @@ void Module::wsClientMessageAlarmHandler(const std::string &message)
     std::vector<uint8_t> alarmBody = serializer.getBodyStream();
     //Отправка на платформу
     if(platformConnector.sendAlarmMessage(vec, alarmBody)) {
-        platformConnector.sendAlarmVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
+//        platformConnector.sendAlarmVideoFile("/opt/lms/mtp-808-proxy/tests/test.mp4", alarmBody);
     }
 }
 

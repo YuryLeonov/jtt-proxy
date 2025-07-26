@@ -222,7 +222,41 @@ namespace tools {
                (static_cast<uint64_t>(bytes[4]) << 24) |
                (static_cast<uint64_t>(bytes[5]) << 16) |
                (static_cast<uint64_t>(bytes[6]) << 8) |
-               static_cast<uint64_t>(bytes[7]);
+                static_cast<uint64_t>(bytes[7]);
+    }
+
+    const std::string addSecondsToTime(const std::string &timeStr, int secs)
+    {
+        std::tm tm = {};
+        std::istringstream ss(timeStr);
+        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+
+        if (ss.fail()) {
+            throw std::runtime_error("Failed to parse time string");
+        }
+
+        // Преобразование std::tm в time_t, затем в time_point
+        std::time_t time = std::mktime(&tm);
+        auto point = std::chrono::system_clock::from_time_t(time) + std::chrono::seconds(secs);
+
+        std::time_t newTime = std::chrono::system_clock::to_time_t(point);
+        std::stringstream new_ss;
+        new_ss << std::put_time(std::localtime(&newTime), "%Y-%m-%d %H:%M:%S.%M");
+
+        return new_ss.str();
+    }
+
+    const std::string add10MillisecondsToTime(const std::string &time)
+    {
+        std::vector<std::string> v = tools::split(time, '.');
+        int msecs = std::stoi(v.at(1));
+        msecs += 10;
+        if(msecs < 1000) {
+            return v.at(0) + "." + std::to_string(msecs);
+        } else {
+            std::string newTime = tools::addSecondsToTime(v.at(0), 1);
+            return tools::split(newTime, '.').at(0) + ".000";
+        }
     }
 
 }

@@ -34,9 +34,9 @@ JSON DbMessagesHelperOld::buildDeleteRequest(const std::string &declaration, con
     return JSON {};
 }
 
-JSON DbMessagesHelperOld::buildGetRequest(const std::string &declaration, const std::optional<std::vector<std::string> > &entityListId, const std::optional<int> &offset, const std::optional<int> &limit, const std::optional<std::string> &attribute, const std::optional<JSON> &minValue, const std::optional<JSON> &maxValue, const std::optional<JSON> &value, const std::optional<std::string> &order, const std::optional<JSON> &schema) const
+std::string DbMessagesHelperOld::buildGetRequest(const std::string &uuid,  const std::string &declaration, const std::optional<std::vector<std::string> > &entityListId, const std::optional<int> &offset, const std::optional<int> &limit, const std::optional<std::string> &attribute, const std::optional<JSON> &minValue, const std::optional<JSON> &maxValue, const std::optional<JSON> &value, const std::optional<std::string> &order, const std::optional<JSON> &schema) const
 {
-    return JSON {};
+    return "";
 }
 
 bool DbMessagesHelperOld::isSuccessResponse(const JSON &response, const std::optional<std::string> &expectedId) const
