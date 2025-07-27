@@ -455,6 +455,30 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
 bool JT808Client::parseVideoPlaybackRequest(const std::vector<uint8_t> &request)
 {
     LOG(INFO) << "Получен запрос на воспроизведение архивного видео: " << tools::getStringFromBitStream(request);
+
+    streamer::VideoServerRequisites vsRequisites;
+
+    std::vector<uint8_t> body(request.begin() + 13, request.end() - 2);
+    uint8_t offset = 0;
+
+    const int ipLength = static_cast<int>(body[offset++]);
+    offset += ipLength;
+    std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
+
+    vsRequisites.host = tools::hex_bytes_to_string(ipBuffer);
+    vsRequisites.tcpPort = tools::make_uint16(body[offset], body[offset+1]);
+
+    offset+=2;
+    vsRequisites.udpPort = tools::make_uint16(body[offset], body[offset+1]);
+    offset+=2;
+    vsRequisites.channel = body[offset++];
+    vsRequisites.dataType = body[offset++];
+    vsRequisites.streamType = body[offset++];
+
+    const uint8_t memoryType = body[offset++];
+    const uint8_t playbackmethod = body[offset++];
+
+    return true;
 }
 
 void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request)
