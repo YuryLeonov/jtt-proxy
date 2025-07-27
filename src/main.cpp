@@ -6,18 +6,8 @@
 #include "module.h"
 #include "TerminalInfo.h"
 #include "PlatformInfo.h"
-#include "eventserverinfo.h"
-#include "eventrequests.h"
-#include "tools.h"
-#include "tests/jt808serializertest.h"
-#include "tests/jt808requeststest.h"
-#include "jt808client.h"
 #include <csignal>
 #include <systemd/sd-daemon.h>
-
-#include "realtimevideostreamer.h"
-
-//#define REQUESTTEST
 
 struct FullConfiguration
 {
@@ -124,17 +114,6 @@ int main(int argc, char **argv)
 {
     signal(SIGINT, signalHandler);
 
-
-#ifdef REQUESTTEST
-    uint8_t byte = 0;
-    tools::setBit(byte, 7);
-    tools::setBit(byte, 0);
-
-    std::cout << static_cast<int>(byte) << std::endl;
-
-    return 0;
-#endif
-
     //--------Logger settings--------------------
     setLogger();
 
@@ -169,6 +148,7 @@ int main(int argc, char **argv)
 //    std::thread watchdogNotofierThread(sdNotify, 10000);
 
     while(isRunning) {
+
     }
 
 

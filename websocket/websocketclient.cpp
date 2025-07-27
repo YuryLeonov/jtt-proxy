@@ -104,7 +104,7 @@ void WebSocketClient::connectionFailedHandler(websocketpp::connection_hdl handle
 
 void WebSocketClient::connectionClosedHandler(websocketpp::connection_hdl handler)
 {
-    LOG(INFO) << "Соединение вебсокет с сервером закрыто: " << serverURI;
+    LOG(INFO) << "Закрыто соединение вебсокет с сервером " << serverURI;
     surveyTimer->cancel();
 }
 
@@ -119,7 +119,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     if(eventEntities != std::nullopt) {
         for(const auto &pair : eventEntities.value()) {
             const json eventJson = pair.second;
-            std::cout << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
+            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
 
             sendRequestForMediaInfo();
 
@@ -175,7 +175,7 @@ void WebSocketClient::sendRequestForMediaInfo()
 void WebSocketClient::runConnectionThread()
 {
     while(true) {
-        std::cout << "Trying to connect to server " << serverURI;
+        LOG(INFO) << "Trying to connect to server " << serverURI;
         setConnection();
         client.run();
         client.reset();
@@ -194,9 +194,9 @@ void WebSocketClient::startPeriodicSurvey()
     surveyTimer->async_wait([this](const auto& ec) {
         if (ec) {
             if (ec == websocketpp::lib::asio::error::operation_aborted) {
-                std::cout << "Timer stopped." << std::endl;
+                LOG(INFO) << "Остановлен таймер опроса клиента БД" << std::endl;
             } else {
-                std::cerr << "Timer error: " << ec.message() << std::endl;
+                LOG(ERROR) << "Timer error: " << ec.message() << std::endl;
             }
             return;
         }

@@ -4,6 +4,8 @@
 #include <fstream>
 #include <thread>
 
+#include "easylogging++.h"
+
 JT808AuthenticationKeyFinder::JT808AuthenticationKeyFinder()
 {
 
@@ -45,16 +47,11 @@ void FileJT808AuthenticationKeyFinder::findKey()
 
     std::ifstream file(filePath, std::ios::binary);
     if(!file) {
-        std::cerr << "Ошибка открытия файла ключа авторизации на платформе" << std::endl;
+        LOG(ERROR) << "Ошибка открытия файла ключа авторизации на платформе" << std::endl;
         return;
     }
 
     const size_t fileSize = std::filesystem::file_size(filePath);
-
-//    if(!fileSize) {
-//        std::cerr << "Файл с ключом авторизации пуст" << std::endl;
-//        return;
-//    }
 
     key.clear();
 

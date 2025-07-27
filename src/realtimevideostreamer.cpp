@@ -165,7 +165,7 @@ void RealTimeVideoStreamer::startPacketsReading()
     AVFrame *input_frame = av_frame_alloc();
 
     if (!input_packet) {
-        std::cerr << "Ошибка выделения памяти под объект пакета" << std::endl;
+        LOG(ERROR) << "Ошибка выделения памяти под объект пакета" << std::endl;
         return;
     }
 
@@ -185,7 +185,7 @@ void RealTimeVideoStreamer::startPacketsReading()
         }
 
         if(packageNumber && (packageNumber % 100 == 0)) {
-            std::cout << "Стриминг по каналу " << static_cast<int>(videoServer.channel) << std::endl;
+            LOG(DEBUG) << "Стриминг по каналу " << static_cast<int>(videoServer.channel) << std::endl;
         }
 
         avcodec_send_packet(decoderVideoCodecContext, input_packet);
@@ -260,7 +260,7 @@ void RealTimeVideoStreamer::startPacketsReading()
                 JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
                 std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
                 if(!sendMessage(requestBuffer)) {
-                    std::cerr << "Ошибка отправки RTP-пакета" << std::endl;
+                    LOG(ERROR) << "Ошибка отправки RTP-пакета" << std::endl;
                 }
 //            }
 
@@ -268,7 +268,7 @@ void RealTimeVideoStreamer::startPacketsReading()
         packets.clear();
     }
 
-    std::cout << "Стриминг по каналу " << static_cast<int>(videoServer.channel) << "остановлен..." << std::endl;
+    LOG(INFO) << "Стриминг по каналу " << static_cast<int>(videoServer.channel) << " остановлен..." << std::endl;
 
     av_packet_free(&input_packet);
     input_packet = nullptr;
@@ -332,7 +332,7 @@ bool RealTimeVideoStreamer::establishTCPConnection()
     socketFd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (socketFd == -1) {
-        std::cerr << "Ошибка подключения к видео-серверу(ошибка создания сокета)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к видео-серверу(ошибка создания сокета)" << std::endl;
         return false;
     }
 
@@ -340,12 +340,12 @@ bool RealTimeVideoStreamer::establishTCPConnection()
     timeout.tv_sec = 5;
     timeout.tv_usec = 0;
     if(setsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout))) {
-         std::cerr << "Ошибка установки таймаута переподключения к видео-серверу" << std::endl;
+         LOG(ERROR) << "Ошибка установки таймаута переподключения к видео-серверу" << std::endl;
         return false;
     }
 
     if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))) {
-        std::cerr << "Ошибка установки таймаута на чтение из сокета видео-сервера" << std::endl;
+        LOG(ERROR) << "Ошибка установки таймаута на чтение из сокета видео-сервера" << std::endl;
         return false;
     }
 
@@ -355,15 +355,11 @@ bool RealTimeVideoStreamer::establishTCPConnection()
     inet_pton(AF_INET, videoServer.host.c_str(), &server_addr.sin_addr);
     if(connect(socketFd, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(socketFd);
-        std::cerr << "Ошибка подключения к видео-серверу(проверьте реквизиты сервера)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к видео-серверу(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
          std::cout << "Соединение с видео-сервером установлено(" << socketFd << ")" << std::endl << std::endl;
          isConnected = true;
-//         std::thread videoServerAnswerThread([this](){
-//             startVideoServerAnswerHandler();
-//         });
-//         videoServerAnswerThread.detach();
 
     }
 

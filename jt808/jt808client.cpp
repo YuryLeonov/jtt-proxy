@@ -32,17 +32,15 @@ JT808Client::JT808Client()
 JT808Client::JT808Client(const TerminalInfo &tInfo, const platform::PlatformInfo &pInfo) :
     terminalInfo(tInfo),platformInfo(pInfo)
 {
-//    videoStreamer = std::make_shared<streamer::RealTimeVideoStreamer>();
-
     connectToPlatform();
 }
 
 JT808Client::~JT808Client()
 {
     if(!close(socketFd))
-        std::cout << "Соединение с платформой закрыто" << std::endl;
+        LOG(INFO) << "Соединение с платформой закрыто" << std::endl;
     else
-        std::cerr << "Ошибка закрытия соединения с платформой" << std::endl;
+        LOG(ERROR) << "Ошибка закрытия соединения с платформой" << std::endl;
 }
 
 void JT808Client::sendRegistrationRequest()
@@ -58,7 +56,7 @@ void JT808Client::sendRegistrationRequest()
         if(socketFd >= 0) {
             ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
             if (bytes_sent == -1 && (errno == EPIPE || errno == ECONNRESET)) {
-                std::cerr << "Ошибка отправки данных(сервер закрыл соединение)." << std::endl;
+                LOG(ERROR) << "Ошибка отправки данных(сервер закрыл соединение)." << std::endl;
                 while(!connectToHost()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.reconnectTimeout));
                 }
@@ -67,13 +65,13 @@ void JT808Client::sendRegistrationRequest()
                 LOG(DEBUG) << "Отправлен запрос на регистрацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
             }
         } else {
-            std::cerr << "Сокет закрыт" << std::endl;
+            LOG(ERROR) << "Сокет с платформой закрыт" << std::endl;
         }
 
         char buffer[1024] = {0};
         bytes_read = read(socketFd, buffer, 1024);
         if (bytes_read < 0) {
-            std::cerr << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
+            LOG(ERROR) << "Ошибка при чтении ответа на запрос на регистрацию терминала" << std::endl;
             continue;
         } else {
             if(bytes_read == 0) {
@@ -98,10 +96,10 @@ void JT808Client::parseRegistrationAnswer(std::vector<uint8_t> answer)
     LOG(DEBUG) << "Ответ на запрос регистрации: " << tools::getStringFromBitStream(answer) << std::endl;
     const uint8_t registrationResult = answer[11];
     if(registrationResult) {
-        std::cerr << "Ошибка регистрации: " << std::dec << registrationResult << std::endl;
+        LOG(ERROR) << "Ошибка регистрации: " << std::dec << registrationResult << std::endl;
         return;
     } else {
-        std::cout << "РЕГИСТРАЦИЯ УСПЕШНА" << std::endl << std::endl;
+        LOG(INFO) << "РЕГИСТРАЦИЯ УСПЕШНА" << std::endl << std::endl;
     }
 
     authenticationKey.clear();
@@ -113,15 +111,9 @@ void JT808Client::parseRegistrationAnswer(std::vector<uint8_t> answer)
         authenticationKey.push_back(answer[i]);
     }
 
-    std::cout << "Получен ключ авторизации: ";
-    for(int i = 0; i < authenticationKey.size(); ++i) {
-        std::cout << std::hex << static_cast<int>(authenticationKey[i]) << " ";
-    }
-
-    std::cout << std::endl;
+    LOG(INFO) << "Получен ключ авторизации: " << tools::getStringFromBitStream(authenticationKey);
 
     writeAuthenticationKeyToFile("../config/authKey.bin");
-
 }
 
 void JT808Client::writeAuthenticationKeyToFile(const std::string &path)
@@ -129,16 +121,16 @@ void JT808Client::writeAuthenticationKeyToFile(const std::string &path)
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
 
     if(!file) {
-        std::cerr << "Ошибка открытия файла для записи ключа авторизации на платформе" << std::endl;
+        LOG(ERROR) << "Ошибка открытия файла для записи ключа авторизации на платформе" << std::endl;
         return;
     }
 
     file.write(reinterpret_cast<const char *>(authenticationKey.data()), authenticationKey.size());
 
     if(file.good()) {
-        std::cout << "Ключ авторизации сохранен в файл" << std::endl;
+        LOG(INFO) << "Ключ авторизации сохранен в файл" << std::endl;
     } else {
-        std::cerr << "Ошибка сохранения ключа вторизации в файл" << std::endl;
+        LOG(ERROR) << "Ошибка сохранения ключа вторизации в файл" << std::endl;
     }
 
 }
@@ -158,21 +150,19 @@ void JT808Client::sendAuthenticationRequest()
     while(true) {
         bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
         if (bytes_sent == -1) {
-            std::cerr << "Ошибка отправки запроса на авторизацию." << std::endl;
+            LOG(ERROR) << "Ошибка отправки запроса на авторизацию." << std::endl;
             if(errno == EAGAIN || errno == EWOULDBLOCK) {
                 while(bytes_sent == -1) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                    std::cout << "Повторная отправка запроса на авторизацию..." << std::endl;
+                    LOG(INFO) << "Повторная отправка запроса на авторизацию..." << std::endl;
                     bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
                 }
             }
         }
 
-        std::cout << "Отправлен запрос на авторизацию: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
-
         bytes_read = read(socketFd, buffer, 1024);
         if (bytes_read <= 0) {
-            std::cerr << "Ошибка при чтении ответа на запрос авторизации: " << errno << std::endl;
+            LOG(ERROR) << "Ошибка при чтении ответа на запрос авторизации: " << errno << std::endl;
             errors_count++;
             std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.reconnectTimeout));
             if(errors_count == 3) {
@@ -190,13 +180,21 @@ void JT808Client::sendAuthenticationRequest()
     std::copy(buffer, buffer + bytes_read, vec.begin());
 
     if(parseGeneralResponse(std::move(vec))) {
-        std::cout << "АВТОРИЗАЦИЯ УСПЕШНА" << std::endl << std::endl;
+        LOG(INFO) << "АВТОРИЗАЦИЯ УСПЕШНА" << std::endl << std::endl;
         isConnected = true;
         heartBeatThread = std::thread([this](){
+
+            int hCounter = 0;
             while(true) {
                 if(isConnected) {
                     sendHeartBeatRequest();
                     std::this_thread::sleep_for(std::chrono::milliseconds(platformInfo.heartBeatTimeout));
+                    ++hCounter;
+                    if(hCounter % 55 == 0) {
+                        LOG(INFO) << "Статус отправки heartbeat: работает";
+                        if(hCounter == 55000)
+                            hCounter = 0;
+                    }
                 }
             }
         });
@@ -226,10 +224,8 @@ void JT808Client::sendHeartBeatRequest()
     unsigned char *message = requestBuffer.data();
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
     if (bytes_sent == -1) {
-        LOG(DEBUG) << "Ошибка запроса heartbeat" << std::endl;
+        LOG(ERROR) << "Ошибка отправки heartbeat" << std::endl;
         return;
-    } else {
-        LOG(DEBUG) << "Отправлен heartbeat: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
     }
 }
 
@@ -244,14 +240,14 @@ void JT808Client::sendTerminalParametersRequest()
         if(errno == EAGAIN || errno == EWOULDBLOCK) {
             while(bytes_sent == -1) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                std::cout << "Повторная отправка параметров терминала..." << std::endl;
+                LOG(INFO) << "Повторная отправка параметров терминала..." << std::endl;
                 bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
             }
         }
         return;
     }
 
-    LOG(DEBUG) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+    LOG(INFO) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
 
 }
 
@@ -262,19 +258,14 @@ void JT808Client::startPlatformAnswerHandler()
             int bytes_recieved = recv(socketFd, buffer, sizeof(buffer), 0);
 
             if(bytes_recieved == 0) {
-                std::cout << "Сервер отключился" << std::endl;
+                LOG(INFO) << "Сервер платформы отключился" << std::endl;
                 close(socketFd);
                 isConnected = false;
                 connectToPlatform();
             } else if(bytes_recieved > 0) {
                 std::vector<uint8_t> answer(bytes_recieved);
                 std::copy(buffer, buffer + bytes_recieved, answer.begin());
-                LOG(DEBUG) << "Получен запрос от сервера: " << tools::getStringFromBitStream(answer) << std::endl;
                 handlePlatformAnswer(answer);
-            } else {
-                if(errno != EAGAIN) {
-                    LOG(ERROR) << "bytes_recieved == -1, errno = " << errno << std::endl;
-                }
             }
     }
 }
@@ -293,12 +284,12 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
     } else if(header.messageID == 0x9205) {
         parseArchiveListRequest(std::move(answer));
     } else if(header.messageID == 0x8802) {
-        std::cout << "Got stored multimedia data retrival" << std::endl;
+        LOG(DEBUG) << "Got stored multimedia data retrival" << std::endl;
     } else if(header.messageID == 0x8800) {
-        std::cout << tools::getStringFromBitStream(answer) << std::endl;
+        LOG(DEBUG) << tools::getStringFromBitStream(answer) << std::endl;
     }
     else {
-        std::cout << "Неизвестный запрос: " << tools::getStringFromBitStream(answer) << std::endl;
+        LOG(DEBUG) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
     }
 }
 
@@ -310,7 +301,7 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     }
 
     if((response[0] != 0x7e) || (response[size - 1] != 0x7e)) {
-        std::cerr << "Неверный формат ответа General response" << std::endl;
+        LOG(ERROR) << "Неверный формат ответа General response" << std::endl;
         return false;
     }
 
@@ -361,12 +352,6 @@ bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &r
     const uint8_t closeType = static_cast<int>(request[15]);
     const uint8_t switchStreamType = static_cast<int>(request[16]);
 
-    std::cout << "Channel: " << static_cast<int>(channelNumber) << std::endl;
-    std::cout << "ControlInstruction: " << static_cast<int>(controlInstruction) << std::endl;
-    std::cout << "CloseType: " << static_cast<int>(closeType) << std::endl;
-    std::cout << "SwitchStreamType: " << static_cast<int>(switchStreamType) << std::endl;
-    std::cout << std::endl;
-
     if(controlInstruction == 0) {
         if(videoStreamers.count(channelNumber) > 0) {
             videoStreamers.at(channelNumber)->stopStreaming();
@@ -387,26 +372,26 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
     const uint8_t packetLossRate = static_cast<int>(request[14])*100;
 
     if(packetLossRate > 0) {
-        std::cout << "Потеряно " << packetLossRate << " пакетов" << std::endl;
+        LOG(INFO) << "Потеряно " << packetLossRate << " пакетов при стриминге по каналу " << static_cast<int>(channelNumber);
     }
 
-//    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
-//    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
-//    unsigned char *message = requestBuffer.data();
-//    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
-//    if (bytes_sent == -1) {
-//        std::cerr << "Ошибка отправки video general response" << std::endl;
-//        return false;
-//    } else {
-//        std::cout << "Отправлен general response в ответ на статус передачи видео." << std::endl;
-//    }
+    JT808GeneralResponseRequest generalResponse(terminalInfo, header.messageSerialNumber, header.messageID, JT808GeneralResponseRequest::Result::Success);
+    std::vector<uint8_t> requestBuffer = std::move(generalResponse.getRequest());
+    unsigned char *message = requestBuffer.data();
+    ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
+    if (bytes_sent == -1) {
+        std::cerr << "Ошибка отправки video general response" << std::endl;
+        return false;
+    } else {
+        std::cout << "Отправлен general response в ответ на статус передачи видео." << std::endl;
+    }
 
     return true;
 }
 
 bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
 {
-    std::cout << "Запрос на список архивных данных: " << tools::getStringFromBitStream(request) << std::endl;
+    LOG(DEBUG) << "Запрос на список архивных данных: " << tools::getStringFromBitStream(request) << std::endl;
 
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
@@ -441,7 +426,7 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     try {
         resource.fileSize = std::filesystem::file_size(filePath);
     } catch (const std::filesystem::filesystem_error& e) {
-        std::cerr << "Ошибка: " << e.what() << std::endl;
+        LOG(ERROR) << "Ошибка: " << e.what() << std::endl;
     }
 
     JT1078UploadedResourcesListRequest answer(header.messageSerialNumber, resource, terminalInfo);
@@ -450,17 +435,17 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     unsigned char *message = answerBuffer.data();
     ssize_t bytes_sent = send(socketFd, message, answerBuffer.size(), MSG_NOSIGNAL);
     if (bytes_sent == -1) {
-        std::cout << "Ошибка отправки данных о видеофайлах" << std::endl;
+        LOG(ERROR) << "Ошибка отправки данных о видеофайлах" << std::endl;
         if(errno == EAGAIN || errno == EWOULDBLOCK) {
             while(bytes_sent == -1) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                std::cout << "Повторная отправка данных о видеофайлах..." << std::endl;
+                LOG(INFO) << "Повторная отправка данных о видеофайлах..." << std::endl;
                 bytes_sent = send(socketFd, message, request.size(), MSG_NOSIGNAL);
             }
         }
     }
 
-    std::cout << "Запрос JT1078UploadedResourcesList отправлен" << std::endl;
+    LOG(INFO) << "Запрос JT1078UploadedResourcesList отправлен" << std::endl;
 
     return true;
 }
@@ -479,7 +464,7 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
 
     videoStreamers[vsRequisites.channel] = std::move(videoStreamer);
 
-    std::cout << "Начинаем стриминг по каналу " << static_cast<int>(vsRequisites.channel) << std::endl;
+    LOG(INFO) << "Начинаем стриминг по каналу " << static_cast<int>(vsRequisites.channel);
     if(videoStreamers[vsRequisites.channel]->establishTCPConnection()) {
         std::thread streamThread([this, vsRequisites](){
             videoStreamers[vsRequisites.channel]->startStreaming();
@@ -496,17 +481,17 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request)
     unsigned char *message = const_cast<unsigned char *>(request.data());
     ssize_t bytes_sent = send(socketFd, message, request.size(), 0);
     if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки данных alarm" << std::endl;
+        LOG(ERROR) << "Ошибка отправки данных alarm" << std::endl;
         if(errno == EAGAIN || errno == EWOULDBLOCK) {
             while(bytes_sent == -1) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                std::cout << "Повторная отправка аларма..." << std::endl;
+                LOG(INFO) << "Повторная отправка аларма..." << std::endl;
                 bytes_sent = send(socketFd, message, request.size(), MSG_NOSIGNAL);
             }
         }
     }
 
-    std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
+    LOG(INFO) << std::endl << "Аларм отправлен на платформу!" << std::endl;
     LOG(TRACE) << "Аларм: ";
     LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
     LOG(TRACE) << "**********************";
@@ -553,24 +538,24 @@ bool JT808Client::connectDomain()
     struct addrinfo* server_info;
     int status = getaddrinfo(platformInfo.ipAddress.c_str(), portName.c_str(), &hints, &server_info);
     if (status != 0) {
-        std::cerr << "Ошибка подключения к платформе мониторинга(ошибка getaddrinfo)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к платформе мониторинга(ошибка getaddrinfo)" << std::endl;
         return false;
     }
 
     socketFd = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
     if (socketFd == -1) {
         freeaddrinfo(server_info);
-        std::cerr << "Ошибка подключения к платформе мониторинга(ошибка socket)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к платформе мониторинга(ошибка socket)" << std::endl;
         return false;
     }
 
     if (connect(socketFd, server_info->ai_addr, server_info->ai_addrlen) == -1) {
         close(socketFd);
         freeaddrinfo(server_info);
-        std::cerr << "Ошибка подключения к платформе мониторинга(ошибка подключения)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к платформе мониторинга(ошибка подключения)" << std::endl;
     }
 
-    std::cout << "Соединение  с платформой установлено" << std::endl << std::endl;
+    LOG(INFO) << "Соединение  с платформой установлено" << std::endl << std::endl;
 
     return true;
 }
@@ -580,7 +565,7 @@ bool JT808Client::connectIp()
     socketFd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (socketFd == -1) {
-        std::cerr << "Ошибка подключения к платформе мониторинга(ошибка создания сокета)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к платформе мониторинга(ошибка создания сокета)" << std::endl;
         return false;
     }
 
@@ -588,12 +573,12 @@ bool JT808Client::connectIp()
     timeout.tv_sec = 5;
     timeout.tv_usec = 0;
     if(setsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout))) {
-         std::cerr << "Ошибка установки таймаута переподключения к серверу" << std::endl;
+         LOG(ERROR) << "Ошибка установки таймаута переподключения к серверу" << std::endl;
         return false;
     }
 
     if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))) {
-        std::cerr << "Ошибка установки таймаута на чтение из сокета сервеа" << std::endl;
+        LOG(ERROR) << "Ошибка установки таймаута на чтение из сокета сервеа" << std::endl;
         return false;
     }
 
@@ -601,13 +586,13 @@ bool JT808Client::connectIp()
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(platformInfo.port);
     inet_pton(AF_INET, platformInfo.ipAddress.c_str(), &server_addr.sin_addr);
-    std::cout << "Попытка подключения к платформе:" << platformInfo.ipAddress << ":" << std::to_string(platformInfo.port) << std::endl;
+    LOG(INFO) << "Попытка подключения к платформе:" << platformInfo.ipAddress << ":" << std::to_string(platformInfo.port) << std::endl;
     if(connect(socketFd, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(socketFd);
-        std::cerr << "Ошибка подключения к платформе мониторинга(проверьте реквизиты сервера)" << std::endl;
+        LOG(ERROR) << "Ошибка подключения к платформе мониторинга(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
-         std::cout << "Соединение с платформой установлено" << std::endl << std::endl;
+         LOG(INFO) << "Соединение с платформой установлено" << std::endl << std::endl;
     }
 
     return true;
@@ -657,17 +642,17 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
     unsigned char *message = requestBuffer.data();
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
     if (bytes_sent == -1) {
-        std::cout << "Ошибка запроса на передачу информации о медиафайле" << std::endl;
+        LOG(ERROR) << "Ошибка запроса на передачу информации о медиафайле" << std::endl;
         if(errno == EAGAIN || errno == EWOULDBLOCK) {
             while(bytes_sent == -1) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                std::cout << "Повторная отправка запроса на передачу информации о медиафайле..." << std::endl;
+                LOG(INFO) << "Повторная отправка запроса на передачу информации о медиафайле..." << std::endl;
                 bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
             }
         }
     }
 
-    std::cout << "Запрос JT808MediaUploadEventInfo отправлен" << std::endl;
+    LOG(INFO) << "Запрос JT808MediaUploadEventInfo отправлен" << std::endl;
     LOG(TRACE) << "MediaInfo:";
     LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
     LOG(TRACE) << "************************";
@@ -676,8 +661,8 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     std::vector<std::vector<uint8_t>> chunks = std::move(tools::splitFileIntoChunks(filePath, 1000));
-    std::cout << "Выгрузка медиафайла(" << static_cast<int>(multimediaID) << ")..." << std::endl;
-    std::cout << "Количество чанков: " << chunks.size() << std::endl;
+    LOG(INFO) << "Выгрузка медиафайла(" << static_cast<int>(multimediaID) << ")..." << std::endl;
+    LOG(INFO) << "Количество чанков: " << chunks.size() << std::endl;
     int size = 0;
     for(int i = 0; i < chunks.size(); ++i) {
         JT808MediaUploadRequest request(multimediaID, terminalInfo, chunks.at(i), alarmBody);
@@ -703,7 +688,7 @@ void JT808Client::sendVideoFile(const std::string &filePath, const std::vector<u
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
-    std::cout << "Файл выгружен!(отправлено " << size << " байт)" << std::endl;
+    LOG(INFO) << "Файл выгружен!(отправлено " << size << " байт)" << std::endl;
     isFileUploadingInProgress = false;
     multimediaID++;
 
