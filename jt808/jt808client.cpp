@@ -287,6 +287,8 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
         LOG(DEBUG) << "Got stored multimedia data retrival" << std::endl;
     } else if(header.messageID == 0x8800) {
         LOG(DEBUG) << tools::getStringFromBitStream(answer) << std::endl;
+    } else if(header.messageID == 0x9201) {
+        parseVideoPlaybackRequest(std::move(answer));
     }
     else {
         LOG(DEBUG) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
@@ -448,6 +450,11 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     LOG(INFO) << "Запрос JT1078UploadedResourcesList отправлен" << std::endl;
 
     return true;
+}
+
+bool JT808Client::parseVideoPlaybackRequest(const std::vector<uint8_t> &request)
+{
+    LOG(INFO) << "Получен запрос на воспроизведение архивного видео: " << tools::getStringFromBitStream(request);
 }
 
 void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request)
