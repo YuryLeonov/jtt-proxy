@@ -342,11 +342,6 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
     vsRequisites.dataType = body[offset++];
     vsRequisites.streamType = body[offset++];
 
-    if(videoStreamers.count(vsRequisites.channel) > 0) {
-        std::cout << "По этому каналу уже ведется стриминг, игнорируем запрос" << std::endl;
-        return false;
-    }
-
     if(vsRequisites.channel == 1 || vsRequisites.channel == 2) {
         vsRequisites.printInfo();
         streamVideo(vsRequisites, request);
@@ -456,11 +451,16 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     ssize_t bytes_sent = send(socketFd, message, answerBuffer.size(), MSG_NOSIGNAL);
     if (bytes_sent == -1) {
         std::cout << "Ошибка отправки данных о видеофайлах" << std::endl;
-        return false;
-    } else {
-        std::cout << "Запрос JT1078UploadedResourcesList отправлен" << std::endl;
-
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            while(bytes_sent == -1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::cout << "Повторная отправка данных о видеофайлах..." << std::endl;
+                bytes_sent = send(socketFd, message, request.size(), MSG_NOSIGNAL);
+            }
+        }
     }
+
+    std::cout << "Запрос JT1078UploadedResourcesList отправлен" << std::endl;
 
     return true;
 }
@@ -470,8 +470,7 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
     std::unique_ptr<streamer::RealTimeVideoStreamer> videoStreamer = std::make_unique<streamer::RealTimeVideoStreamer>();
 
     videoStreamer->setVideoServerParams(vsRequisites);
-//    videoStreamer->setRtsp(platformInfo.videoServer.rtspLinks.at(videoStreamers.size()));
-    videoStreamer->setRtsp("rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101");
+    videoStreamer->setRtsp(platformInfo.videoServer.rtspLinks.at(videoStreamers.size()));
     videoStreamer->setTerminalInfo(terminalInfo);
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
         videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
