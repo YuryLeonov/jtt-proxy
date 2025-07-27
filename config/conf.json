@@ -10,8 +10,8 @@
 		"VIN" : "WVGZZZCAZJC559100"
 	},
 	"eventsServer" : {
-		"serverIP" : "10.2.0.85",
-		"serverPort" : 8182,
+		"serverIP" : "10.2.0.110",
+		"serverPort" : 2204,
 		"eventsTable" : "monitoringdriver_172_16_10_206",
 		"reconnectTimeout" : 1000,
 		"surveyInterval" : 2000,
@@ -26,7 +26,7 @@
 			"transport" : "tcp",
 			"rtsp" : [
 				"rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101",
-				"rtsp://admin:a1234567@10.2.0.15:554/Streaming/Channels/101"
+				"rtsp://admin:a1234567@10.2.0.16:554/Streaming/Channels/101"
 			]
 		}
 	},
