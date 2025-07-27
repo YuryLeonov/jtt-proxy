@@ -289,8 +289,9 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
         LOG(DEBUG) << tools::getStringFromBitStream(answer) << std::endl;
     } else if(header.messageID == 0x9201) {
         parseVideoPlaybackRequest(std::move(answer));
-    }
-    else {
+    } else if(header.messageID == 0x9202) {
+        parseVideoPlaybackControlRequest(std::move(answer));
+    } else {
         LOG(DEBUG) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
     }
 }
@@ -347,8 +348,6 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
 
 bool JT808Client::parseRealTimeVideoControlRequest(const std::vector<uint8_t> &request)
 {
-    std::cout << tools::getStringFromBitStream(request) << std::endl;
-
     const uint8_t channelNumber = static_cast<int>(request[13]);
     const uint8_t controlInstruction = static_cast<int>(request[14]);
     const uint8_t closeType = static_cast<int>(request[15]);
@@ -477,6 +476,25 @@ bool JT808Client::parseVideoPlaybackRequest(const std::vector<uint8_t> &request)
 
     const uint8_t memoryType = body[offset++];
     const uint8_t playbackmethod = body[offset++];
+
+    return true;
+}
+
+bool JT808Client::parseVideoPlaybackControlRequest(const std::vector<uint8_t> &request)
+{
+    LOG(INFO) << "Получен запрос на контроль воспроизведения архивного видео: " << tools::getStringFromBitStream(request);
+
+    const uint8_t channelNumber = static_cast<int>(request[13]);
+    const uint8_t controlInstruction = static_cast<int>(request[14]);
+    const uint8_t fastForwardMode = static_cast<int>(request[15]);
+
+    const uint8_t year = tools::from_bcd(static_cast<int>(request[14]));
+    const uint8_t month = tools::from_bcd(static_cast<int>(request[15]));
+    const uint8_t day = tools::from_bcd(static_cast<int>(request[16]));
+    const uint8_t hour = tools::from_bcd(static_cast<int>(request[17]));
+    const uint8_t min = tools::from_bcd(static_cast<int>(request[18]));
+    const uint8_t sec = tools::from_bcd(static_cast<int>(request[19]));
+
 
     return true;
 }
