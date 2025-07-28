@@ -381,10 +381,13 @@ bool JT808Client::parseRealTimeVideoStatusRequest(const std::vector<uint8_t> &re
     unsigned char *message = requestBuffer.data();
     ssize_t bytes_sent = send(socketFd, message, requestBuffer.size(), 0);
     if (bytes_sent == -1) {
-        std::cerr << "Ошибка отправки video general response" << std::endl;
-        return false;
-    } else {
-        std::cout << "Отправлен general response в ответ на статус передачи видео." << std::endl;
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            while(bytes_sent == -1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                LOG(INFO) << "Повторная отправка general response в ответ на статус передачи живого видео..." << std::endl;
+                bytes_sent = send(socketFd, message, requestBuffer.size(), MSG_NOSIGNAL);
+            }
+        }
     }
 
     return true;

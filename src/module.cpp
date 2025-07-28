@@ -72,12 +72,10 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &message)
     json data = json::parse(message);
 
     std::string pathToVideo = data.at("path2video");
-    pathToVideo = eventServerInfo.videoRootPath + pathToVideo;
-
 //      const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/test.mp4";
 
     if(!std::filesystem::exists(pathToVideo)) {
-        std::cerr << "Не найден видео файл " << pathToVideo << std::endl;
+        LOG(ERROR) << "Не найден видео файл " << pathToVideo << std::endl;
         return;
     }
 

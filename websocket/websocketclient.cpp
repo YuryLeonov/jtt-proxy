@@ -20,7 +20,7 @@ WebSocketClient::WebSocketClient(const std::string &hostIP, int port, const std:
         dbMessageHelper = std::make_unique<DbMessagesHelper>(TokenAuth{token.value()});
     }
     else {
-        std::cout << "Не задан токен MTP_ES_TOKEN! ";
+        std::cout << "Не задан токен MTP_ES_TOKEN! " << std::endl;
         exit(1);
     }
 
@@ -128,7 +128,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
         }
     }
 
-    if((videoEntities != std::nullopt) && (videoEntities->size() != 0)) {
+    if(videoEntities != std::nullopt) {
         for(const auto &pair : videoEntities.value()) {
             const json eventVideoJson = pair.second;
             externalMessageMediaInfoHandler(eventVideoJson.dump());
@@ -168,6 +168,8 @@ void WebSocketClient::sendRequestForMediaInfo()
                                                                                   std::nullopt,
                                                                                   "asc",
                                                                                   std::nullopt);
+
+    std::cout << getEventMediaInfoRequest;
 
     client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
 }
