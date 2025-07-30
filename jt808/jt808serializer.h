@@ -53,11 +53,13 @@ public:
     ~JT808EventSerializer();
 
     void setTerminalPhoneNumber(const std::string &phone);
+    void setTerminalID(const std::string &id);
 
     std::vector<uint8_t> serializeToBitStream(const std::string &message);
     std::vector<uint8_t> serializeToBitStream(const json &j);
 
     const std::vector<uint8_t> getBodyStream() const;
+    const std::vector<uint8_t> getAddInfoStream() const;
 
 private:
     void parseEventMessage(const std::string &message);
@@ -75,6 +77,10 @@ private:
     void setEventData();
     void fillEventDada();
 
+    void addAdditionalInformation();
+    const uint16_t getVehicleStateStatus();
+    const std::vector<uint8_t> getAlarmID();
+
     void setHeader();
     void setBodyInfo(uint16_t &info);
     void setCheckSum();
@@ -86,6 +92,7 @@ private:
     std::vector<uint8_t> messageStream;
     std::vector<uint8_t> headerStream;
     std::vector<uint8_t> bodyStream;
+    std::vector<uint8_t> addInfoStream;
     uint8_t checkSum;
     uint16_t messageSerialNum = 0;
 
@@ -115,10 +122,13 @@ private:
       {28, 0x00000000}, {29, 0x00000000}, {30, 0x00000000}, {31, 0x00000000}
     };
 
+    uint8_t alarmType = 0x05;
+
     const std::vector<uint8_t> replacers7E = {0x7d, 0x02};
     const std::vector<uint8_t> replacers7D = {0x7d, 0x01};
 
     std::string terminalPhoneNumber;
+    std::string terminalID = "";
 
     bool isPacketsIncapsulated = false;
 };

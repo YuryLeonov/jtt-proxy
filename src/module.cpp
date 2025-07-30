@@ -55,6 +55,7 @@ void Module::wsClientMessageAlarmHandler(const std::string &message)
 {
     JT808EventSerializer serializer;
     serializer.setTerminalPhoneNumber(terminalInfo.phoneNumber);
+    serializer.setTerminalID(terminalInfo.terminalID);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message));
 
     if(vec.empty()) {
@@ -63,8 +64,9 @@ void Module::wsClientMessageAlarmHandler(const std::string &message)
     }
 
     currentAlarmBody = serializer.getBodyStream();
+
     //Отправка на платформу
-    platformConnector.sendAlarmMessage(vec);
+    platformConnector.sendAlarmMessage(vec, serializer.getAddInfoStream());
 }
 
 void Module::wsClientMessageMediaInfoHandler(const std::string &message)

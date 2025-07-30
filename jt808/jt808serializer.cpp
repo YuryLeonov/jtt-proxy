@@ -21,6 +21,11 @@ void JT808EventSerializer::setTerminalPhoneNumber(const std::string &phone)
     terminalPhoneNumber = phone;
 }
 
+void JT808EventSerializer::setTerminalID(const std::string &id)
+{
+    terminalID = id;
+}
+
 std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message)
 {
     messageStream.clear();
@@ -43,6 +48,8 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
     fillStateFlag();
     fillEventDada();
 
+    addAdditionalInformation();
+
     setHeader();
     messageStream.clear();
 
@@ -62,6 +69,11 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 const std::vector<uint8_t> JT808EventSerializer::getBodyStream() const
 {
     return bodyStream;
+}
+
+const std::vector<uint8_t> JT808EventSerializer::getAddInfoStream() const
+{
+    return addInfoStream;
 }
 
 void JT808EventSerializer::parseEventMessage(const std::string &message)
@@ -88,21 +100,27 @@ void JT808EventSerializer::  setAlarmFlag()
         switch(eventID) {
             case 1 :
                 tools::setBit(alarmFlag, 3);
+                alarmType = 0x03;
                 break;
             case 2 :
                 tools::setBit(alarmFlag, 14);
+                alarmType = 0x01;
                 break;
             case 3 :
                 tools::setBit(alarmFlag, 3);
+                alarmType = 0x04;
                 break;
             case 4 :
                 tools::setBit(alarmFlag, 3);
+                alarmType = 0x04;
                 break;
             case 5 :
                 tools::setBit(alarmFlag, 2);
+                alarmType = 0x04;
                 break;
             case 6 :
                 tools::setBit(alarmFlag, 3);
+                alarmType = 0x04;
                 break;
             case 7 :
                 tools::setBit(alarmFlag, 3);
@@ -115,21 +133,27 @@ void JT808EventSerializer::  setAlarmFlag()
                 break;
             case 10 :
                 tools::setBit(alarmFlag, 3);
+                tools::setBit(alarmFlag, 2);
+                tools::setBit(alarmFlag, 14);
                 break;
             case 14 :
                 tools::setBit(alarmFlag, 14);
+                alarmType = 0x01;
                 break;
             case 15 :
                 tools::setBit(alarmFlag, 14);
+                alarmType = 0x01;
                 break;
             case 16 :
                 tools::setBit(alarmFlag, 14);
+                alarmType = 0x01;
                 break;
             case 17 :
                 tools::setBit(alarmFlag, 3);
                 tools::setBit(alarmFlag, 2);
                 tools::setBit(alarmFlag, 29);
                 tools::setBit(alarmFlag, 30);
+                alarmType = 0x01;
                 break;
             case 30 :
                 tools::setBit(alarmFlag, 11);
@@ -280,6 +304,84 @@ void JT808EventSerializer::fillEventDada()
     bodyStream.push_back(time.hour);
     bodyStream.push_back(time.minute);
     bodyStream.push_back(time.second);
+}
+
+void JT808EventSerializer::addAdditionalInformation()
+{
+    addInfoStream.clear();
+
+    const uint32_t policeID = 0x00000000;
+    tools::addToStdVector(addInfoStream, policeID);
+
+    addInfoStream.push_back(0x00);
+
+    addInfoStream.push_back(alarmType);
+
+    addInfoStream.push_back(0x01);
+
+    addInfoStream.push_back(0x05);
+
+    addInfoStream.push_back(0x00);
+    addInfoStream.push_back(0x00);
+    addInfoStream.push_back(0x00);
+    addInfoStream.push_back(0x00);
+
+    addInfoStream.push_back(static_cast<uint8_t>(speed));
+    tools::addToStdVector(addInfoStream, elevation);
+    tools::addToStdVector(addInfoStream, latitude);
+    tools::addToStdVector(addInfoStream, longitude);
+
+    addInfoStream.push_back(time.year);
+    addInfoStream.push_back(time.month);
+    addInfoStream.push_back(time.day);
+    addInfoStream.push_back(time.hour);
+    addInfoStream.push_back(time.minute);
+    addInfoStream.push_back(time.second);
+
+    const uint16_t vehicleStatus = getVehicleStateStatus();
+    tools::addToStdVector(addInfoStream, vehicleStatus);
+
+    const std::vector<uint8_t> alarmID = getAlarmID();
+    addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
+
+    bodyStream.push_back(0x65);
+    const uint8_t addInfoLength = addInfoStream.size();
+    bodyStream.push_back(addInfoLength);
+    bodyStream.insert(bodyStream.end(), addInfoStream.begin(), addInfoStream.end());
+
+}
+
+const uint16_t JT808EventSerializer::getVehicleStateStatus()
+{
+    uint16_t status = 0x0000;
+    if(terminalStatus.isACCOn)
+        tools::setBit(status, 0);
+
+    tools::setBit(status, 10);
+
+    return status;
+
+}
+
+const std::vector<uint8_t> JT808EventSerializer::getAlarmID()
+{
+    std::vector<uint8_t> id;
+
+    std::vector<uint8_t> terminalIDBytes = tools::getUint8VectorFromString(terminalID);
+    id.insert(id.begin(), terminalIDBytes.begin(), terminalIDBytes.end());
+
+    id.push_back(time.year);
+    id.push_back(time.month);
+    id.push_back(time.day);
+    id.push_back(time.hour);
+    id.push_back(time.minute);
+    id.push_back(time.second);
+
+    id.push_back(0x00);
+    id.push_back(0x02);
+    id.push_back(0x00);
+
+    return id;
 }
 
 void JT808EventSerializer::setHeader()

@@ -121,7 +121,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json eventJson = pair.second;
             LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
 
-            sendRequestForMediaInfo();
+//            sendRequestForMediaInfo();
 
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
             externalMessageAlarmHandler(eventJson.dump());

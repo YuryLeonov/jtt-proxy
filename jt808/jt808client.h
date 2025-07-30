@@ -32,7 +32,7 @@ public:
     void setPlatformInfo(platform::PlatformInfo info);
     void setTerminalParameters();
 
-    bool sendAlarmMessage(const std::vector<uint8_t> &request);
+    bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo);
     void sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
 private:
@@ -43,15 +43,21 @@ private:
     bool connectDomain();
     bool connectIp();
 
+    bool connectToStorageServer(const std::string host, int port);
+
     void sendVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
     void sendRegistrationRequest();
     void parseRegistrationAnswer(std::vector<uint8_t> answer);
     void writeAuthenticationKeyToFile(const std::string &path);
 
+    void sendGeneralResponseToPlatform(uint16_t serialNum, uint16_t messageID);
+
     void sendAuthenticationRequest();
     void sendHeartBeatRequest();
     void sendTerminalParametersRequest();
+
+    void sendAlarmAttachmentMessageToStorage(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, int attachmentsNumber);
 
     void startPlatformAnswerHandler();
     void handlePlatformAnswer(const std::vector<uint8_t> &answer);
@@ -64,6 +70,7 @@ private:
     bool parseArchiveListRequest(const std::vector<uint8_t> &request);
     bool parseVideoPlaybackRequest(const std::vector<uint8_t> &request);
     bool parseVideoPlaybackControlRequest(const std::vector<uint8_t> &request);
+    bool parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request);
 
     void streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request);
 
@@ -77,6 +84,8 @@ private:
     int socketFd;
     bool isConnected = false;
 
+    int storageSocketId;
+
     bool isFileUploadingInProgress = false;
     uint32_t multimediaID = 0x000011001;
 
@@ -84,6 +93,7 @@ private:
     std::vector<uint8_t> authenticationKey;
 
     std::vector<uint8_t> currentAlarmBody;
+    std::vector<uint8_t> currentAddInfo;
 
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
