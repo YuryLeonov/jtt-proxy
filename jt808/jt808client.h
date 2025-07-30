@@ -70,7 +70,9 @@ private:
     bool parseArchiveListRequest(const std::vector<uint8_t> &request);
     bool parseVideoPlaybackRequest(const std::vector<uint8_t> &request);
     bool parseVideoPlaybackControlRequest(const std::vector<uint8_t> &request);
+
     bool parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request);
+    void startAlarmFilesUploading();
 
     void streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request);
 

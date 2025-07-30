@@ -60,6 +60,8 @@ set(HEADERS ./nlohmann/json.hpp
             ./jt808/jt808mediauploadrequest.h
             ./jt808/jt808authenticationkeyfinder.h
             ./jt808/jt808mediauploadeventinforequest.h
+            ./jt808/jt808fileuploadinforequest.h
+            ./jt808/jt808fileuploadstoprequest.h
             ./jt808/jt1078mediatransmissionrequest.h
             ./jt808/jt1078streamtransmitrequest.h
             ./jt808/jt1078uploadedresourceslistrequest.h
@@ -95,6 +97,8 @@ set(SOURCES ./src/main.cpp
             ./jt808/jt808authenticationkeyfinder.cpp
             ./jt808/jt808alarmattachmentrequest.cpp
             ./jt808/jt808mediauploadeventinforequest.cpp
+            ./jt808/jt808fileuploadinforequest.cpp
+            ./jt808/jt808fileuploadstoprequest.cpp
             ./jt808/jt1078mediatransmissionrequest.cpp
             ./jt808/jt1078streamtransmitrequest.cpp
             ./jt808/jt1078uploadedresourceslistrequest.cpp

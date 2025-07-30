@@ -10,6 +10,7 @@
 #include "jt808alarmattachmentrequest.h"
 #include "jt1078uploadedresourceslistrequest.h"
 #include "jt808headerparser.h"
+#include "jt808fileuploadinforequest.h"
 
 #include "tools.h"
 #include "easylogging++.h"
@@ -354,6 +355,16 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     const uint16_t requestID = (response[15] << 8) | response[16];
     const int result = static_cast<int>(response[17]);
 
+    if(result == 1) {
+        LOG(ERROR) << "General response failure";
+    } else if(result == 2) {
+        LOG(ERROR) << "General response message";
+    } else if(result == 3) {
+        LOG(ERROR) << "General response not supported error";
+    } else if(result == 4) {
+        LOG(ERROR) << "General response alarm";
+    }
+
     return !result;
 }
 
@@ -567,9 +578,7 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
 
     if(connectToStorageServer(host, tcpPort))
     {
-        std::cout << "Отправка запроса 0x1210" << std::endl;
-        sendAlarmAttachmentMessageToStorage(alarmID, alarmNumber, 2);
-
+        sendAlarmAttachmentMessageToStorage(alarmID, alarmNumber, 1);
 
         int bytes_read = -1;
         char buffer[1024] = {0};
@@ -580,14 +589,62 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
         } else {
             std::vector<uint8_t> vec(bytes_read);
             std::copy(buffer, buffer + bytes_read, vec.begin());
-            std::cout << "Получен ответ: " << tools::getStringFromBitStream(vec) << std:: endl;
+            std::cout << "Получено от storage: " << tools::getStringFromBitStream(vec);
+            if(parseGeneralResponse(std::move(vec))) {
+                LOG(INFO) << "Сервер Storage разрешил начать выгрузку роликов";
+                startAlarmFilesUploading();
+            } else {
+                LOG(ERROR) << "Сервер Storage запретил начало выгрузки роликов";
+                return false;
+            }
         }
-
-
     }
 
+    return true;
+}
 
+void JT808Client::startAlarmFilesUploading()
+{
+    const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/test.mp4";
 
+    try {
+        JT808FileUploadInfoRequest request(pathToVideo, terminalInfo);
+        std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+
+        unsigned char *message = requestBuffer.data();
+        ssize_t bytes_sent = send(storageSocketId, message, requestBuffer.size(), 0);
+        if (bytes_sent == -1) {
+            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                while(bytes_sent == -1) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    LOG(INFO) << "Повторная отправка 0x1211" << std::endl;
+                    bytes_sent = send(storageSocketId, message, requestBuffer.size(), MSG_NOSIGNAL);
+                }
+            }
+        }
+
+        LOG(INFO) << "Запрос 0x1211 отправлен: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+
+    } catch(const std::runtime_error &err) {
+        LOG(ERROR) << err.what();
+        return;
+    }
+
+    int bytes_read = -1;
+    char buffer[1024] = {0};
+
+    bytes_read = read(storageSocketId, buffer, 1024);
+    if (bytes_read <= 0) {
+        LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1211: " << errno << std::endl;
+    } else {
+        std::vector<uint8_t> vec(bytes_read);
+        std::copy(buffer, buffer + bytes_read, vec.begin());
+        if(parseGeneralResponse(std::move(vec))) {
+            LOG(INFO) << "Сервер Storage принял информацию о файле";
+        } else {
+            LOG(ERROR) << "Сервер Storage не принял информацию о файле";
+        }
+    }
 
 }
 
