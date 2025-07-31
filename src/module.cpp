@@ -53,10 +53,11 @@ void Module::initWebSocketClient()
 
 void Module::wsClientMessageAlarmHandler(const std::string &message)
 {
+    static uint8_t alarmSerialNum = 0;
     JT808EventSerializer serializer;
     serializer.setTerminalPhoneNumber(terminalInfo.phoneNumber);
     serializer.setTerminalID(terminalInfo.terminalID);
-    std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message));
+    std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
     if(vec.empty()) {
         std::cout << "Задетектированных событий нет" << std::endl;
@@ -74,14 +75,14 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &message)
     json data = json::parse(message);
 
     std::string pathToVideo = data.at("path2video");
-//      const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/test.mp4";
+    LOG(INFO) << "Найден видеоролик события: " << pathToVideo << std::endl;
 
     if(!std::filesystem::exists(pathToVideo)) {
         LOG(ERROR) << "Не найден видео файл " << pathToVideo << std::endl;
         return;
     }
 
-    platformConnector.sendAlarmVideoFile(pathToVideo, currentAlarmBody);
+//    platformConnector.sendAlarmVideoFile(pathToVideo, currentAlarmBody);
 
 }
 

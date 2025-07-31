@@ -6,6 +6,7 @@
 
 #include <thread>
 #include <memory>
+#include <string>
 
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
@@ -121,9 +122,10 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json eventJson = pair.second;
             LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
 
-//            sendRequestForMediaInfo();
-
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
+
+//            sendRequestForMediaInfo(pair.first);
+
             externalMessageAlarmHandler(eventJson.dump());
         }
     }
@@ -154,22 +156,24 @@ void WebSocketClient::sendRequestForEvents()
     client.send(currentConnectionHandler, getEventInfoRequest, websocketpp::frame::opcode::text);
 }
 
-void WebSocketClient::sendRequestForMediaInfo()
+void WebSocketClient::sendRequestForMediaInfo(const std::string &eventUUID)
 {
     eventMediaInfoMTP = UuId::generate_uuid_v4();
+    const std::string event_uuid_start = std::string("event@").append(eventUUID + "@");
+    const std::string event_uuid_stop = std::string("event@").append(eventUUID + "A");
     const std::string getEventMediaInfoRequest = dbMessageHelper->buildGetRequest(eventMediaInfoMTP,
                                                                                   "video",
                                                                                   std::nullopt,
                                                                                   std::nullopt,
                                                                                   20,
-                                                                                  "timestamp-begin",
-                                                                                  lastEventTime,
                                                                                   std::nullopt,
+                                                                                  event_uuid_start,
+                                                                                  event_uuid_stop,
                                                                                   std::nullopt,
                                                                                   "asc",
                                                                                   std::nullopt);
 
-    std::cout << getEventMediaInfoRequest;
+    std::cout << getEventMediaInfoRequest << std::endl;
 
     client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
 }

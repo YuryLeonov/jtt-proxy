@@ -41,7 +41,7 @@ std::vector<uint8_t> JT808FileUploadInfoRequest::getRequest()
     const std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
     bodyStream.insert(bodyStream.end(), fileNameBytes.begin(), fileNameBytes.end());
     bodyStream.push_back(fileType);
-    tools::addToStdVector(bodyStream, fileType);
+    tools::addToStdVector(bodyStream, fileSize);
 
     //Header
     setHeader(0x1211);

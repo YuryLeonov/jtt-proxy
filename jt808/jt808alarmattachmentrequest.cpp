@@ -1,10 +1,13 @@
 #include "jt808alarmattachmentrequest.h"
 
-JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber,const std::vector<uint8_t> &addInfo, uint8_t attachmentsNum, const TerminalInfo &info) :
+#include "tools.h"
+#include <filesystem>
+
+JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber, uint8_t attachmentsNum, const TerminalInfo &info) :
     JT808MessageFormatter(info),
+    filePath(fPath),
     alarmID(std::move(alID)),
     alarmNumber(std::move(alNuMber)),
-    additionalInfo(std::move(addInfo)),
     attachmentsNumber(attachmentsNum)
 {
 
@@ -30,7 +33,14 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
     bodyStream.push_back(0x00);
     bodyStream.push_back(attachmentsNumber);
 
-    bodyStream.insert(bodyStream.end(), additionalInfo.begin(), additionalInfo.end());
+    const std::string fileName = std::string("02_") + std::string("65_") + std::string("6503_") + std::string("1_") + tools::hex_bytes_to_string(alarmNumber) + std::string("_") + std::string("h264");
+    const uint8_t fileNameSize = fileName.length();
+    const uint32_t fileSize = std::filesystem::file_size(filePath);
+
+    bodyStream.push_back(fileNameSize);
+    const std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
+    bodyStream.insert(bodyStream.end(), fileNameBytes.begin(), fileNameBytes.end());
+    tools::addToStdVector(bodyStream, fileSize);
 
     //Header
     setHeader(0x01210);

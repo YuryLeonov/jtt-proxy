@@ -44,6 +44,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./src/PlatformInfo.h
             ./src/eventserverinfo.h
             ./src/realtimevideostreamer.h
+            ./src/alarmtypes.h
             ./jt808/jt808serializer.h
             ./jt808/jt808client.h
             ./jt808/jt808server.h

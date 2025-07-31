@@ -26,8 +26,9 @@ void JT808EventSerializer::setTerminalID(const std::string &id)
     terminalID = id;
 }
 
-std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message)
+std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message, uint8_t alarmSerNum)
 {
+    alarmSerialNum = alarmSerNum;
     messageStream.clear();
     json data = json::parse(message);
 
@@ -95,7 +96,6 @@ void JT808EventSerializer::  setAlarmFlag()
 {
     alarmFlag = 0;
 
-//    for(const auto &event: eventJson["data"]) {
         const int eventID = eventJson.at("event_type");
         switch(eventID) {
             case 1 :
@@ -162,8 +162,6 @@ void JT808EventSerializer::  setAlarmFlag()
                 tools::setBit(alarmFlag, 11);
                 break;
         }
-//    }
-
 }
 
 void JT808EventSerializer::fillAlarmFlag()
@@ -342,6 +340,7 @@ void JT808EventSerializer::addAdditionalInformation()
     tools::addToStdVector(addInfoStream, vehicleStatus);
 
     const std::vector<uint8_t> alarmID = getAlarmID();
+    std::cout << "AlarmID: " << tools::getStringFromBitStream(alarmID) << std::endl;
     addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
 
     bodyStream.push_back(0x65);
@@ -377,8 +376,8 @@ const std::vector<uint8_t> JT808EventSerializer::getAlarmID()
     id.push_back(time.minute);
     id.push_back(time.second);
 
-    id.push_back(0x00);
-    id.push_back(0x02);
+    id.push_back(alarmSerialNum);
+    id.push_back(0x01);
     id.push_back(0x00);
 
     return id;

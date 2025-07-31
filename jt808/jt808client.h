@@ -57,7 +57,7 @@ private:
     void sendHeartBeatRequest();
     void sendTerminalParametersRequest();
 
-    void sendAlarmAttachmentMessageToStorage(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, int attachmentsNumber);
+    void sendAlarmAttachmentMessageToStorage(const std::string &pathToVideo, const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, int attachmentsNumber);
 
     void startPlatformAnswerHandler();
     void handlePlatformAnswer(const std::vector<uint8_t> &answer);
@@ -71,8 +71,11 @@ private:
     bool parseVideoPlaybackRequest(const std::vector<uint8_t> &request);
     bool parseVideoPlaybackControlRequest(const std::vector<uint8_t> &request);
 
+    void parse9212Answer(const std::vector<uint8_t> &answer);
+
     bool parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request);
-    void startAlarmFilesUploading();
+    void startAlarmFilesUploading(const std::string &filePath);
+    void uploadFile(const std::string &pathToFile);
 
     void streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request);
 
@@ -86,7 +89,8 @@ private:
     int socketFd;
     bool isConnected = false;
 
-    int storageSocketId;
+    int storageSocketId = -1;
+    bool isStorageConnected = false;
 
     bool isFileUploadingInProgress = false;
     uint32_t multimediaID = 0x000011001;

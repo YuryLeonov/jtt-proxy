@@ -55,7 +55,7 @@ public:
     void setTerminalPhoneNumber(const std::string &phone);
     void setTerminalID(const std::string &id);
 
-    std::vector<uint8_t> serializeToBitStream(const std::string &message);
+    std::vector<uint8_t> serializeToBitStream(const std::string &message, uint8_t alarmSerNum);
     std::vector<uint8_t> serializeToBitStream(const json &j);
 
     const std::vector<uint8_t> getBodyStream() const;
@@ -123,6 +123,7 @@ private:
     };
 
     uint8_t alarmType = 0x05;
+    uint8_t alarmSerialNum = 0;
 
     const std::vector<uint8_t> replacers7E = {0x7d, 0x02};
     const std::vector<uint8_t> replacers7D = {0x7d, 0x01};

@@ -46,7 +46,7 @@ private:
     void messageHandler(websocketpp::connection_hdl handler, message_ptr message);
 
     void sendRequestForEvents();
-    void sendRequestForMediaInfo();
+    void sendRequestForMediaInfo(const std::string &eventUUID);
 
     void runConnectionThread();
 
@@ -76,6 +76,7 @@ private:
     std::string eventInfoMTP = "";
     std::string lastEventTime = "";
     std::string eventMediaInfoMTP = "";
+    std::string currentEventUUID = "";
 
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
 };

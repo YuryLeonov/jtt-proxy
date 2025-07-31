@@ -6,10 +6,13 @@
 class JT808FileUploadStopRequest : public JT808MessageFormatter
 {
 public:
-    JT808FileUploadStopRequest(const TerminalInfo &info);
+    JT808FileUploadStopRequest(const std::string &pathToFile, const TerminalInfo &info);
     ~JT808FileUploadStopRequest();
 
     std::vector<uint8_t> getRequest() override;
+
+private:
+    std::string filePath = "";
 
 };
 
