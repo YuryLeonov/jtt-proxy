@@ -467,8 +467,8 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     resource.streamType = static_cast<int>(request[31]);
     resource.memoryType = static_cast<int>(request[32]);
 
-    const std::string filePath = "/opt/lms/mtp-808-proxy/tests/test5.mp4";
-    resource.fileSize = std::filesystem::file_size(filePath);
+//    const std::string filePath = "/opt/lms/mtp-808-proxy/tests/test5.mp4";
+    resource.fileSize = 0;
 
 //    try {
 //        resource.fileSize = std::filesystem::file_size(filePath);
