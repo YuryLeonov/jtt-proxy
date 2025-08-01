@@ -5,6 +5,7 @@
 #include "PlatformInfo.h"
 #include "terminalparams.h"
 #include "realtimevideostreamer.h"
+#include "platformalarmid.h"
 
 #include <thread>
 #include <stdexcept>
@@ -32,8 +33,8 @@ public:
     void setPlatformInfo(platform::PlatformInfo info);
     void setTerminalParameters();
 
-    bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo);
-    void sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
+    bool sendAlarmMessage(const std::string &eventID, const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo);
+    void sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo);
 
 private:
     bool checkIfAuthenticationKeyExists();
@@ -43,7 +44,7 @@ private:
     bool connectDomain();
     bool connectIp();
 
-    bool connectToStorageServer(const std::string host, int port);
+    bool connectToStorageServer();
 
     void sendVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody);
 
@@ -89,6 +90,9 @@ private:
     int socketFd;
     bool isConnected = false;
 
+    std::string storageHost = "";
+    int storagePortTCP = 0;
+    int storagePortUDP = 0;
     int storageSocketId = -1;
     bool isStorageConnected = false;
 
@@ -106,7 +110,11 @@ private:
 
     std::mutex sendingMessageMutex;
 
+    std::string currentAlarmID = "";
+
     std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
+
+    std::map<std::string, PlatformAlarmID> unUploadedEvents;
 
 };
 

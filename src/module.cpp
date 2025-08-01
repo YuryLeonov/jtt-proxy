@@ -46,12 +46,12 @@ void Module::initWebSocketClient()
     wsClient = std::make_shared<WebSocketClient>(eventServerInfo.ipAddress, eventServerInfo.port, eventServerInfo.eventsTableName);
     wsClient->setReconnectTimeout(eventServerInfo.reconnectTimeout);
     wsClient->setSurveyInterval(eventServerInfo.surveyInterval);
-    wsClient->setExternalMessageAlarmHandler(std::bind(&Module::wsClientMessageAlarmHandler, this, ::_1));
-    wsClient->setExternalMessageMediaInfoHandler(std::bind(&Module::wsClientMessageMediaInfoHandler, this, ::_1));
+    wsClient->setExternalMessageAlarmHandler(std::bind(&Module::wsClientMessageAlarmHandler, this, ::_1, ::_2));
+    wsClient->setExternalMessageMediaInfoHandler(std::bind(&Module::wsClientMessageMediaInfoHandler, this, ::_1, ::_2));
     wsClient->connect();
 }
 
-void Module::wsClientMessageAlarmHandler(const std::string &message)
+void Module::wsClientMessageAlarmHandler(const std::string &eventID, const std::string &message)
 {
     static uint8_t alarmSerialNum = 0;
     JT808EventSerializer serializer;
@@ -67,22 +67,22 @@ void Module::wsClientMessageAlarmHandler(const std::string &message)
     currentAlarmBody = serializer.getBodyStream();
 
     //Отправка на платформу
-    platformConnector.sendAlarmMessage(vec, serializer.getAddInfoStream());
+    platformConnector.sendAlarmMessage(eventID,  vec, serializer.getAddInfoStream());
 }
 
-void Module::wsClientMessageMediaInfoHandler(const std::string &message)
+void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message)
 {
     json data = json::parse(message);
 
     std::string pathToVideo = data.at("path2video");
-    LOG(INFO) << "Найден видеоролик события: " << pathToVideo << std::endl;
+    std::cout << "Найден видеоролик события: " << pathToVideo << std::endl;
 
-    if(!std::filesystem::exists(pathToVideo)) {
-        LOG(ERROR) << "Не найден видео файл " << pathToVideo << std::endl;
-        return;
-    }
+//    if(!std::filesystem::exists(pathToVideo)) {
+//        LOG(ERROR) << "Не найден видео файл " << pathToVideo << std::endl;
+//        return;
+//    }
 
-//    platformConnector.sendAlarmVideoFile(pathToVideo, currentAlarmBody);
+    platformConnector.sendAlarmVideoFile(eventID, pathToVideo);
 
 }
 

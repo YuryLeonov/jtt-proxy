@@ -24,8 +24,8 @@ public:
 
     void setReconnectTimeout(int timeout);
     void setSurveyInterval(int interval);
-    void setExternalMessageAlarmHandler(const std::function<void(const std::string &message)> &f);
-    void setExternalMessageMediaInfoHandler(const std::function<void(const std::string &message)> &f);
+    void setExternalMessageAlarmHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f);
+    void setExternalMessageMediaInfoHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f);
 
     void connect();
 
@@ -65,8 +65,8 @@ private:
     int surveyInterval = 5000;
     std::string serverURI = "";
 
-    std::function<void(const std::string &message)> externalMessageAlarmHandler;
-    std::function<void(const std::string &message)> externalMessageMediaInfoHandler;
+    std::function<void(const std::string &eventID, const std::string &message)> externalMessageAlarmHandler;
+    std::function<void(const std::string &eventID, const std::string &message)> externalMessageMediaInfoHandler;
 
     std::thread connectionLoopThread;
     websocketpp::connection_hdl currentConnectionHandler;
@@ -79,6 +79,8 @@ private:
     std::string currentEventUUID = "";
 
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
+
+    std::queue<std::string> unuploadedEvents;
 };
 
 #endif // WEBSOCKETCLIENT_H

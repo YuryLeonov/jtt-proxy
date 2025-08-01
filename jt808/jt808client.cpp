@@ -557,11 +557,11 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     offset += ipLength;
     std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
 
-    const std::string host = tools::hex_bytes_to_string(ipBuffer);
-    int tcpPort = tools::make_uint16(body[offset], body[offset+1]);
+    storageHost = tools::hex_bytes_to_string(ipBuffer);
+    storagePortTCP = tools::make_uint16(body[offset], body[offset+1]);
 
     offset+=2;
-    int udpPort = tools::make_uint16(body[offset], body[offset+1]);
+    storagePortUDP = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
 
     std::vector<uint8_t> alarmID;
@@ -576,42 +576,15 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
         alarmID.push_back(body[offset++]);
     }
 
+    unUploadedEvents[currentAlarmID].id = std::move(alarmID);
+    unUploadedEvents[currentAlarmID].number = std::move(alarmNumber);
+
+    std::cout << "В буфер невыгруженных событий добавлено событие: " << currentAlarmID << std::endl;
+    std::cout << "Размер буфера: " << unUploadedEvents.size() << std::endl;
+
     sendGeneralResponseToPlatform(header.messageSerialNumber, header.messageID);
 
 
-    //Соединяемся с серевером Storage
-
-    if(connectToStorageServer(host, tcpPort))
-    {
-        const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/test5.mp4";
-
-        sendAlarmAttachmentMessageToStorage(pathToVideo, alarmID, alarmNumber, 1);
-
-        int bytes_read = -1;
-        char buffer[1024] = {0};
-
-        bytes_read = read(storageSocketId, buffer, 1024);
-        if (bytes_read <= 0) {
-            LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1210: " << errno << std::endl;
-
-            while(bytes_read <= 0) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                bytes_read = read(storageSocketId, buffer, 1024);
-            }
-
-        }
-
-        std::vector<uint8_t> vec(bytes_read);
-        std::copy(buffer, buffer + bytes_read, vec.begin());
-        std::cout << "Получено от storage: " << tools::getStringFromBitStream(vec);
-        if(parseGeneralResponse(std::move(vec))) {
-            LOG(INFO) << "Сервер Storage разрешил начать выгрузку роликов";
-            startAlarmFilesUploading(pathToVideo);
-        } else {
-            LOG(ERROR) << "Сервер Storage запретил начало выгрузки роликов";
-            return false;
-        }
-    }
 
     return true;
 }
@@ -651,7 +624,7 @@ void JT808Client::startAlarmFilesUploading(const std::string &pathToVideo)
         std::vector<uint8_t> vec(bytes_read);
         std::copy(buffer, buffer + bytes_read, vec.begin());
         if(parseGeneralResponse(std::move(vec))) {
-            LOG(INFO) << "Сервер Storage принял информацию о файле";
+            std::cout << "Сервер Storage принял информацию о файле";
             uploadFile(pathToVideo);
         } else {
             LOG(ERROR) << "Сервер Storage не принял информацию о файле";
@@ -708,16 +681,13 @@ void JT808Client::uploadFile(const std::string &pathToFile)
             }
             continue;
         }
-//        std::cout << "Отправлен чанк: " << std::endl;
-//        std::cout << tools::getStringFromBitStream(dataBody) << std::endl;
-
         offset += bytes_sent;
         size += bytes_sent;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 
-    LOG(INFO) << "Файл выгружен!(отправлено " << size << " байт)" << std::endl;
+    std::cout << "Файл выгружен!(отправлено " << size << " байт)" << std::endl;
 
     JT808FileUploadStopRequest request(pathToFile, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
@@ -782,7 +752,7 @@ void JT808Client::parse9212Answer(const std::vector<uint8_t> &answer)
     const uint8_t numberOfTransmissionPackets = answer[offset++];
 
     if(!result) {
-        LOG(INFO) << "Выгрузка файла " << fileName << " успешна";
+        std::cout << "Выгрузка файла " << fileName << " успешна";
     } else {
         LOG(ERROR) << "Необходима дополнительная выгрузка файла " << fileName;
 
@@ -813,7 +783,7 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
     }
 }
 
-bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo)
+bool JT808Client::sendAlarmMessage(const std::string &eventID, const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo)
 {
     if(socketFd <= 0)
         return false;
@@ -834,16 +804,49 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
     }
 
     LOG(INFO) << std::endl << "Аларм отправлен на платформу!" << std::endl;
+    unUploadedEvents[eventID] = PlatformAlarmID();
+    currentAlarmID = eventID;
+
 //    LOG(TRACE) << "Аларм: ";
 //    LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
 //    LOG(TRACE) << "**********************";
     return true;
 }
 
-void JT808Client::sendAlarmVideoFile(const std::string &filePath, const std::vector<uint8_t> &alarmBody)
+void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo)
 {
-    std::thread uploadVideoThread(&JT808Client::sendVideoFile, this,  filePath, std::move(alarmBody));
-    uploadVideoThread.detach();
+    if(unUploadedEvents.find(eventID) != unUploadedEvents.end()) {
+        std::cout << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo << std::endl;
+    }
+
+    if(connectToStorageServer())
+    {
+        sendAlarmAttachmentMessageToStorage(pathToVideo, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1);
+
+        int bytes_read = -1;
+        char buffer[1024] = {0};
+
+        bytes_read = read(storageSocketId, buffer, 1024);
+        if (bytes_read <= 0) {
+            LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1210: " << errno << std::endl;
+
+            while(bytes_read <= 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                bytes_read = read(storageSocketId, buffer, 1024);
+            }
+
+        }
+
+        std::vector<uint8_t> vec(bytes_read);
+        std::copy(buffer, buffer + bytes_read, vec.begin());
+        std::cout << "Получено от storage: " << tools::getStringFromBitStream(vec);
+        if(parseGeneralResponse(std::move(vec))) {
+            std::cout << "Сервер Storage разрешил начать выгрузку роликов";
+            startAlarmFilesUploading(pathToVideo);
+        } else {
+            LOG(ERROR) << "Сервер Storage запретил начало выгрузки роликов";
+        }
+    }
 }
 
 void JT808Client::  connectToPlatform()
@@ -940,7 +943,7 @@ bool JT808Client::connectIp()
     return true;
 }
 
-bool JT808Client::connectToStorageServer(const std::string host, int port)
+bool JT808Client::connectToStorageServer()
 {
     if(isStorageConnected) {
         std::cout << "Уже есть соединение с сервером storage" << std::endl;
@@ -969,9 +972,9 @@ bool JT808Client::connectToStorageServer(const std::string host, int port)
 
     sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr);
-    LOG(INFO) << "Попытка подключения к storage:" << host << ":" << std::to_string(port) << std::endl;
+    server_addr.sin_port = htons(storagePortTCP);
+    inet_pton(AF_INET, storageHost.c_str(), &server_addr.sin_addr);
+    LOG(INFO) << "Попытка подключения к storage:" << storageHost << ":" << std::to_string(storagePortTCP) << std::endl;
     if(connect(storageSocketId, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(storageSocketId);
         LOG(ERROR) << "Ошибка подключения к storage(проверьте реквизиты сервера)" << std::endl;

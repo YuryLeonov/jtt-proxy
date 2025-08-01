@@ -45,12 +45,12 @@ void WebSocketClient::setSurveyInterval(int interval)
     surveyInterval = interval;
 }
 
-void WebSocketClient::setExternalMessageAlarmHandler(const std::function<void (const std::string &)> &f)
+void WebSocketClient::setExternalMessageAlarmHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f)
 {
     externalMessageAlarmHandler = f;
 }
 
-void WebSocketClient::setExternalMessageMediaInfoHandler(const std::function<void (const std::string &)> &f)
+void WebSocketClient::setExternalMessageMediaInfoHandler(const std::function<void (const std::string & ,const std::string &)> &f)
 {
     externalMessageMediaInfoHandler = f;
 }
@@ -118,22 +118,36 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     std::optional<std::map<std::string, json> > videoEntities = dbMessageHelper->parseQueryResponse(data,eventMediaInfoMTP);
 
     if(eventEntities != std::nullopt) {
-        for(const auto &pair : eventEntities.value()) {
-            const json eventJson = pair.second;
-            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
 
+        if(!unuploadedEvents.empty()) {
+            const std::string eventID = unuploadedEvents.front();
+            sendRequestForMediaInfo(eventID);
+        }
+
+        for(const auto &pair : eventEntities.value()) {
+            const std::string eventID = pair.first;
+            const json eventJson = pair.second;
+
+            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
+            unuploadedEvents.push(eventID);
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
 
-//            sendRequestForMediaInfo(pair.first);
-
-            externalMessageAlarmHandler(eventJson.dump());
+            externalMessageAlarmHandler(eventID, eventJson.dump());
         }
     }
 
     if(videoEntities != std::nullopt) {
         for(const auto &pair : videoEntities.value()) {
+            const std::string eventID = tools::split(pair.first, '@').at(1);
             const json eventVideoJson = pair.second;
-            externalMessageMediaInfoHandler(eventVideoJson.dump());
+
+            std::cout << "Получено видео для: " << eventID << std::endl;
+
+            if(unuploadedEvents.front() == eventID) {
+                unuploadedEvents.pop();
+            }
+
+            externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
         }
     }
 }
@@ -162,7 +176,7 @@ void WebSocketClient::sendRequestForMediaInfo(const std::string &eventUUID)
     const std::string event_uuid_start = std::string("event@").append(eventUUID + "@");
     const std::string event_uuid_stop = std::string("event@").append(eventUUID + "A");
     const std::string getEventMediaInfoRequest = dbMessageHelper->buildGetRequest(eventMediaInfoMTP,
-                                                                                  "video",
+                                                                                  "muxer-video",
                                                                                   std::nullopt,
                                                                                   std::nullopt,
                                                                                   20,
@@ -173,7 +187,7 @@ void WebSocketClient::sendRequestForMediaInfo(const std::string &eventUUID)
                                                                                   "asc",
                                                                                   std::nullopt);
 
-    std::cout << getEventMediaInfoRequest << std::endl;
+//    std::cout << getEventMediaInfoRequest << std::endl;
 
     client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
 }
