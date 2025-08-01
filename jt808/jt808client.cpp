@@ -470,11 +470,11 @@ bool JT808Client::parseArchiveListRequest(const std::vector<uint8_t> &request)
     const std::string filePath = "/opt/lms/mtp-808-proxy/tests/test5.mp4";
     resource.fileSize = std::filesystem::file_size(filePath);
 
-    try {
-        resource.fileSize = std::filesystem::file_size(filePath);
-    } catch (const std::filesystem::filesystem_error& e) {
-        LOG(ERROR) << "Ошибка: " << e.what() << std::endl;
-    }
+//    try {
+//        resource.fileSize = std::filesystem::file_size(filePath);
+//    } catch (const std::filesystem::filesystem_error& e) {
+//        LOG(ERROR) << "Ошибка: " << e.what() << std::endl;
+//    }
 
     JT1078UploadedResourcesListRequest answer(header.messageSerialNumber, resource, terminalInfo);
     std::vector<uint8_t> answerBuffer = std::move(answer.getRequest());
