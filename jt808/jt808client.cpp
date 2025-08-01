@@ -827,31 +827,9 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         std::cout << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo << std::endl;
     }
 
-    std::string path = "/opt/lms/mtp-808-proxy/tests/2025-08-01T17:15:25.325484_2025-08-01T17:15:35.240975.mp4";
-//    std::string path = "/opt/lms/mtp-808-proxy/tests/test.mp4";
-
     if(connectToStorageServer())
     {
-        sendAlarmAttachmentMessageToStorage(path, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1);
-
-//        JT808AlarmAttachmentRequest request(path, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1, terminalInfo);
-//        std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-
-//        unsigned char *message = requestBuffer.data();
-//        ssize_t bytes_sent = send(storageSocketId, message, requestBuffer.size(), 0);
-//        if (bytes_sent == -1) {
-//            if(errno == EAGAIN || errno == EWOULDBLOCK) {
-//                while(bytes_sent == -1) {
-//                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                    LOG(INFO) << "Повторная отправка 0x1210" << std::endl;
-//                    bytes_sent = send(storageSocketId, message, requestBuffer.size(), MSG_NOSIGNAL);
-//                }
-//            }
-//        }
-
-//        std::cout << "Запрос 0x1210 отправлен: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
-
-
+        sendAlarmAttachmentMessageToStorage(pathToVideo, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1);
 
         int bytes_read = -1;
         char buffer[1024] = {0};
@@ -871,7 +849,7 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         std::copy(buffer, buffer + bytes_read, vec.begin());
         std::cout << "Получили ответ: " << tools::getStringFromBitStream(vec) << std::endl;
         if(parseGeneralResponse(std::move(vec))) {
-            startAlarmFilesUploading(path);
+            startAlarmFilesUploading(pathToVideo);
         } else {
             std::cerr << "Сервер Storage запретил начало выгрузки роликов" << std::endl;
         }
