@@ -286,11 +286,10 @@ void JT808Client::sendAlarmAttachmentMessageToStorage(const std::string &pathToV
                 bytes_sent = send(storageSocketId, message, requestBuffer.size(), MSG_NOSIGNAL);
             }
         }
-        return;
     }
 
 
-    LOG(INFO) << "Запрос 0x1210 отправлен: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+    std::cout << "Запрос 0x1210 отправлен: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
 }
 
 void JT808Client::startPlatformAnswerHandler()
@@ -607,8 +606,6 @@ void JT808Client::startAlarmFilesUploading(const std::string &pathToVideo)
             }
         }
 
-        LOG(INFO) << "Запрос 0x1211 отправлен: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
-
     } catch(const std::runtime_error &err) {
         LOG(ERROR) << err.what();
         return;
@@ -624,10 +621,9 @@ void JT808Client::startAlarmFilesUploading(const std::string &pathToVideo)
         std::vector<uint8_t> vec(bytes_read);
         std::copy(buffer, buffer + bytes_read, vec.begin());
         if(parseGeneralResponse(std::move(vec))) {
-            std::cout << "Сервер Storage принял информацию о файле";
             uploadFile(pathToVideo);
         } else {
-            LOG(ERROR) << "Сервер Storage не принял информацию о файле";
+            LOG(ERROR) << "Сервер Storage не принял информацию о файле" << std::endl;
         }
     }
 
@@ -657,8 +653,20 @@ void JT808Client::uploadFile(const std::string &pathToFile)
     ssize_t bytes_sent = -1;
     const uint32_t header = 0x30316364;
     std::filesystem::path filePath = pathToFile;
-    std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(filePath.filename().string());
-    fileNameBytes.insert(fileNameBytes.end(), 50 - filePath.filename().string().length(), 0x00);
+    std::string fileName = filePath.filename().string();
+    if(fileName.length() > 50) {
+        std::cout << "Имя файла слишком большое: " <<  filePath.filename().string() << " вырезаем дату."<< std::endl;
+        fileName = tools::split(fileName, 'T').at(1) + tools::split(fileName, 'T').at(2);
+        std::cout << "Новое имя: " << fileName << std::endl;
+        std::cout << "Теперь размер имени файла " << fileName.length() << std::endl;
+        if(fileName.length() > 50) {
+            std::cerr << "Все равно много, надо думать" << std::endl;
+            return;
+        }
+    }
+    std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
+
+    fileNameBytes.insert(fileNameBytes.end(), 50 - fileName.length(), 0x00);
     uint32_t offset = 0;
     uint32_t dataLength = 0;
     std::vector<uint8_t> dataBody;
@@ -819,14 +827,36 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         std::cout << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo << std::endl;
     }
 
+    std::string path = "/opt/lms/mtp-808-proxy/tests/2025-08-01T17:15:25.325484_2025-08-01T17:15:35.240975.mp4";
+//    std::string path = "/opt/lms/mtp-808-proxy/tests/test.mp4";
+
     if(connectToStorageServer())
     {
-        sendAlarmAttachmentMessageToStorage(pathToVideo, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1);
+        sendAlarmAttachmentMessageToStorage(path, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1);
+
+//        JT808AlarmAttachmentRequest request(path, unUploadedEvents[eventID].id, unUploadedEvents[eventID].number, 1, terminalInfo);
+//        std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+
+//        unsigned char *message = requestBuffer.data();
+//        ssize_t bytes_sent = send(storageSocketId, message, requestBuffer.size(), 0);
+//        if (bytes_sent == -1) {
+//            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+//                while(bytes_sent == -1) {
+//                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//                    LOG(INFO) << "Повторная отправка 0x1210" << std::endl;
+//                    bytes_sent = send(storageSocketId, message, requestBuffer.size(), MSG_NOSIGNAL);
+//                }
+//            }
+//        }
+
+//        std::cout << "Запрос 0x1210 отправлен: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+
+
 
         int bytes_read = -1;
         char buffer[1024] = {0};
 
-        bytes_read = read(storageSocketId, buffer, 1024);
+        bytes_read = read(storageSocketId, buffer, sizeof(buffer));
         if (bytes_read <= 0) {
             LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1210: " << errno << std::endl;
 
@@ -839,13 +869,14 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
 
         std::vector<uint8_t> vec(bytes_read);
         std::copy(buffer, buffer + bytes_read, vec.begin());
-        std::cout << "Получено от storage: " << tools::getStringFromBitStream(vec);
+        std::cout << "Получили ответ: " << tools::getStringFromBitStream(vec) << std::endl;
         if(parseGeneralResponse(std::move(vec))) {
-            std::cout << "Сервер Storage разрешил начать выгрузку роликов";
-            startAlarmFilesUploading(pathToVideo);
+            startAlarmFilesUploading(path);
         } else {
-            LOG(ERROR) << "Сервер Storage запретил начало выгрузки роликов";
+            std::cerr << "Сервер Storage запретил начало выгрузки роликов" << std::endl;
         }
+    } else {
+        std::cout << "Нет соединения с сервером storage" << std::endl;
     }
 }
 
