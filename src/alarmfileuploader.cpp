@@ -119,7 +119,7 @@ bool AlarmFileUploader::uploadFile()
 }
 
 bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
-{
+{       
     JT808AlarmAttachmentRequest request(jtAlarmType, pathToVideo, alarmID, alarmNumber, attachments, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
@@ -134,7 +134,6 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
             }
         }
     }
-
 
     std::cout << "Запрос 0x1210 отправлен: " << std::endl;
 

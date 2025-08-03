@@ -649,9 +649,18 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         return;
     }
 
-    if(alarmUploader->uploadFile()) {
+    try {
+
+        if(alarmUploader->uploadFile()) {
+            unUploadedEvents.erase(eventID);
+        }
+
+    } catch(const std::filesystem::filesystem_error& e) {
+        std::cout << "Ошибка обработки файла " << pathToVideo << " : " << e.what() << std::endl;
         unUploadedEvents.erase(eventID);
+        return;
     }
+
 }
 
 void JT808Client::  connectToPlatform()
