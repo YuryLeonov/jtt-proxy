@@ -45,6 +45,8 @@ private:
     bool connectDomain();
     bool connectIp();
 
+    bool connectToStorageServer();
+
     void sendRegistrationRequest();
     void parseRegistrationAnswer(std::vector<uint8_t> answer);
     void writeAuthenticationKeyToFile(const std::string &path);
@@ -54,6 +56,8 @@ private:
     void sendAuthenticationRequest();
     void sendHeartBeatRequest();
     void sendTerminalParametersRequest();
+
+    void sendAlarmAttachmentMessageToStorage(const uint8_t &jtAlarmType, const std::string &pathToVideo, const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, int attachmentsNumber);
 
     void startPlatformAnswerHandler();
     void handlePlatformAnswer(const std::vector<uint8_t> &answer);
@@ -67,7 +71,11 @@ private:
     bool parseVideoPlaybackRequest(const std::vector<uint8_t> &request);
     bool parseVideoPlaybackControlRequest(const std::vector<uint8_t> &request);
 
+    void parse9212Answer(const std::vector<uint8_t> &answer);
+
     bool parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request);
+    void startAlarmFilesUploading(const std::string &eventID, const std::string &filePath);
+    bool uploadFile(const std::string &eventID, const std::string &pathToFile);
 
     void streamVideo(const streamer::VideoServerRequisites &vsRequisites, const std::vector<uint8_t> &request);
 
@@ -88,6 +96,9 @@ private:
     int storageSocketId = -1;
     bool isStorageConnected = false;
 
+    bool isFileUploadingInProgress = false;
+    uint32_t multimediaID = 0x000011001;
+
     bool isAuthenticationKeyExists = false;
     std::vector<uint8_t> authenticationKey;
 
@@ -105,7 +116,7 @@ private:
     std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
 
     std::map<std::string, PlatformAlarmID> unUploadedEvents;
-    std::mutex uploadMutex;
+
 };
 
 #endif // JT808CONNECTIONHANDLER_H

@@ -45,7 +45,7 @@ void WebSocketClient::setSurveyInterval(int interval)
     surveyInterval = interval;
 }
 
-void WebSocketClient::setExternalMessageAlarmHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f)
+void WebSocketClient::setExternalMessageAlarmHandler(const std::function<void(const alarms::AlarmType &type, const std::string &message)> &f)
 {
     externalMessageAlarmHandler = f;
 }
@@ -120,19 +120,27 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     if(eventEntities != std::nullopt) {
 
         if(!unuploadedEvents.empty()) {
-            const std::string eventID = unuploadedEvents.front();
-            sendRequestForMediaInfo(eventID);
+            sendRequestForMediaInfo(unuploadedEvents.front());
         }
 
         for(const auto &pair : eventEntities.value()) {
-            const std::string eventID = pair.first;
+
+            alarms::AlarmType aType;
+
+            aType.id = pair.first;
             const json eventJson = pair.second;
 
-            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << eventJson.at("event_type") << std::endl;
-            unuploadedEvents.push(eventID);
+
+            aType.lmsType = eventJson.at("event_type");
+            std::cout << "Получено событие: " << eventJson.at("info") << " c LMSID = " << aType.lmsType << std::endl;
+            if(alarms::dsmAlarmsMap.find(aType.lmsType) != alarms::dsmAlarmsMap.end()) {
+                aType.jtType = alarms::dsmAlarmsMap[aType.lmsType];
+            }
+
+            unuploadedEvents.push(aType.id);
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
 
-            externalMessageAlarmHandler(eventID, eventJson.dump());
+            externalMessageAlarmHandler(aType, eventJson.dump());
         }
     }
 
@@ -145,6 +153,11 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 
             if(unuploadedEvents.front() == eventID) {
                 unuploadedEvents.pop();
+            }
+
+            if(eventVideoJson.is_array()) {
+               std::cerr << "Получен массив видео " << std::endl;
+               return;
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
@@ -186,8 +199,6 @@ void WebSocketClient::sendRequestForMediaInfo(const std::string &eventUUID)
                                                                                   std::nullopt,
                                                                                   "asc",
                                                                                   std::nullopt);
-
-//    std::cout << getEventMediaInfoRequest << std::endl;
 
     client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
 }

@@ -44,6 +44,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./src/PlatformInfo.h
             ./src/eventserverinfo.h
             ./src/realtimevideostreamer.h
+            /.src/alarmfileuploader.h
             ./src/alarmtypes.h
             ./src/platformalarmid.h
             ./jt808/jt808serializer.h
@@ -83,6 +84,7 @@ set(SOURCES ./src/main.cpp
             ./src/configurationparser.cpp
             ./src/confmodificationwatcher.cpp
             ./src/realtimevideostreamer.cpp
+            ./src/alarmfileuploader.cpp
             ./jt808/jt808serializer.cpp
             ./jt808/jt808server.cpp
             ./jt808/jt808client.cpp

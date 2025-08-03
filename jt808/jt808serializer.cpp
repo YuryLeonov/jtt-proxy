@@ -340,7 +340,6 @@ void JT808EventSerializer::addAdditionalInformation()
     tools::addToStdVector(addInfoStream, vehicleStatus);
 
     const std::vector<uint8_t> alarmID = getAlarmID();
-    std::cout << "AlarmID: " << tools::getStringFromBitStream(alarmID) << std::endl;
     addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
 
     bodyStream.push_back(0x65);

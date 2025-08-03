@@ -8,6 +8,7 @@
 #include "jt808client.h"
 #include "jt808server.h"
 #include "jt808serializer.h"
+#include "alarmtypes.h"
 
 class Module
 {
@@ -21,7 +22,7 @@ public:
 
 private:
     void initWebSocketClient();
-    void wsClientMessageAlarmHandler(const std::string &eventID, const std::string &message);
+    void wsClientMessageAlarmHandler(const alarms::AlarmType &type, const std::string &message);
     void wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message);
     void initPlatformClient();
 
@@ -35,8 +36,6 @@ private:
     TerminalInfo terminalInfo;
     platform::PlatformInfo platformInfo;
     EventServerInfo eventServerInfo;
-
-    std::vector<uint8_t> currentAlarmBody;
 
     bool test = false;
 

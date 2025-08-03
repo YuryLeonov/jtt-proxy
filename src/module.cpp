@@ -3,6 +3,7 @@
 
 #include "easylogging++.h"
 #include "tools.h"
+#include "alarmtypes.h"
 
 #include <filesystem>
 
@@ -51,7 +52,7 @@ void Module::initWebSocketClient()
     wsClient->connect();
 }
 
-void Module::wsClientMessageAlarmHandler(const std::string &eventID, const std::string &message)
+void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const std::string &message)
 {
     static uint8_t alarmSerialNum = 0;
     JT808EventSerializer serializer;
@@ -59,30 +60,32 @@ void Module::wsClientMessageAlarmHandler(const std::string &eventID, const std::
     serializer.setTerminalID(terminalInfo.terminalID);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
-    if(vec.empty()) {
-        std::cout << "Задетектированных событий нет" << std::endl;
-        return;
+    if(alarmSerialNum > 255) {
+        alarmSerialNum = 0;
     }
 
-    currentAlarmBody = serializer.getBodyStream();
-
     //Отправка на платформу
-    platformConnector.sendAlarmMessage(eventID,  vec, serializer.getAddInfoStream());
+    platformConnector.sendAlarmMessage(type,  vec, serializer.getAddInfoStream());
 }
 
 void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message)
 {
     json data = json::parse(message);
 
-    std::string pathToVideo = data.at("path2video");
-    std::cout << "Найден видеоролик события: " << pathToVideo << std::endl;
+//    std::string pathToVideo = data.at("path2video");
 
-//    if(!std::filesystem::exists(pathToVideo)) {
-//        LOG(ERROR) << "Не найден видео файл " << pathToVideo << std::endl;
-//        return;
-//    }
 
-    platformConnector.sendAlarmVideoFile(eventID, pathToVideo);
+    const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/2025-08-01T17:15:25.325484_2025-08-01T17:15:35.240975.mp4";
+
+    if(!std::filesystem::exists(pathToVideo)) {
+        std::cerr << "Не найден файл " << pathToVideo << " на диске" << std::endl;
+        return;
+    }
+
+    std::thread uploadThread(&JT808Client::sendAlarmVideoFile, &platformConnector, eventID, pathToVideo);
+    uploadThread.detach();
+
+//    platformConnector.sendAlarmVideoFile(eventID, pathToVideo);
 
 }
 

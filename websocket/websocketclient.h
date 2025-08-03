@@ -7,6 +7,8 @@
 #include "websocketpp/client.hpp"
 #include "eventrequests.h"
 #include "DbMessagesHelper.h"
+#include "alarmtypes.h"
+
 
 using wsclient = websocketpp::client<websocketpp::config::asio_client>;
 using message_ptr = websocketpp::config::asio_client::message_type::ptr;
@@ -24,7 +26,7 @@ public:
 
     void setReconnectTimeout(int timeout);
     void setSurveyInterval(int interval);
-    void setExternalMessageAlarmHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f);
+    void setExternalMessageAlarmHandler(const std::function<void(const alarms::AlarmType &type, const std::string &message)> &f);
     void setExternalMessageMediaInfoHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f);
 
     void connect();
@@ -65,7 +67,7 @@ private:
     int surveyInterval = 5000;
     std::string serverURI = "";
 
-    std::function<void(const std::string &eventID, const std::string &message)> externalMessageAlarmHandler;
+    std::function<void(const alarms::AlarmType &type, const std::string &message)> externalMessageAlarmHandler;
     std::function<void(const std::string &eventID, const std::string &message)> externalMessageMediaInfoHandler;
 
     std::thread connectionLoopThread;
