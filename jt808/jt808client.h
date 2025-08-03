@@ -106,6 +106,9 @@ private:
 
     std::map<std::string, PlatformAlarmID> unUploadedEvents;
     std::mutex uploadMutex;
+
+    std::map<int, std::string> rtspLinks;
+
 };
 
 #endif // JT808CONNECTIONHANDLER_H

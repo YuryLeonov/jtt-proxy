@@ -63,7 +63,7 @@ void AlarmFileUploader::setAttachments(int ats)
 bool AlarmFileUploader::connectToStorage()
 {
     if(isConnected) {
-        std::cout << "Уже есть соединение с сервером storage" << std::endl;
+        LOG(INFO) << "Уже есть соединение с сервером storage" << std::endl;
         return true;
     }
 
@@ -97,7 +97,7 @@ bool AlarmFileUploader::connectToStorage()
         LOG(ERROR) << "Ошибка подключения к storage(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
-         std::cout << "Соединение с storage установлено(" << socketId << ")" << std::endl << std::endl;
+         LOG(INFO) << "Соединение с storage установлено(" << socketId << ")" << std::endl;
          isConnected = true;
     }
 
@@ -154,7 +154,7 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
     if(parseGeneralResponse(vec)) {
         return true;
     } else {
-        std::cerr << "Сервер Storage запретил начало выгрузки роликов: " << tools::getStringFromBitStream(vec) << std::endl;
+        LOG(ERROR) << "Сервер Storage запретил начало выгрузки роликов: " << tools::getStringFromBitStream(vec);
         return false;
     }
 }
@@ -195,7 +195,7 @@ bool AlarmFileUploader::initUploading()
         if(parseGeneralResponse(std::move(vec))) {
             return true;
         } else {
-            std::cerr << "Сервер Storage не принял информацию о файле" << std::endl;
+            LOG(ERROR) << "Сервер Storage не принял информацию о файле";
             return false;
         }
     }
@@ -227,7 +227,7 @@ bool AlarmFileUploader::upload()
     if(fileName.length() > 50) {
         fileName = tools::split(fileName, 'T').at(1) + tools::split(fileName, 'T').at(2);
         if(fileName.length() > 50) {
-            std::cerr << "Длина имени выгружаемого файла слишком большая!!!" << std::endl;
+            LOG(ERROR) << "Длина имени выгружаемого файла слишком большая!!!";
             return false;
         }
     }
@@ -261,8 +261,6 @@ bool AlarmFileUploader::upload()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
-
-    std::cout << "Ролик " << pathToVideo << " выгружен!" << std::endl;
 
     JT808FileUploadStopRequest request(pathToVideo, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
@@ -343,7 +341,7 @@ void AlarmFileUploader::parse9212Answer(const std::vector<uint8_t> &answer)
     const uint8_t numberOfTransmissionPackets = answer[offset++];
 
     if(!result) {
-        std::cout << "Выгрузка файла " << fileName << " успешна";
+        LOG(INFO) << "Выгрузка файла " << fileName << " успешна";
     } else {
         LOG(ERROR) << "Необходима дополнительная выгрузка файла " << fileName;
 

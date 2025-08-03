@@ -22,7 +22,7 @@ void RealTimeVideoStreamer::setVideoServerParams(const streamer::VideoServerRequ
 void RealTimeVideoStreamer::setRtsp(const std::string &rtsp)
 {
     rtspLink = rtsp;
-    std::cout << "Установлена ссылка: " << rtspLink << std::endl;
+    LOG(INFO) << "Установлена ссылка: " << rtspLink;
 }
 
 void RealTimeVideoStreamer::setTerminalInfo(const TerminalInfo &tInfo)
@@ -34,9 +34,9 @@ bool RealTimeVideoStreamer::startStreaming()
 {
     //Инициализируем декодер
     if(initDecoder()) {
-        std::cout << "ДЕМУЛЬТИПЛЕКСОР ИНИЦИАЛИЗИРОВАН" << std::endl;
+        LOG(INFO) << "ДЕМУЛЬТИПЛЕКСОР ИНИЦИАЛИЗИРОВАН";
     } else {
-        std::cerr << "Ошибка инициализации демультиплексора" << std::endl;
+        LOG(ERROR) << "Ошибка инициализации демультиплексора";
         return false;
     }
 
@@ -48,7 +48,7 @@ bool RealTimeVideoStreamer::startStreaming()
 
 void RealTimeVideoStreamer::stopStreaming()
 {
-    std::cout << "Прекращаем стриминг..." << std::endl;
+    LOG(INFO) << "Прекращаем стриминг по каналу " << videoServer.channel;
     isStreamingInProgress = false;
     close(socketFd);
 }
@@ -77,7 +77,7 @@ bool RealTimeVideoStreamer::initDecoder()
 
     decoderFormatContext = avformat_alloc_context();
     if(!decoderFormatContext) {
-        std::cerr << "Ошибка выделения памяти под контекста формата для декодера" << std::endl;
+        LOG(ERROR) << "Ошибка выделения памяти под контекста формата для декодера";
         return false;
     }
 
@@ -88,15 +88,15 @@ bool RealTimeVideoStreamer::initDecoder()
     int ret = 0;
     ret = avformat_open_input(&decoderFormatContext, rtspLink.c_str(), nullptr, &options);
     if(ret != 0) {
-        std::cerr << "Ошибка открытия входного файла" << std::endl;
+        LOG(ERROR) << "Ошибка открытия входного файла";
         return false;
     } else {
-        std::cout << "Демультиплексор открыт..." << std::endl;
+        LOG(INFO) << "Демультиплексор открыт...";
     }
 
     ret = avformat_find_stream_info(decoderFormatContext, nullptr);
     if(ret < 0 ) {
-        std::cerr << "Ошибка получения потоков из входного файла" << std::endl;
+        LOG(ERROR) << "Ошибка получения потоков из входного файла";
         return false;
     }
 
@@ -111,7 +111,7 @@ bool RealTimeVideoStreamer::initDecoder()
 
             const bool ret = fillDecoderVideoStreamInfo();
             if(!ret) {
-                std::cerr << "Ошибка парсинга параметров видеокодека декодером";
+                LOG(ERROR) << "Ошибка парсинга параметров видеокодека декодером";
                 return false;
             }
 
@@ -130,7 +130,7 @@ bool RealTimeVideoStreamer::fillStreamInfo(AVStream *stream, AVCodec **codec, AV
 {
     *codec = avcodec_find_decoder(stream->codecpar->codec_id);
     if(!codec) {
-        std::cerr << "Ошибка поиска кодека по id" << std::endl;
+        LOG(ERROR) << "Ошибка поиска кодека по id";
         return false;
     }
 
@@ -138,21 +138,21 @@ bool RealTimeVideoStreamer::fillStreamInfo(AVStream *stream, AVCodec **codec, AV
 
     *codecContext = avcodec_alloc_context3(*codec);
     if(!codecContext) {
-        std::cerr << "Ошибка выделения памяти по контекст кодека" << std::endl;
+        LOG(ERROR) << "Ошибка выделения памяти по контекст кодека";
         return false;
     }
     int ret = 0;
 
     ret = avcodec_parameters_to_context(*codecContext, stream->codecpar);
     if(ret < 0) {
-        std::cerr << "Ошибка копирования параметров кодека в контекст" << std::endl;
+        LOG(ERROR) << "Ошибка копирования параметров кодека в контекст";
         return false;
     }
 
     ret = avcodec_open2(*codecContext, *codec, nullptr);
 
     if(ret < 0) {
-        std::cerr << "Ошибка открытия кодека" << std::endl;
+        LOG(ERROR) << "Ошибка открытия кодека";
         return false;
     }
 
@@ -358,7 +358,7 @@ bool RealTimeVideoStreamer::establishTCPConnection()
         LOG(ERROR) << "Ошибка подключения к видео-серверу(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
-         std::cout << "Соединение с видео-сервером установлено(" << socketFd << ")" << std::endl << std::endl;
+         LOG(INFO) << "Соединение с видео-сервером установлено(" << socketFd << ")";
          isConnected = true;
 
     }

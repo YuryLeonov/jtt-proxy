@@ -75,7 +75,7 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
     std::string pathToVideo = data.at("path2video");
 
     if(!std::filesystem::exists(pathToVideo)) {
-        std::cerr << "Не найден файл " << pathToVideo << " на диске" << std::endl;
+        LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
         return;
     }
 
@@ -88,12 +88,4 @@ void Module::initPlatformClient()
 {
     platformConnector.setConfiguration(terminalInfo, platformInfo);
     platformConnector.connectToPlatform();
-}
-
-void Module::handlePlatformAnswer(const std::vector<uint8_t> &answer)
-{
-    JT808Header header = JT808HeaderParser::getHeader(answer);
-
-    std::cout << "На сервер прилетел запрос от платформы: " << std::hex << header.messageID << std::endl;
-
 }

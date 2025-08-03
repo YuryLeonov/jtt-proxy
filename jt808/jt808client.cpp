@@ -230,7 +230,7 @@ void JT808Client::sendAuthenticationRequest()
         sendTerminalParametersRequest();
 
     } else {
-        std::cerr << "Ошибка авторизации"<< std::endl;
+        LOG(ERROR) << "Ошибка авторизации"<< std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(30000));
         sendAuthenticationRequest();
     }
@@ -314,7 +314,7 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
     } else if(header.messageID == 0x9208) {
         parseAlarmAttachmentUploadRequest(std::move(answer));
     } else {
-        std::cout << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
+        LOG(INFO) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
     }
 }
 
@@ -558,9 +558,6 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     unUploadedEvents[lastAlarmType.id].id = std::move(alarmID);
     unUploadedEvents[lastAlarmType.id].number = std::move(alarmNumber);
 
-//    std::cout << "В буфер невыгруженных событий добавлено событие: " << lastAlarmType.id << std::endl;
-//    std::cout << "Размер буфера: " << unUploadedEvents.size() << std::endl;
-
     sendGeneralResponseToPlatform(header.messageSerialNumber, header.messageID);
 
     return true;
@@ -571,7 +568,12 @@ void JT808Client::streamVideo(const streamer::VideoServerRequisites &vsRequisite
     std::unique_ptr<streamer::RealTimeVideoStreamer> videoStreamer = std::make_unique<streamer::RealTimeVideoStreamer>();
 
     videoStreamer->setVideoServerParams(vsRequisites);
-    videoStreamer->setRtsp(platformInfo.videoServer.rtspLinks.at(videoStreamers.size()));
+
+    if(rtspLinks.size() > 0)
+        videoStreamer->setRtsp(rtspLinks.at(vsRequisites.channel));
+    else
+        LOG(ERROR) << "Нет доступных потоков для трансляции онлайн";
+
     videoStreamer->setTerminalInfo(terminalInfo);
     if(platformInfo.videoServer.connType == platform::ConnectionType::TCP)
         videoStreamer->setConnectionType(streamer::ConnectionType::TCP);
@@ -609,7 +611,7 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
         }
     }
 
-    std::cout << std::endl << "Аларм отправлен на платформу!" << std::endl;
+    LOG(INFO) << "Аларм типа" << type.lmsType << " отправлен на платформу!";
     unUploadedEvents[type.id] = PlatformAlarmID();
     unUploadedAlarms.push_back(type);
 
@@ -624,7 +626,7 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
 void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo)
 {
     if(unUploadedEvents.find(eventID) != unUploadedEvents.end()) {
-        std::cout << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo << std::endl;
+        LOG(INFO) << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo;
     }
 
     uint8_t jt808AlarmType = 0x10;
@@ -656,7 +658,7 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         }
 
     } catch(const std::filesystem::filesystem_error& e) {
-        std::cout << "Ошибка обработки файла " << pathToVideo << " : " << e.what() << std::endl;
+        LOG(ERROR) << "Ошибка обработки файла " << pathToVideo << " : " << e.what();
         unUploadedEvents.erase(eventID);
         return;
     }
@@ -766,6 +768,11 @@ void JT808Client::setTerminalInfo(TerminalInfo info)
 void JT808Client::setPlatformInfo(platform::PlatformInfo info)
 {
     platformInfo = info;
+
+    for(int i = 0; i < platformInfo.videoServer.rtspLinks.size(); ++i) {
+        rtspLinks[i+1] = platformInfo.videoServer.rtspLinks[i];
+    }
+
 }
 
 void JT808Client::setTerminalParameters()
@@ -785,8 +792,6 @@ bool JT808Client::checkIfAuthenticationKeyExists()
     } catch(const AuthenticationKeyNotFoundException &excep) {
         return false;
     }
-
-    std::cout << std::endl;
 
     return true;
 }

@@ -147,17 +147,15 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     if(videoEntities != std::nullopt) {
         for(const auto &pair : videoEntities.value()) {
             const std::string eventID = tools::split(pair.first, '@').at(1);
-            const json eventVideoJson = pair.second;
-
-            std::cout << "Получено видео для: " << eventID << std::endl;
+            json eventVideoJson = pair.second;
 
             if(unuploadedEvents.front() == eventID) {
                 unuploadedEvents.pop();
             }
 
             if(eventVideoJson.is_array()) {
-               std::cerr << "Получен массив видео " << std::endl;
-               return;
+               LOG(INFO) << "Получен массив видеороликов " << std::endl;
+               eventVideoJson = eventVideoJson[0];
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());

@@ -26,8 +26,6 @@ private:
     void wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message);
     void initPlatformClient();
 
-    void handlePlatformAnswer(const std::vector<uint8_t> &answer);
-
 private:
     std::shared_ptr<WebSocketClient> wsClient;
     JT808Client platformConnector;
