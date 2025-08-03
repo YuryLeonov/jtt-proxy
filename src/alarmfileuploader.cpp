@@ -27,7 +27,7 @@ AlarmFileUploader::AlarmFileUploader(const std::string &host, int port, const Te
 AlarmFileUploader::~AlarmFileUploader()
 {
     close(socketId);
-    std::cout << "Сокет закрыт: " << socketId << std::endl;
+    LOG(DEBUG) << "Сокет закрыт: " << socketId << std::endl;
 }
 
 void AlarmFileUploader::setAlarmUuid(const std::string &uuid)
@@ -135,10 +135,6 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
         }
     }
 
-    std::cout << "Запрос 0x1210 отправлен: " << std::endl;
-
-
-
     int bytes_read = -1;
     char buffer[1024] = {0};
 
@@ -156,7 +152,6 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
     std::vector<uint8_t> vec(bytes_read);
     std::copy(buffer, buffer + bytes_read, vec.begin());
     if(parseGeneralResponse(vec)) {
-        std::cout << "Сервер storage разрешил начало отгрузки" << std::endl;
         return true;
     } else {
         std::cerr << "Сервер Storage запретил начало выгрузки роликов: " << tools::getStringFromBitStream(vec) << std::endl;
@@ -198,7 +193,6 @@ bool AlarmFileUploader::initUploading()
         std::vector<uint8_t> vec(bytes_read);
         std::copy(buffer, buffer + bytes_read, vec.begin());
         if(parseGeneralResponse(std::move(vec))) {
-            std::cout << "Данные приняты" << std::endl;
             return true;
         } else {
             std::cerr << "Сервер Storage не принял информацию о файле" << std::endl;
@@ -268,7 +262,7 @@ bool AlarmFileUploader::upload()
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 
-    std::cout << "Файл выгружен!(отправлено " << size << " байт)" << std::endl;
+    std::cout << "Ролик " << pathToVideo << " выгружен!" << std::endl;
 
     JT808FileUploadStopRequest request(pathToVideo, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
