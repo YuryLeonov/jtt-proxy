@@ -72,10 +72,7 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 {
     json data = json::parse(message);
 
-//    std::string pathToVideo = data.at("path2video");
-
-
-    const std::string pathToVideo = "/opt/lms/mtp-808-proxy/tests/2025-08-01T17:15:25.325484_2025-08-01T17:15:35.240975.mp4";
+    std::string pathToVideo = data.at("path2video");
 
     if(!std::filesystem::exists(pathToVideo)) {
         std::cerr << "Не найден файл " << pathToVideo << " на диске" << std::endl;
@@ -84,8 +81,6 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 
     std::thread uploadThread(&JT808Client::sendAlarmVideoFile, &platformConnector, eventID, pathToVideo);
     uploadThread.detach();
-
-//    platformConnector.sendAlarmVideoFile(eventID, pathToVideo);
 
 }
 
