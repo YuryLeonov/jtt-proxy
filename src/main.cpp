@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 //    std::thread watchdogNotofierThread(sdNotify, 10000);
 
     while(isRunning) {
-
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
 
