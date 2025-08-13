@@ -103,53 +103,87 @@ void JT808EventSerializer::  setAlarmFlag()
         switch(eventID) {
             case 1 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 2 :
                 tools::setBit(alarmFlag, 14);
+                alarmTypeID = 0x65;
                 break;
             case 3 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 4 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 5 :
                 tools::setBit(alarmFlag, 2);
+                alarmTypeID = 0x65;
                 break;
             case 6 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 7 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 8 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 9 :
                 tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x65;
                 break;
             case 10 :
                 tools::setBit(alarmFlag, 3);
                 tools::setBit(alarmFlag, 2);
                 tools::setBit(alarmFlag, 14);
+                alarmTypeID = 0x65;
                 break;
             case 14 :
                 tools::setBit(alarmFlag, 14);
+                alarmTypeID = 0x65;
                 break;
             case 15 :
                 tools::setBit(alarmFlag, 14);
+                alarmTypeID = 0x65;
                 break;
             case 16 :
                 tools::setBit(alarmFlag, 14);
+                alarmTypeID = 0x65;
                 break;
             case 17 :
                 tools::setBit(alarmFlag, 3);
                 tools::setBit(alarmFlag, 2);
                 tools::setBit(alarmFlag, 29);
                 tools::setBit(alarmFlag, 30);
+                alarmTypeID = 0x65;
+                break;
+            case 21 :
+                tools::setBit(alarmFlag, 3);
+                tools::setBit(alarmFlag, 29);
+                alarmTypeID = 0x64;
+                break;
+            case 22 :
+                tools::setBit(alarmFlag, 3);
+                tools::setBit(alarmFlag, 29);
+                alarmTypeID = 0x64;
+                break;
+            case 23 :
+                tools::setBit(alarmFlag, 3);
+                tools::setBit(alarmFlag, 29);
+                alarmTypeID = 0x64;
+                break;
+            case 24 :
+                tools::setBit(alarmFlag, 3);
+                alarmTypeID = 0x64;
                 break;
             case 30 :
                 tools::setBit(alarmFlag, 11);
+                alarmTypeID = 0x65;
                 break;
             case 31 :
                 tools::setBit(alarmFlag, 11);
