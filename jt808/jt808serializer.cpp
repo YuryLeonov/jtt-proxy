@@ -1,4 +1,5 @@
 #include "jt808serializer.h"
+#include "alarmtypes.h"
 
 #include "tools.h"
 #include <iostream>
@@ -94,33 +95,29 @@ void JT808EventSerializer::addStopByte()
 
 void JT808EventSerializer::  setAlarmFlag()
 {
-    alarmFlag = 0;
+        alarmFlag = 0;
 
         const int eventID = eventJson.at("event_type");
+        alarmType = alarms::dsmAlarmsMap[eventID];
+
         switch(eventID) {
             case 1 :
                 tools::setBit(alarmFlag, 3);
-                alarmType = 0x03;
                 break;
             case 2 :
                 tools::setBit(alarmFlag, 14);
-                alarmType = 0x01;
                 break;
             case 3 :
                 tools::setBit(alarmFlag, 3);
-                alarmType = 0x04;
                 break;
             case 4 :
                 tools::setBit(alarmFlag, 3);
-                alarmType = 0x04;
                 break;
             case 5 :
                 tools::setBit(alarmFlag, 2);
-                alarmType = 0x04;
                 break;
             case 6 :
                 tools::setBit(alarmFlag, 3);
-                alarmType = 0x04;
                 break;
             case 7 :
                 tools::setBit(alarmFlag, 3);
@@ -138,22 +135,18 @@ void JT808EventSerializer::  setAlarmFlag()
                 break;
             case 14 :
                 tools::setBit(alarmFlag, 14);
-                alarmType = 0x01;
                 break;
             case 15 :
                 tools::setBit(alarmFlag, 14);
-                alarmType = 0x01;
                 break;
             case 16 :
                 tools::setBit(alarmFlag, 14);
-                alarmType = 0x01;
                 break;
             case 17 :
                 tools::setBit(alarmFlag, 3);
                 tools::setBit(alarmFlag, 2);
                 tools::setBit(alarmFlag, 29);
                 tools::setBit(alarmFlag, 30);
-                alarmType = 0x01;
                 break;
             case 30 :
                 tools::setBit(alarmFlag, 11);
