@@ -122,6 +122,7 @@ private:
       {28, 0x00000000}, {29, 0x00000000}, {30, 0x00000000}, {31, 0x00000000}
     };
 
+    uint8_t alarmTypeID = 0x65;
     uint8_t alarmType = 0x05;
     uint8_t alarmSerialNum = 0;
 

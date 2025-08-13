@@ -153,6 +153,7 @@ void JT808EventSerializer::  setAlarmFlag()
                 break;
             case 31 :
                 tools::setBit(alarmFlag, 11);
+                alarmTypeID = 0x64;
                 break;
         }
 }
@@ -335,7 +336,7 @@ void JT808EventSerializer::addAdditionalInformation()
     const std::vector<uint8_t> alarmID = getAlarmID();
     addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
 
-    bodyStream.push_back(0x65);
+    bodyStream.push_back(alarmTypeID);
     const uint8_t addInfoLength = addInfoStream.size();
     bodyStream.push_back(addInfoLength);
     bodyStream.insert(bodyStream.end(), addInfoStream.begin(), addInfoStream.end());
