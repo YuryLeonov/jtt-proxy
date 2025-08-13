@@ -612,6 +612,7 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
     }
 
     LOG(INFO) << "Аларм типа " << type.lmsType << " отправлен на платформу!(тип по протоколу 808 - " << std::hex << static_cast<int>(type.jtType) << ")";
+    tools::printHexBitStream(request);
     unUploadedEvents[type.id] = PlatformAlarmID();
     unUploadedAlarms.push_back(type);
 
