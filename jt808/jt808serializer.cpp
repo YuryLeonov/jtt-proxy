@@ -64,7 +64,6 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
     addStartByte();
     addStopByte();
 
-
     return messageStream;
 }
 
@@ -187,6 +186,10 @@ void JT808EventSerializer::  setAlarmFlag()
                 break;
             case 31 :
                 tools::setBit(alarmFlag, 11);
+                alarmTypeID = 0x64;
+                break;
+            case 95 :
+                tools::setBit(alarmFlag, 29);
                 alarmTypeID = 0x64;
                 break;
         }
