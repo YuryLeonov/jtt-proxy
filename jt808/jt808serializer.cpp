@@ -285,7 +285,12 @@ void JT808EventSerializer::fillStateFlag()
 void JT808EventSerializer::setEventData()
 {
     //Coordinates
-    const std::string gps = eventJson.at("gps");
+    std::string gps = "";
+    if(eventJson.contains("gps")) {
+        gps = eventJson.at("gps");
+    } else {
+        gps = "55.760626, 37.703999";
+    }
     std::vector<std::string> coordinates = tools::split(gps, ',');
     try {
         latitude = static_cast<int32_t>(std::stod(coordinates.at(0))*1000000);
@@ -300,13 +305,24 @@ void JT808EventSerializer::setEventData()
     direction = 100;
 
     //speed
-    const int8_t s = eventJson.at("speed");
-    if(s >= 0) {
-        speed = static_cast<uint16_t>(s);
+    const int8_t s = 0;
+    if(eventJson.contains("speed")) {
+        const int8_t s = eventJson.at("speed");
+        if(s >= 0) {
+            speed = static_cast<uint16_t>(s);
+        }
+    } else {
+        speed = 50;
     }
 
     //Time
-    const std::string timestamp = eventJson.at("timestamp");
+    std::string timestamp = "";
+    if(eventJson.contains("timestamp")) {
+        timestamp = eventJson.at("timestamp");
+    } else {
+        timestamp = "2025-08-15 16:33:10";
+    }
+
     std::vector<std::string> splittedTimestamp = tools::split(timestamp, ' ');
     const std::string dateStr = splittedTimestamp.at(0);
     const std::string timeStr = splittedTimestamp.at(1);
