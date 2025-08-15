@@ -289,7 +289,7 @@ void JT808EventSerializer::setEventData()
     if(eventJson.contains("gps")) {
         gps = eventJson.at("gps");
     } else {
-        gps = "55.760626, 37.703999";
+        gps = "30.760626, 33.703999";
     }
     std::vector<std::string> coordinates = tools::split(gps, ',');
     try {
