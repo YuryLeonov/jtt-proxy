@@ -1,5 +1,6 @@
 #include "jt808serializer.h"
 #include "alarmtypes.h"
+#include "easylogging++.h"
 
 #include "tools.h"
 #include <iostream>
@@ -41,10 +42,17 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 {
     eventJson = j;
 
-    setEventData();
-    setTerminalStatus();
-    setAlarmFlag();
-    setStateFlag();
+    messageStream.clear();
+
+    try {
+        setEventData();
+        setTerminalStatus();
+        setAlarmFlag();
+        setStateFlag();
+    } catch(const nlohmann::detail::out_of_range &exc) {
+        LOG(ERROR) << "Ошибка обработки события: " << exc.what();
+        return messageStream;
+    }
 
     fillAlarmFlag();
     fillStateFlag();
@@ -53,7 +61,6 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
     addAdditionalInformation();
 
     setHeader();
-    messageStream.clear();
 
     messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
     messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());

@@ -60,6 +60,11 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
     serializer.setTerminalID(terminalInfo.terminalID);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
+    if(vec.empty()) {
+        LOG(ERROR) << "Ошибка формирования сообщения о событии.";
+        return;
+    }
+
     if(alarmSerialNum > 255) {
         alarmSerialNum = 0;
     }
