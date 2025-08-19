@@ -64,9 +64,10 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 
     messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
     messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
+    setCheckSum();
+
     tools::replaceByteInVectorWithTwo(messageStream, 0x7d, 0x7d, 0x01);
     tools::replaceByteInVectorWithTwo(messageStream, 0x7e, 0x7d, 0x02);
-    setCheckSum();
 
     addStartByte();
     addStopByte();
@@ -312,7 +313,7 @@ void JT808EventSerializer::setEventData()
             speed = static_cast<uint16_t>(s);
         }
     } else {
-        speed = 50;
+        speed = 53;
     }
 
     //Time

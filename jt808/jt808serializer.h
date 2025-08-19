@@ -124,7 +124,7 @@ private:
 
     uint8_t alarmTypeID = 0x65;
     uint8_t alarmType = 0x05;
-    uint8_t alarmSerialNum = 0;
+    uint8_t alarmSerialNum = 1;
 
     const std::vector<uint8_t> replacers7E = {0x7d, 0x02};
     const std::vector<uint8_t> replacers7D = {0x7d, 0x01};
