@@ -292,6 +292,8 @@ void JT808Client::startPlatformAnswerHandler()
 
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
+    std::cout << "Прилетел запрос: " << std::endl;
+    tools::printHexBitStream(answer);
     JT808Header header = JT808HeaderParser::getHeader(answer);
     if(header.messageID == 0x8001) {
         parseGeneralResponse(std::move(answer));
@@ -523,8 +525,9 @@ bool JT808Client::parseVideoPlaybackControlRequest(const std::vector<uint8_t> &r
 
 bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request)
 {
-    if(lastAlarmType.id == "")
+    if(lastAlarmType.id == "") {
         return false;
+    }
 
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
@@ -619,7 +622,7 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
     lastAlarmType = type;;
 
 //    LOG(TRACE) << "Аларм: ";
-//    LOG(TRACE) << tools::getStringFromBitStream(request) << std::endl;
+//      std::cout << tools::getStringFromBitStream(request) << std::endl;
 //    LOG(TRACE) << "**********************";
     return true;
 }

@@ -64,10 +64,9 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 
     messageStream.insert(messageStream.end(), headerStream.begin(), headerStream.end());
     messageStream.insert(messageStream.end(), bodyStream.begin(), bodyStream.end());
-    setCheckSum();
-
     tools::replaceByteInVectorWithTwo(messageStream, 0x7d, 0x7d, 0x01);
     tools::replaceByteInVectorWithTwo(messageStream, 0x7e, 0x7d, 0x02);
+    setCheckSum();
 
     addStartByte();
     addStopByte();
@@ -290,7 +289,7 @@ void JT808EventSerializer::setEventData()
     if(eventJson.contains("gps")) {
         gps = eventJson.at("gps");
     } else {
-        gps = "30.760626, 33.703999";
+        gps = "55.760626, 37.703999";
     }
     std::vector<std::string> coordinates = tools::split(gps, ',');
     try {
@@ -313,8 +312,10 @@ void JT808EventSerializer::setEventData()
             speed = static_cast<uint16_t>(s);
         }
     } else {
-        speed = 53;
+        speed = 50;
     }
+
+    speed = 50;
 
     //Time
     std::string timestamp = "";
@@ -366,30 +367,44 @@ void JT808EventSerializer::addAdditionalInformation()
     const uint32_t policeID = 0x00000000;
     tools::addToStdVector(addInfoStream, policeID);
 
-    addInfoStream.push_back(0x00);
+//    addInfoStream.push_back(0x00);
+//    addInfoStream.push_back(alarmType);
+//    addInfoStream.push_back(0x01);
+//    addInfoStream.push_back(0x05);
+//    addInfoStream.push_back(0x00);
+//    addInfoStream.push_back(0x00);
+//    addInfoStream.push_back(0x00);
+//    addInfoStream.push_back(0x00);
+//    addInfoStream.push_back(static_cast<uint8_t>(speed));
+//    tools::addToStdVector(addInfoStream, elevation);
+//    tools::addToStdVector(addInfoStream, latitude);
+//    tools::addToStdVector(addInfoStream, longitude);
+//    addInfoStream.push_back(time.year);
+//    addInfoStream.push_back(time.month);
+//    addInfoStream.push_back(time.day);
+//    addInfoStream.push_back(time.hour);
+//    addInfoStream.push_back(time.minute);
+//    addInfoStream.push_back(time.second);
 
+    addInfoStream.push_back(0x00);
     addInfoStream.push_back(alarmType);
-
     addInfoStream.push_back(0x01);
-
-    addInfoStream.push_back(0x05);
-
+    addInfoStream.push_back(0x01);
     addInfoStream.push_back(0x00);
     addInfoStream.push_back(0x00);
     addInfoStream.push_back(0x00);
     addInfoStream.push_back(0x00);
-
     addInfoStream.push_back(static_cast<uint8_t>(speed));
     tools::addToStdVector(addInfoStream, elevation);
     tools::addToStdVector(addInfoStream, latitude);
     tools::addToStdVector(addInfoStream, longitude);
-
     addInfoStream.push_back(time.year);
     addInfoStream.push_back(time.month);
     addInfoStream.push_back(time.day);
     addInfoStream.push_back(time.hour);
     addInfoStream.push_back(time.minute);
     addInfoStream.push_back(time.second);
+
 
     const uint16_t vehicleStatus = getVehicleStateStatus();
     tools::addToStdVector(addInfoStream, vehicleStatus);
@@ -398,6 +413,7 @@ void JT808EventSerializer::addAdditionalInformation()
     addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
 
     bodyStream.push_back(alarmTypeID);
+
     const uint8_t addInfoLength = addInfoStream.size();
     bodyStream.push_back(addInfoLength);
     bodyStream.insert(bodyStream.end(), addInfoStream.begin(), addInfoStream.end());
@@ -430,7 +446,7 @@ const std::vector<uint8_t> JT808EventSerializer::getAlarmID()
     id.push_back(time.minute);
     id.push_back(time.second);
 
-    id.push_back(alarmSerialNum);
+    id.push_back(alarmType);
     id.push_back(0x01);
     id.push_back(0x00);
 
