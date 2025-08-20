@@ -292,8 +292,6 @@ void JT808Client::startPlatformAnswerHandler()
 
 void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
 {
-    std::cout << "Прилетел запрос: " << std::endl;
-    tools::printHexBitStream(answer);
     JT808Header header = JT808HeaderParser::getHeader(answer);
     if(header.messageID == 0x8001) {
         parseGeneralResponse(std::move(answer));
@@ -525,6 +523,10 @@ bool JT808Client::parseVideoPlaybackControlRequest(const std::vector<uint8_t> &r
 
 bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request)
 {
+
+    std::cout << "Прилетел запрос: " << std::endl;
+    tools::printHexBitStream(request);
+
     if(lastAlarmType.id == "") {
         return false;
     }
