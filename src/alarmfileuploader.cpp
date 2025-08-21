@@ -336,9 +336,9 @@ void AlarmFileUploader::parse9212Answer(const std::vector<uint8_t> &answer)
     std::vector<uint8_t> fileNameBuffer(body.begin() + 1, body.begin() + offset);
     const std::string fileName = tools::hex_bytes_to_string(fileNameBuffer);
 
-    const uint8_t fileType = answer[offset++];
-    const uint8_t result = answer[offset++];
-    const uint8_t numberOfTransmissionPackets = answer[offset++];
+    const uint8_t fileType = body[offset++];
+    const uint8_t result = body[offset++];
+    const uint8_t numberOfTransmissionPackets = body[offset++];
 
     if(!result) {
         LOG(INFO) << "Выгрузка файла " << fileName << " успешна";
