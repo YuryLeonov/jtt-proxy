@@ -24,6 +24,11 @@ void JT808EventSerializer::setTerminalInfo(const TerminalInfo &info)
     terminalStatus = terminalInfo.status;
 }
 
+void JT808EventSerializer::setLocationInfoStatus(JT808EventSerializer::LocationInfoStatus s)
+{
+    locationInfoStatus = s;
+}
+
 std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message, uint8_t alarmSerNum)
 {
     alarmSerialNum = alarmSerNum;
@@ -41,7 +46,7 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
     messageStream.clear();
 
     try {
-        setEventData();
+        setLocationData();
         setTerminalStatus();
         setAlarmFlag();
         setStatusFlag();
@@ -50,13 +55,14 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
         return messageStream;
     }
 
-//    alarmFlag = 0x00000000;
     fillAlarmFlag();
     fillStateFlag();
     fillEventDada();
 
     addSatellitesCountInfo();
-    addAdditionalInformation();
+
+    if(locationInfoStatus == Alarm)
+        addAdditionalInformation();
 
     setHeader();
 
@@ -99,7 +105,10 @@ void JT808EventSerializer::addStopByte()
 
 void JT808EventSerializer::  setAlarmFlag()
 {
-        alarmFlag = 0;
+        alarmFlag = 0x00000000;
+
+        if(locationInfoStatus == Basic)
+            return;
 
         const int eventID = eventJson.at("event_type");
         alarmType = alarms::dsmAlarmsMap[eventID];
@@ -280,7 +289,7 @@ void JT808EventSerializer::fillStateFlag()
     tools::addToStdVector(bodyStream, stateFlag);
 }
 
-void JT808EventSerializer::setEventData()
+void JT808EventSerializer::setLocationData()
 {
     //Coordinates
     std::string gps = "";

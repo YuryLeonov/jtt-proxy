@@ -27,10 +27,17 @@ struct BCDTime {
 class JT808EventSerializer
 {
 public:
+
+    enum LocationInfoStatus {
+        Basic = 0,
+        Alarm
+    };
+
     JT808EventSerializer();
     ~JT808EventSerializer();
 
     void setTerminalInfo(const TerminalInfo &info);
+    void setLocationInfoStatus(LocationInfoStatus s);
 
     std::vector<uint8_t> serializeToBitStream(const std::string &message, uint8_t alarmSerNum);
     std::vector<uint8_t> serializeToBitStream(const json &j);
@@ -51,7 +58,7 @@ private:
     void setStatusFlag();
     void fillStateFlag();
     
-    void setEventData();
+    void setLocationData();
     void fillEventDada();
 
     void addAdditionalInformation();
@@ -98,6 +105,8 @@ private:
     const std::vector<uint8_t> replacers7D = {0x7d, 0x01};
 
     bool isPacketsIncapsulated = false;
+
+    LocationInfoStatus locationInfoStatus = LocationInfoStatus::Basic;
 };
 
 #endif // JT808SERIALIZER_H
