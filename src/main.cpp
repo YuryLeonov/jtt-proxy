@@ -30,7 +30,6 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     }
 
     const Configuration configuration = confParser.parseConfiguration();
-    configuration.printInfo();
 
     TerminalInfo terminalInfo;
     terminalInfo.phoneNumber = configuration.terminalPhoneNumber;
@@ -41,6 +40,28 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     terminalInfo.terminalID = configuration.terminalID;
     terminalInfo.licencePlateColor = configuration.licencePlateColor;
     terminalInfo.vin = configuration.vin;
+
+    TerminalStatus terminalStatus;
+    terminalStatus.isACCOn = (configuration.acc == "on") ? true : false;
+    terminalStatus.isPositioned = configuration.isPositioned;
+    terminalStatus.isSouthLatitude = (configuration.latitude == "south") ? true : false;
+    terminalStatus.isWestLongitude = (configuration.longitude == "west") ? true : false;
+    terminalStatus.isRunningStatus = (configuration.operationStatus == "on") ? true : false;
+    terminalStatus.isCoordinatesEncrypted = configuration.isCoordinatesEncrepted;
+    terminalStatus.loadLevel = configuration.loadLevel;
+    terminalStatus.vehicleOilCurcuit = (configuration.vehicleOilCircuitStatus == "on") ? true : false;
+    terminalStatus.vehicleCurcuit = (configuration.vehicleCircuitStatus == "on") ? true : false;
+    terminalStatus.isDoorLocked = (configuration.doorStatus == "locked") ? true : false;
+    terminalStatus.isFrontDoorOpened = configuration.isFrontDoorOpened;
+    terminalStatus.isMiddleDoorOpened = configuration.isMiddleDoorOpened;
+    terminalStatus.isBackDoorOpened = configuration.isBackDoorOpened;
+    terminalStatus.isDriverDoorOpened = configuration.isDriverDoorOpened;
+    terminalStatus.isFifthDoorOpened = configuration.isFifthDoorOpened;
+    terminalStatus.isGPSUsing = configuration.isGPSUsing;
+    terminalStatus.isBeidouUsing = configuration.isBeidouUsing;
+    terminalStatus.isGlonassUsing = configuration.isGlonassUsing;
+    terminalStatus.isGalileoUsing = configuration.isGalileoUsing;
+    terminalInfo.status = terminalStatus;
 
     platform::PlatformInfo platformInfo;
     platformInfo.ipAddress = configuration.platformServerIP;

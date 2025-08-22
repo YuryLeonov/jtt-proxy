@@ -786,7 +786,6 @@ void JT808Client::setPlatformInfo(platform::PlatformInfo info)
     for(int i = 0; i < platformInfo.videoServer.rtspLinks.size(); ++i) {
         rtspLinks[i+1] = platformInfo.videoServer.rtspLinks[i];
     }
-
 }
 
 void JT808Client::setTerminalParameters()

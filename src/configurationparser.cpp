@@ -59,5 +59,26 @@ Configuration ConfigurationParser::parseConfiguration()
         conf.rtspLinks.push_back(el);
     }
 
+    json statusFlagJson = confJson.at("statusFlag");
+    conf.acc = statusFlagJson.at("ACC");
+    conf.isPositioned = statusFlagJson.at("Positioned");
+    conf.latitude = statusFlagJson.at("latitude");
+    conf.longitude = statusFlagJson.at("longitude");
+    conf.operationStatus = statusFlagJson.at("OperationStatus");
+    conf.isCoordinatesEncrepted = statusFlagJson.at("CoordinatesEncryption");
+    conf.loadLevel = statusFlagJson.at("LoadLevel");
+    conf.vehicleOilCircuitStatus = statusFlagJson.at("VehicleOilCircuitStatus");
+    conf.vehicleCircuitStatus = statusFlagJson.at("VehicleCircuitStatus");
+    conf.doorStatus = statusFlagJson.at("DoorStatus");
+    conf.isFrontDoorOpened = statusFlagJson.at("IsFrontDoorOpened");
+    conf.isMiddleDoorOpened = statusFlagJson.at("IsMiddleDoorOpened");
+    conf.isBackDoorOpened = statusFlagJson.at("IsBackDoorOpened");
+    conf.isDriverDoorOpened = statusFlagJson.at("IsDriverDoorOpened");
+    conf.isFifthDoorOpened = statusFlagJson.at("IsFifthDoorOpened");
+    conf.isGPSUsing = statusFlagJson.at("GPSStatus");
+    conf.isBeidouUsing = statusFlagJson.at("BeidouStatus");
+    conf.isGlonassUsing = statusFlagJson.at("GlonassStatus");
+    conf.isGalileoUsing = statusFlagJson.at("GalileoStatus");
+
     return conf;
 }

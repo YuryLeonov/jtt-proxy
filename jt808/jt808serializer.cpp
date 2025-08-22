@@ -18,14 +18,10 @@ JT808EventSerializer::~JT808EventSerializer()
 
 }
 
-void JT808EventSerializer::setTerminalPhoneNumber(const std::string &phone)
+void JT808EventSerializer::setTerminalInfo(const TerminalInfo &info)
 {
-    terminalPhoneNumber = phone;
-}
-
-void JT808EventSerializer::setTerminalID(const std::string &id)
-{
-    terminalID = id;
+    terminalInfo = info;
+    terminalStatus = terminalInfo.status;
 }
 
 std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message, uint8_t alarmSerNum)
@@ -48,7 +44,7 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
         setEventData();
         setTerminalStatus();
         setAlarmFlag();
-        setStateFlag();
+        setStatusFlag();
     } catch(const nlohmann::detail::out_of_range &exc) {
         LOG(ERROR) << "Ошибка обработки события: " << exc.what();
         return messageStream;
@@ -224,7 +220,7 @@ void JT808EventSerializer::setTerminalStatus()
     terminalStatus.isGPSUsing = true;
 }
 
-void JT808EventSerializer::setStateFlag()
+void JT808EventSerializer::setStatusFlag()
 {
     stateFlag = 0;
 
@@ -244,9 +240,9 @@ void JT808EventSerializer::setStateFlag()
 
     if(terminalStatus.loadLevel == 1) {
         tools::setBit(stateFlag, 9);
-    } else if(terminalStatus.loadLevel == 2) {
+    } else if(terminalStatus.loadLevel == 10) {
         tools::setBit(stateFlag, 8);
-    } else if(terminalStatus.loadLevel == 3) {
+    } else if(terminalStatus.loadLevel == 11) {
         tools::setBit(stateFlag, 8);
         tools::setBit(stateFlag, 9);
     }
@@ -257,21 +253,21 @@ void JT808EventSerializer::setStateFlag()
         tools::setBit(stateFlag, 11);
     if(terminalStatus.isDoorLocked)
         tools::setBit(stateFlag, 12);
-    if(terminalStatus.isDoor1Opened)
+    if(terminalStatus.isFrontDoorOpened)
         tools::setBit(stateFlag, 13);
-    if(terminalStatus.isDoor2Opened)
+    if(terminalStatus.isMiddleDoorOpened)
         tools::setBit(stateFlag, 14);
-    if(terminalStatus.isDoor3Opened)
+    if(terminalStatus.isBackDoorOpened)
         tools::setBit(stateFlag, 15);
-    if(terminalStatus.isDoor4Opened)
+    if(terminalStatus.isDriverDoorOpened)
         tools::setBit(stateFlag, 16);
-    if(terminalStatus.isDoor5Opened)
+    if(terminalStatus.isFifthDoorOpened)
         tools::setBit(stateFlag, 17);
     if(terminalStatus.isGPSUsing)
         tools::setBit(stateFlag, 18);
     if(terminalStatus.isBeidouUsing)
         tools::setBit(stateFlag, 19);
-    if(terminalStatus.isGlonasUsing)
+    if(terminalStatus.isGlonassUsing)
         tools::setBit(stateFlag, 20);
     if(terminalStatus.isGalileoUsing)
         tools::setBit(stateFlag, 21);
@@ -316,14 +312,10 @@ void JT808EventSerializer::setEventData()
         speed = 50;
     }
 
-    speed = 50;
-
     //Time
     std::string timestamp = "";
     if(eventJson.contains("timestamp")) {
         timestamp = eventJson.at("timestamp");
-    } else {
-        timestamp = "2025-08-15 16:33:10";
     }
 
     std::vector<std::string> splittedTimestamp = tools::split(timestamp, ' ');
@@ -367,25 +359,6 @@ void JT808EventSerializer::addAdditionalInformation()
 
     const uint32_t policeID = 0x00000000;
     tools::addToStdVector(addInfoStream, policeID);
-
-//    addInfoStream.push_back(0x00);
-//    addInfoStream.push_back(alarmType);
-//    addInfoStream.push_back(0x01);
-//    addInfoStream.push_back(0x05);
-//    addInfoStream.push_back(0x00);
-//    addInfoStream.push_back(0x00);
-//    addInfoStream.push_back(0x00);
-//    addInfoStream.push_back(0x00);
-//    addInfoStream.push_back(static_cast<uint8_t>(speed));
-//    tools::addToStdVector(addInfoStream, elevation);
-//    tools::addToStdVector(addInfoStream, latitude);
-//    tools::addToStdVector(addInfoStream, longitude);
-//    addInfoStream.push_back(time.year);
-//    addInfoStream.push_back(time.month);
-//    addInfoStream.push_back(time.day);
-//    addInfoStream.push_back(time.hour);
-//    addInfoStream.push_back(time.minute);
-//    addInfoStream.push_back(time.second);
 
     addInfoStream.push_back(0x00);
     addInfoStream.push_back(alarmType);
@@ -437,7 +410,7 @@ const std::vector<uint8_t> JT808EventSerializer::getAlarmID()
 {
     std::vector<uint8_t> id;
 
-    std::vector<uint8_t> terminalIDBytes = tools::getUint8VectorFromString(terminalID);
+    std::vector<uint8_t> terminalIDBytes = tools::getUint8VectorFromString(terminalInfo.terminalID);
     id.insert(id.begin(), terminalIDBytes.begin(), terminalIDBytes.end());
 
     id.push_back(time.year);
@@ -467,7 +440,7 @@ void JT808EventSerializer::setHeader()
     tools::addToStdVector(headerStream, bodyInfo);
 
     //PhoneNumber
-    std::vector<std::string> numbers = tools::split(terminalPhoneNumber, '-');
+    std::vector<std::string> numbers = tools::split(terminalInfo.phoneNumber, '-');
     if(numbers.size() == 6) {
         for(const auto &numStr : numbers) {
             const uint8_t num = static_cast<uint8_t>(std::stoi(numStr));

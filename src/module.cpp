@@ -56,8 +56,7 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
 {
     static uint8_t alarmSerialNum = 0;
     JT808EventSerializer serializer;
-    serializer.setTerminalPhoneNumber(terminalInfo.phoneNumber);
-    serializer.setTerminalID(terminalInfo.terminalID);
+    serializer.setTerminalInfo(terminalInfo);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
     if(vec.empty()) {

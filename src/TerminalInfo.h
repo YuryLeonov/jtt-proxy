@@ -4,11 +4,27 @@
 #include <string>
 #include <inttypes.h>
 
-struct LocalServerInfo
+struct TerminalStatus
 {
-    std::string host;
-    uint32_t port;
-    int connectionsCount = 3;
+    bool isACCOn = true;
+    bool isPositioned = true;
+    bool isSouthLatitude = false;
+    bool isWestLongitude = false;
+    bool isRunningStatus = false;
+    bool isCoordinatesEncrypted = false;
+    int loadLevel = 0;
+    bool vehicleOilCurcuit = false;
+    bool vehicleCurcuit = false;
+    bool isDoorLocked = false;
+    bool isFrontDoorOpened = false;
+    bool isMiddleDoorOpened = false;
+    bool isBackDoorOpened = false;
+    bool isDriverDoorOpened = false;
+    bool isFifthDoorOpened = false;
+    bool isGPSUsing = true;
+    bool isBeidouUsing = false;
+    bool isGlonassUsing = false;
+    bool isGalileoUsing = false;
 };
 
 struct TerminalInfo
@@ -21,6 +37,7 @@ struct TerminalInfo
     std::string terminalID;
     uint8_t licencePlateColor;
     std::string vin;
+    TerminalStatus status;
 };
 
 #endif // TERMINALINFO_H
