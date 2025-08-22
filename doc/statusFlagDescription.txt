@@ -17,3 +17,4 @@
 "BeidouStatus" : true/false    -    используется ли BEIDOU
 "GlonassStatus" : true/false    -    используется ли GLONASS
 "GalileoStatus" : true/false    -    используется ли Galileo
+"satellitesCount" : 3   -   число подключенных спутников

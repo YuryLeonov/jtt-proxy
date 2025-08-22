@@ -25,6 +25,7 @@ struct TerminalStatus
     bool isBeidouUsing = false;
     bool isGlonassUsing = false;
     bool isGalileoUsing = false;
+    uint8_t satellitesCount = 0;
 };
 
 struct TerminalInfo

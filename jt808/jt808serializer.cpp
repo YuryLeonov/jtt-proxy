@@ -55,6 +55,7 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
     fillStateFlag();
     fillEventDada();
 
+    addSatellitesCountInfo();
     addAdditionalInformation();
 
     setHeader();
@@ -298,8 +299,8 @@ void JT808EventSerializer::setEventData()
         std::cerr << "Ошибка аргумента метода stod при преобразовании координат из строки: " << e.what();
     }
 
-    elevation = 10;
-    direction = 100;
+    elevation = 10; //TODO
+    direction = 100; //TODO
 
     //speed
     const int8_t s = 0;
@@ -392,6 +393,13 @@ void JT808EventSerializer::addAdditionalInformation()
     bodyStream.push_back(addInfoLength);
     bodyStream.insert(bodyStream.end(), addInfoStream.begin(), addInfoStream.end());
 
+}
+
+void JT808EventSerializer::addSatellitesCountInfo()
+{
+    bodyStream.push_back(0x31);
+    bodyStream.push_back(0x01);
+    bodyStream.push_back(terminalStatus.satellitesCount);
 }
 
 const uint16_t JT808EventSerializer::getVehicleStateStatus()

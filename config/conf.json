@@ -49,6 +49,7 @@
 		"GPSStatus" : true,
 		"BeidouStatus" : false,
 		"GlonassStatus" : false,
-		"GalileoStatus" : false
+		"GalileoStatus" : false,
+		"satellitesCount" : 3
 	}
 }

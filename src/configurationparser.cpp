@@ -79,6 +79,7 @@ Configuration ConfigurationParser::parseConfiguration()
     conf.isBeidouUsing = statusFlagJson.at("BeidouStatus");
     conf.isGlonassUsing = statusFlagJson.at("GlonassStatus");
     conf.isGalileoUsing = statusFlagJson.at("GalileoStatus");
+    conf.satellitesCount = statusFlagJson.at("satellitesCount");
 
     return conf;
 }

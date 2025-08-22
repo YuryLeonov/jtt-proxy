@@ -55,6 +55,7 @@ private:
     void fillEventDada();
 
     void addAdditionalInformation();
+    void addSatellitesCountInfo();
     const uint16_t getVehicleStateStatus();
     const std::vector<uint8_t> getAlarmID();
 

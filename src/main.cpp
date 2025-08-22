@@ -61,6 +61,7 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     terminalStatus.isBeidouUsing = configuration.isBeidouUsing;
     terminalStatus.isGlonassUsing = configuration.isGlonassUsing;
     terminalStatus.isGalileoUsing = configuration.isGalileoUsing;
+    terminalStatus.satellitesCount = configuration.satellitesCount;
     terminalInfo.status = terminalStatus;
 
     platform::PlatformInfo platformInfo;
