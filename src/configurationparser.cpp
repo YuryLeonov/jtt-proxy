@@ -59,10 +59,5 @@ Configuration ConfigurationParser::parseConfiguration()
         conf.rtspLinks.push_back(el);
     }
 
-    json localServerInfoJson = confJson.at("localServer");
-    conf.localServerHost = localServerInfoJson.at("host");
-    conf.localServerPort = localServerInfoJson.at("port");
-    conf.localServerConnectionsCount = localServerInfoJson.at("connectionsAllowed");
-
     return conf;
 }

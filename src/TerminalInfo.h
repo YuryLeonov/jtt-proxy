@@ -21,9 +21,6 @@ struct TerminalInfo
     std::string terminalID;
     uint8_t licencePlateColor;
     std::string vin;
-
-    LocalServerInfo localServerInfo;
-
 };
 
 #endif // TERMINALINFO_H

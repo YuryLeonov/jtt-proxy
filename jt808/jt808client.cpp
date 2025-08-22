@@ -792,9 +792,6 @@ void JT808Client::setPlatformInfo(platform::PlatformInfo info)
 void JT808Client::setTerminalParameters()
 {
     terminalParams.terminalHeartbeatTimeout = static_cast<uint32_t>(platformInfo.heartBeatTimeout / 1000);
-    terminalParams.primaryServerIpAddress = terminalInfo.localServerInfo.host;
-    terminalParams.serverTCPPort = terminalInfo.localServerInfo.port;
-    terminalParams.serverUDPPort = terminalInfo.localServerInfo.port;
 }
 
 bool JT808Client::checkIfAuthenticationKeyExists()

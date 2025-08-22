@@ -63,12 +63,6 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     eventServerInfo.surveyInterval = configuration.eventsServerSurveyInterval;
     eventServerInfo.videoRootPath = configuration.videoRootPath;
 
-    LocalServerInfo localServerInfo;
-    localServerInfo.host = configuration.localServerHost;
-    localServerInfo.port = configuration.localServerPort;
-    localServerInfo.connectionsCount = configuration.localServerConnectionsCount;
-    terminalInfo.localServerInfo = localServerInfo;
-
     fullConf.terminalInfo = terminalInfo;
     fullConf.platformInfo = platformInfo;
     fullConf.eventServerInfo = eventServerInfo;

@@ -29,10 +29,5 @@
 				"rtsp://admin:a1234567@10.2.0.15:554/Streaming/Channels/101"
 			]
 		}
-	},
-	"localServer" : {
-		"host" : "127.0.0.1",
-		"port" : 8096,
-		"connectionsAllowed" : 3
 	}
 }
