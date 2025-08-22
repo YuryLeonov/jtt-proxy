@@ -548,6 +548,10 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     storagePortUDP = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
 
+    std::cout << "IP-адрес сервера хранилища: " << storageHost << std::endl;
+    std::cout << "TCP-порт хранилища: " << std::dec << storagePortTCP << std::endl;
+    std::cout << "UDP-порт хранилища: " << std::dec << storagePortUDP << std::endl;
+
     std::vector<uint8_t> alarmID;
 
     for(int i = 0; i < 16; ++i) {
@@ -557,7 +561,7 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     std::vector<uint8_t> alarmNumber;
 
     for(int i = 0; i < 32; ++i) {
-        alarmID.push_back(body[offset++]);
+        alarmNumber.push_back(body[offset++]);
     }
 
     unUploadedEvents[lastAlarmType.id].id = std::move(alarmID);
@@ -631,6 +635,10 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
 
 void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo)
 {
+    if(storageHost.empty()) {
+        return;
+    }
+
     if(unUploadedEvents.find(eventID) != unUploadedEvents.end()) {
         LOG(INFO) << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo;
     }

@@ -54,6 +54,7 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
         return messageStream;
     }
 
+//    alarmFlag = 0x00000000;
     fillAlarmFlag();
     fillStateFlag();
     fillEventDada();

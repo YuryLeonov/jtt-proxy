@@ -4,6 +4,9 @@
 #include "alarmtypes.h"
 #include <filesystem>
 
+#include <iostream>
+
+#include <algorithm>
 
 JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber, uint8_t attachmentsNum, const TerminalInfo &info) :
     JT808MessageFormatter(info),
@@ -32,13 +35,16 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
     bodyStream.insert(bodyStream.end(), alarmID.begin(), alarmID.end());
     bodyStream.insert(bodyStream.end(), alarmNumber.begin(), alarmNumber.end());
 
-
     bodyStream.push_back(0x00);
     bodyStream.push_back(attachmentsNumber);
 
+    std::string alarmNumStr = tools::hex_bytes_to_string(alarmNumber);
+    alarmNumStr.erase(std::remove_if(alarmNumStr.begin(), alarmNumStr.end(), ::isspace), alarmNumStr.end());
+
     const std::string alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
 
-    const std::string fileName = std::string("02_") + std::string("65_") + alarmTypeStr + std::string("1_") + tools::hex_bytes_to_string(alarmNumber) + std::string("_") + std::string("h264");
+    const std::string fileName = std::string("02_") + std::string("01_") + alarmTypeStr + std::string("1_") + alarmNumStr + std::string("_") + std::string("h264");
+    std::cout << fileName << std::endl;
     const uint8_t fileNameSize = fileName.length();
     const uint32_t fileSize = std::filesystem::file_size(filePath);
 
