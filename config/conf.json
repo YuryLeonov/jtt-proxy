@@ -29,5 +29,26 @@
 				"rtsp://admin:a1234567@10.2.0.15:554/Streaming/Channels/101"
 			]
 		}
+	},
+	"statusFlag" : {
+		"ACC" : "on",
+		"Positioned" : true,
+		"latitude" : "south",
+		"longitude" : "west",
+		"OperationStatus" : "on",
+		"CoordinatesEncryption" : false,
+		"LoadLevel" : 0,
+		"VehicleOilCircuitStatus" : "on",
+		"VehicleCircuitStatus" : "on",
+		"DoorStatus" : "locked",
+		"IsFrontDoorOpened" : false,
+		"IsMiddleDoorOpened" : false,
+		"IsBackDoorOpened" : false,
+		"IsDriverDoorOpened" : false,
+		"IsFifthDoorOpened" : false,
+		"GPSStatus" : true,
+		"BeidouStatus" : false,
+		"GlonassStatus" : false,
+		"GalileoStatus" : false
 	}
 }

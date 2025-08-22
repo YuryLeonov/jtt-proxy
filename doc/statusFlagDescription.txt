@@ -1,0 +1,19 @@
+"ACC" : "on/off"    -    повернут ли ключ зажигания
+"Positioned" : true/false    -    используется ли система позиционирования
+"latitude" : "south/north"    -    какая широта
+"longitude" : "west/east"    -    какая долгота
+"OperationStatus" : "on/off"    -    статус работы
+"CoordinatesEncryption" : true/false    -    зашифрованы ли значения координат
+"LoadLevel" : 0,1,10,11    -    0(пусто), 1(заполнено наполовину), 10(зарезервировано), 11(полная загрузка)
+"VehicleOilCircuitStatus" : "on/off"    -    статус работы масляного контура
+"VehicleCircuitStatus" : "on/off"    -    статус работы главной электрической цепи автомобиля
+"DoorStatus" : "locked/unlocked"    -    заблокированы ли двери
+"IsFrontDoorOpened" : true/false    -    открыта ли передняя дверь(пассажирская)
+"IsMiddleDoorOpened" : true/false    -    открыта ли средняя дверь
+"IsBackDoorOpened" : true/false    -    открыта ли задняя дверь
+"IsDriverDoorOpened" : true/false    -    открыта ли передняя дверь(водителя)
+"IsFifthDoorOpened" : true/false    -    открыта ли дополнительная пятая дверь
+"GPSStatus" : true    -    используется ли GPS
+"BeidouStatus" : true/false    -    используется ли BEIDOU
+"GlonassStatus" : true/false    -    используется ли GLONASS
+"GalileoStatus" : true/false    -    используется ли Galileo
