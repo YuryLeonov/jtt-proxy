@@ -24,6 +24,7 @@ private:
     void initWebSocketClient();
     void wsClientMessageAlarmHandler(const alarms::AlarmType &type, const std::string &message);
     void wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message);
+    void wsClientMessageEventRemovedHandler(const std::string &eventID);
     void initPlatformClient();
 
 private:

@@ -308,8 +308,17 @@ void JT808EventSerializer::setLocationData()
         std::cerr << "Ошибка аргумента метода stod при преобразовании координат из строки: " << e.what();
     }
 
-    elevation = 10; //TODO
-    direction = 100; //TODO
+    if(eventJson.contains("elevation")) {
+        elevation = static_cast<uint16_t>(eventJson.at("elevation"));
+    } else {
+        elevation = 10;
+    }
+
+    if(eventJson.contains("direction")) {
+        direction = static_cast<uint16_t>(eventJson.at("dirction"));
+    } else {
+        direction = 0;
+    }
 
     //speed
     const int8_t s = 0;

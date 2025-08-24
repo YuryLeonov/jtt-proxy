@@ -21,6 +21,13 @@ using websocketpp::lib::bind;
 class WebSocketClient
 {
 public:
+
+    struct Event
+    {
+        std::string id;
+        std::time_t time;
+    };
+
     WebSocketClient(const std::string &hostIP, int port, const std::string &eventsTable);
     ~WebSocketClient() noexcept;
 
@@ -28,6 +35,7 @@ public:
     void setSurveyInterval(int interval);
     void setExternalMessageAlarmHandler(const std::function<void(const alarms::AlarmType &type, const std::string &message)> &f);
     void setExternalMessageMediaInfoHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f);
+    void setExternalMessageEventRemoved(const std::function<void(const std::string &eventID)> &f);
 
     void connect();
 
@@ -49,6 +57,7 @@ private:
 
     void sendRequestForEvents();
     void sendRequestForMediaInfo(const std::string &eventUUID);
+    void removeOldUnuploadedEvents();
 
     void runConnectionThread();
 
@@ -69,6 +78,7 @@ private:
 
     std::function<void(const alarms::AlarmType &type, const std::string &message)> externalMessageAlarmHandler;
     std::function<void(const std::string &eventID, const std::string &message)> externalMessageMediaInfoHandler;
+    std::function<void(const std::string &eventID)> externalMessageEventRemoved;
 
     std::thread connectionLoopThread;
     websocketpp::connection_hdl currentConnectionHandler;
@@ -82,7 +92,7 @@ private:
 
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
 
-    std::queue<std::string> unuploadedEvents;
+    std::queue<Event> unuploadedEvents;
 };
 
 #endif // WEBSOCKETCLIENT_H

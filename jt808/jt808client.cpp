@@ -622,14 +622,14 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
 
     LOG(INFO) << "Аларм типа " << type.lmsType << " отправлен на платформу!(тип по протоколу 808 - " << std::hex << static_cast<int>(type.jtType) << ")";
     tools::printHexBitStream(request);
-    unUploadedEvents[type.id] = PlatformAlarmID();
+    PlatformAlarmID alarmID;
+    auto now = std::chrono::system_clock::now();
+    alarmID.time = std::chrono::system_clock::to_time_t(now);
+    unUploadedEvents[type.id] = alarmID;
     unUploadedAlarms.push_back(type);
 
     lastAlarmType = type;;
 
-//    LOG(TRACE) << "Аларм: ";
-//      std::cout << tools::getStringFromBitStream(request) << std::endl;
-//    LOG(TRACE) << "**********************";
     return true;
 }
 
@@ -648,7 +648,6 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
     for(auto it = unUploadedAlarms.begin(); it != unUploadedAlarms.end(); ++it) {
         if(it->id == eventID) {
             jt808AlarmType = it->jtType;
-            unUploadedAlarms.erase(it);
             break;
         }
     }
@@ -658,7 +657,7 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         alarmUploader->setAlarmUuid(eventID);
         alarmUploader->setJTAlarmTyoe(jt808AlarmType);
         alarmUploader->setPathToVideo(pathToVideo);
-        alarmUploader->setAttachments(1);
+        alarmUploader->setAttachments(2);
         alarmUploader->setAlarmID(unUploadedEvents[eventID].id);
         alarmUploader->setAlarmNumber(unUploadedEvents[eventID].number);
     } else {
@@ -666,17 +665,35 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
     }
 
     try {
-
-        if(alarmUploader->uploadFile()) {
-            unUploadedEvents.erase(eventID);
-        }
-
+        alarmUploader->uploadFile();
     } catch(const std::filesystem::filesystem_error& e) {
         LOG(ERROR) << "Ошибка обработки файла " << pathToVideo << " : " << e.what();
-        unUploadedEvents.erase(eventID);
         return;
     }
 
+}
+
+void JT808Client::removeEvent(const std::string &eventID)
+{
+    for (const auto& pair : unUploadedEvents) {
+        if(pair.first == eventID) {
+            unUploadedEvents.erase(pair.first);
+            std::cout << "Удалили из списка невыгруженных событий в JT808Client: " << pair.first << std::endl;
+
+            for(auto it = unUploadedAlarms.begin(); it != unUploadedAlarms.end(); ++it) {
+                if(it->id == pair.first) {
+                    unUploadedAlarms.erase(it);
+                    std::cout << "Удалили из списка невыгруженных алармов в JT808Client: " << pair.first << std::endl;
+                    break;
+                }
+            }
+
+        }
+    }
+
+    if(unUploadedEvents.size() > 20 || unUploadedAlarms.size() > 20) {
+        LOG(ERROR) << "Переполнение буфера событий в JT808Client";
+    }
 }
 
 void JT808Client::  connectToPlatform()

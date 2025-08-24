@@ -55,6 +55,11 @@ void WebSocketClient::setExternalMessageMediaInfoHandler(const std::function<voi
     externalMessageMediaInfoHandler = f;
 }
 
+void WebSocketClient::setExternalMessageEventRemoved(const std::function<void (const std::string &)> &f)
+{
+    externalMessageEventRemoved = f;
+}
+
 void WebSocketClient::formServerURI()
 {
     serverURI = "ws://" + serverHostIP + ":" + std::to_string(serverPort) + "/jsonrpc";
@@ -120,7 +125,8 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     if(eventEntities != std::nullopt) {
 
         if(!unuploadedEvents.empty()) {
-            sendRequestForMediaInfo(unuploadedEvents.front());
+            sendRequestForMediaInfo(unuploadedEvents.front().id);
+            removeOldUnuploadedEvents();
         }
 
         for(const auto &pair : eventEntities.value()) {
@@ -133,11 +139,16 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 
             aType.lmsType = eventJson.at("event_type");
             std::cout << "Получено событие: " << eventJson.at("info") << " c LMSID = " << aType.lmsType << std::endl;
+
             if(alarms::dsmAlarmsMap.find(aType.lmsType) != alarms::dsmAlarmsMap.end()) {
                 aType.jtType = alarms::dsmAlarmsMap[aType.lmsType];
             }
 
-            unuploadedEvents.push(aType.id);
+            Event ev;
+            ev.id = aType.id;
+            auto now = std::chrono::system_clock::now();
+            ev.time = std::chrono::system_clock::to_time_t(now);
+            unuploadedEvents.push(ev);
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
 
             externalMessageAlarmHandler(aType, eventJson.dump());
@@ -149,12 +160,14 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const std::string eventID = tools::split(pair.first, '@').at(1);
             json eventVideoJson = pair.second;
 
-            if(unuploadedEvents.front() == eventID) {
-                unuploadedEvents.pop();
-            }
-
             if(eventVideoJson.is_array()) {
                LOG(INFO) << "Получен массив видеороликов " << std::endl;
+
+//               for (const auto& videoJson : eventVideoJson) {
+//                   externalMessageMediaInfoHandler(eventID, videoJson.dump());
+//               }
+
+
                eventVideoJson = eventVideoJson[0];
             }
 
@@ -199,6 +212,26 @@ void WebSocketClient::sendRequestForMediaInfo(const std::string &eventUUID)
                                                                                   std::nullopt);
 
     client.send(currentConnectionHandler, getEventMediaInfoRequest, websocketpp::frame::opcode::text);
+}
+
+void WebSocketClient::removeOldUnuploadedEvents()
+{
+    auto now = std::chrono::system_clock::now();
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+
+    if(std::difftime(currentTime, unuploadedEvents.front().time) > 30) {
+        const std::string id = unuploadedEvents.front().id;
+        unuploadedEvents.pop();
+        if(!unuploadedEvents.empty()) {
+            unuploadedEvents.front().time = currentTime;
+        }
+        std::cout << "Удалили из списка невыгруженных событий: " << id << std::endl;
+        externalMessageEventRemoved(id);
+    }
+
+    if(unuploadedEvents.size() > 20 || unuploadedEvents.size() > 20) {
+        LOG(ERROR) << "Переполнение буфера событий";
+    }
 }
 
 void WebSocketClient::runConnectionThread()

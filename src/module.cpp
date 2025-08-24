@@ -49,6 +49,7 @@ void Module::initWebSocketClient()
     wsClient->setSurveyInterval(eventServerInfo.surveyInterval);
     wsClient->setExternalMessageAlarmHandler(std::bind(&Module::wsClientMessageAlarmHandler, this, ::_1, ::_2));
     wsClient->setExternalMessageMediaInfoHandler(std::bind(&Module::wsClientMessageMediaInfoHandler, this, ::_1, ::_2));
+    wsClient->setExternalMessageEventRemoved(std::bind(&Module::wsClientMessageEventRemovedHandler, this, ::_1));
     wsClient->connect();
 }
 
@@ -89,6 +90,11 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
     std::thread uploadThread(&JT808Client::sendAlarmVideoFile, &platformConnector, eventID, pathToVideo);
     uploadThread.detach();
 
+}
+
+void Module::wsClientMessageEventRemovedHandler(const std::string &eventID)
+{
+    platformConnector.removeEvent(eventID);
 }
 
 void Module::initPlatformClient()

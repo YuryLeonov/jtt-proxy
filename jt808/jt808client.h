@@ -36,6 +36,7 @@ public:
 
     bool sendAlarmMessage(const alarms::AlarmType &type, const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo);
     void sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo);
+    void removeEvent(const std::string &eventID);
 
 private:
     bool checkIfAuthenticationKeyExists();
