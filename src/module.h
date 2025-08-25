@@ -37,7 +37,6 @@ private:
     EventServerInfo eventServerInfo;
 
     bool test = false;
-
 };
 
 #endif // MODULE_H

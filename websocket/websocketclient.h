@@ -93,6 +93,7 @@ private:
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
 
     std::queue<Event> unuploadedEvents;
+
 };
 
 #endif // WEBSOCKETCLIENT_H

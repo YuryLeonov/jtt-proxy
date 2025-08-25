@@ -524,8 +524,7 @@ bool JT808Client::parseVideoPlaybackControlRequest(const std::vector<uint8_t> &r
 bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request)
 {
 
-    std::cout << "Прилетел запрос: " << std::endl;
-    tools::printHexBitStream(request);
+    std::cout << "Получен ответ 9208 по событию!" << std::endl;
 
     if(lastAlarmType.id == "") {
         return false;
@@ -566,6 +565,8 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
 
     unUploadedEvents[lastAlarmType.id].id = std::move(alarmID);
     unUploadedEvents[lastAlarmType.id].number = std::move(alarmNumber);
+
+    std::cout << "В список невыгруженных событий добавлено: " << lastAlarmType.id << std::endl;
 
     sendGeneralResponseToPlatform(header.messageSerialNumber, header.messageID);
 
@@ -639,6 +640,14 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
         return;
     }
 
+    auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
+    if(it != uploadedFiles.end()) {
+        return;
+    } else{
+        std::cout << "Получен новый видеоролик: " << pathToVideo << std::endl;
+        uploadedFiles.push_back(pathToVideo);
+    }
+
     if(unUploadedEvents.find(eventID) != unUploadedEvents.end()) {
         LOG(INFO) << "Найдено не выгруженное событие " << eventID << " и файл для него " << pathToVideo;
     }
@@ -675,11 +684,10 @@ void JT808Client::sendAlarmVideoFile(const std::string &eventID, const std::stri
 
 void JT808Client::removeEvent(const std::string &eventID)
 {
+
     for (const auto& pair : unUploadedEvents) {
         if(pair.first == eventID) {
             unUploadedEvents.erase(pair.first);
-            std::cout << "Удалили из списка невыгруженных событий в JT808Client: " << pair.first << std::endl;
-
             for(auto it = unUploadedAlarms.begin(); it != unUploadedAlarms.end(); ++it) {
                 if(it->id == pair.first) {
                     unUploadedAlarms.erase(it);
@@ -688,6 +696,7 @@ void JT808Client::removeEvent(const std::string &eventID)
                 }
             }
 
+            break;
         }
     }
 

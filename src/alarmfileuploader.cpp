@@ -120,9 +120,6 @@ bool AlarmFileUploader::uploadFile()
 
 bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
 {
-
-    std::cout << "alarmIDPREKU" << std::endl;
-    tools::printHexBitStream(alarmNumber);
     JT808AlarmAttachmentRequest request(jtAlarmType, pathToVideo, alarmID, alarmNumber, attachments, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 

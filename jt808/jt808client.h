@@ -110,6 +110,8 @@ private:
 
     std::map<int, std::string> rtspLinks;
 
+    std::vector<std::string> uploadedFiles;
+
 };
 
 #endif // JT808CONNECTIONHANDLER_H

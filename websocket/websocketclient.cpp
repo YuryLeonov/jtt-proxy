@@ -164,7 +164,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                LOG(INFO) << "Получен массив видеороликов " << std::endl;
 
 //               for (const auto& videoJson : eventVideoJson) {
-//                   externalMessageMediaInfoHandler(eventID, videoJson.dump());
+//                   externalMess4ageMediaInfoHandler(eventID, videoJson.dump());
 //               }
 
 
@@ -225,7 +225,6 @@ void WebSocketClient::removeOldUnuploadedEvents()
         if(!unuploadedEvents.empty()) {
             unuploadedEvents.front().time = currentTime;
         }
-        std::cout << "Удалили из списка невыгруженных событий: " << id << std::endl;
         externalMessageEventRemoved(id);
     }
 
