@@ -12,10 +12,8 @@
 	"eventsServer" : {
 		"serverIP" : "10.2.0.110",
 		"serverPort" : 2204,
-		"eventsTable" : "monitoringdriver_172_16_10_206",
 		"reconnectTimeout" : 1000,
-		"surveyInterval" : 2000,
-		"videoRootPath" : ""
+		"surveyInterval" : 2000
 	},
 	"platform" : {
 		"serverIP" : "67.207.166.59",
