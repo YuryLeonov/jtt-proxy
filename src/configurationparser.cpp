@@ -43,10 +43,8 @@ Configuration ConfigurationParser::parseConfiguration()
     json eventsServerJson = confJson.at("eventsServer");
     conf.eventsServerIP = eventsServerJson.at("serverIP");
     conf.eventsServerPort = eventsServerJson.at("serverPort");
-    conf.eventsServerTableName = eventsServerJson.at("eventsTable");
     conf.eventsServerReconnectTimeout = eventsServerJson.at("reconnectTimeout");
     conf.eventsServerSurveyInterval = eventsServerJson.at("surveyInterval");
-    conf.videoRootPath = eventsServerJson.at("videoRootPath");
 
     json platformJson = confJson.at("platform");
     conf.platformServerIP = platformJson.at("serverIP");

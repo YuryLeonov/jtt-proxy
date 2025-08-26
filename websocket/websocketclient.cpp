@@ -11,10 +11,9 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
-WebSocketClient::WebSocketClient(const std::string &hostIP, int port, const std::string &eventsTable) :
+WebSocketClient::WebSocketClient(const std::string &hostIP, int port) :
     serverHostIP(hostIP),
-    serverPort(port),
-    eventsTableName(eventsTable)
+    serverPort(port)
 {
     auto token = IDbMessagesHelper::getSavedToken();
     if(token) {

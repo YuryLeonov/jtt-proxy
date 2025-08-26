@@ -44,7 +44,7 @@ void Module::setEventServerInfo(const EventServerInfo &info)
 
 void Module::initWebSocketClient()
 {
-    wsClient = std::make_shared<WebSocketClient>(eventServerInfo.ipAddress, eventServerInfo.port, eventServerInfo.eventsTableName);
+    wsClient = std::make_shared<WebSocketClient>(eventServerInfo.ipAddress, eventServerInfo.port);
     wsClient->setReconnectTimeout(eventServerInfo.reconnectTimeout);
     wsClient->setSurveyInterval(eventServerInfo.surveyInterval);
     wsClient->setExternalMessageAlarmHandler(std::bind(&Module::wsClientMessageAlarmHandler, this, ::_1, ::_2));

@@ -28,7 +28,7 @@ public:
         std::time_t time;
     };
 
-    WebSocketClient(const std::string &hostIP, int port, const std::string &eventsTable);
+    WebSocketClient(const std::string &hostIP, int port);
     ~WebSocketClient() noexcept;
 
     void setReconnectTimeout(int timeout);
@@ -70,7 +70,6 @@ private:
 private:
     wsclient client;
     std::string serverHostIP = "127.0.0.1";
-    std::string eventsTableName = "";
     int serverPort = 8088;
     int reconnectTimeout = 3000; //milliseconds
     int surveyInterval = 5000;

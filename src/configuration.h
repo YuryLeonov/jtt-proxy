@@ -16,10 +16,8 @@ struct Configuration
 
     std::string eventsServerIP = "";
     int eventsServerPort = 0;
-    std::string eventsServerTableName = "";
     int eventsServerReconnectTimeout = 3000;
     int eventsServerSurveyInterval = 5000;
-    std::string videoRootPath = "";
 
     std::string platformServerIP = "";
     int platformServerPort = 0;

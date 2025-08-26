@@ -80,10 +80,8 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     EventServerInfo eventServerInfo;
     eventServerInfo.ipAddress = configuration.eventsServerIP;
     eventServerInfo.port = configuration.eventsServerPort;
-    eventServerInfo.eventsTableName = configuration.eventsServerTableName;
     eventServerInfo.reconnectTimeout = configuration.eventsServerReconnectTimeout;
     eventServerInfo.surveyInterval = configuration.eventsServerSurveyInterval;
-    eventServerInfo.videoRootPath = configuration.videoRootPath;
 
     fullConf.terminalInfo = terminalInfo;
     fullConf.platformInfo = platformInfo;
