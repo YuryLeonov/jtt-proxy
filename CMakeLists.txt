@@ -53,6 +53,7 @@ set(HEADERS ./nlohmann/json.hpp
             ./jt808/jt808header.h
             ./jt808/jt808headerparser.h
             ./jt808/jt808messageformatter.h
+            ./jt808/jt808messagevalidator.h
             ./jt808/jt808registrationrequest.h
             ./jt808/jt808authenticationrequest.h
             ./jt808/jt808alarmattachmentrequest.h
@@ -91,6 +92,7 @@ set(SOURCES ./src/main.cpp
             ./jt808/jt808headerparser.cpp
             ./jt808/jt808serializer.cpp
             ./jt808/jt808messageformatter.cpp
+            ./jt808/jt808messagevalidator.cpp
             ./jt808/jt808registrationrequest.cpp
             ./jt808/jt808generalresponserequest.cpp
             ./jt808/jt808authenticationrequest.cpp

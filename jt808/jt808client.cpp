@@ -9,6 +9,7 @@
 #include "jt808terminalparametersrequest.h"
 #include "jt1078uploadedresourceslistrequest.h"
 #include "jt808headerparser.h"
+#include "jt808messagevalidator.h"
 
 #include "alarmfileuploader.h"
 
@@ -200,7 +201,7 @@ void JT808Client::sendAuthenticationRequest()
     std::copy(buffer, buffer + bytes_read, vec.begin());
 
     if(parseGeneralResponse(std::move(vec))) {
-        LOG(INFO) << "АВТОРИЗАЦИЯ УСПЕШНА" << std::endl << std::endl;
+        LOG(INFO) << "АВТОРИЗАЦИЯ НА ПЛАТФОРМЕ УСПЕШНА" << std::endl << std::endl;
         isConnected = true;
         heartBeatThread = std::thread([this](){
 
@@ -269,6 +270,7 @@ void JT808Client::sendTerminalParametersRequest()
 
 
     LOG(INFO) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+
 }
 
 void JT808Client::startPlatformAnswerHandler()
@@ -524,14 +526,19 @@ bool JT808Client::parseVideoPlaybackControlRequest(const std::vector<uint8_t> &r
 bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request)
 {
 
-    std::cout << "Получен ответ 9208 по событию!" << std::endl;
-
     if(lastAlarmType.id == "") {
+        return false;
+    }
+
+    if(unUploadedEvents.count(lastAlarmType.id) > 0) {
         return false;
     }
 
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
+
+
+    std::cout << "Получено событие 9208!" << std::endl;
 
     std::vector<uint8_t> body(request.begin() + 13, request.end() - 2);
     uint8_t offset = 0;
@@ -602,6 +609,11 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
     if(socketFd <= 0)
         return false;
 
+    if(!JT808MessageValidator::validateMessage(request)) {
+        LOG(ERROR) << "Формат сообщения аларма не верен!" << std::endl;
+        return false;
+    }
+
     currentAddInfo = std::move(addInfo);
 
     unsigned char *message = const_cast<unsigned char *>(request.data());
@@ -617,7 +629,13 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
         }
     }
 
+
+    JT808HeaderParser headerParser;
+    JT808Header header = headerParser.getHeader(request);
+
     LOG(INFO) << "Аларм типа " << type.lmsType << " отправлен на платформу!(тип по протоколу 808 - " << std::hex << static_cast<int>(type.jtType) << ")";
+    lastAlarmSerialNumber = header.messageSerialNumber;
+
     tools::printHexBitStream(request);
     PlatformAlarmID alarmID;
     auto now = std::chrono::system_clock::now();
@@ -694,6 +712,10 @@ void JT808Client::removeEvent(const std::string &eventID)
 
             break;
         }
+    }
+
+    if(uploadedFiles.size() > 10) {
+        uploadedFiles.erase(uploadedFiles.begin(), uploadedFiles.begin() + 5);
     }
 
     if(unUploadedEvents.size() > 20 || unUploadedAlarms.size() > 20) {
