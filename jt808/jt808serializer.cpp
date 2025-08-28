@@ -32,7 +32,6 @@ void JT808EventSerializer::setLocationInfoStatus(JT808EventSerializer::LocationI
 std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::string &message, uint8_t alarmSerNum)
 {
     alarmSerialNum = alarmSerNum;
-    messageStream.clear();
     json data = json::parse(message);
 
     return serializeToBitStream(data);
@@ -44,6 +43,9 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
     eventJson = j;
 
     messageStream.clear();
+    bodyStream.clear();
+    addInfoStream.clear();
+    headerStream.clear();
 
     try {
         setLocationData();
@@ -54,6 +56,7 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
         LOG(ERROR) << "Ошибка обработки события: " << exc.what();
         return messageStream;
     }
+
 
     fillAlarmFlag();
     fillStateFlag();
@@ -296,7 +299,7 @@ void JT808EventSerializer::setLocationData()
     if(eventJson.contains("gps")) {
         gps = eventJson.at("gps");
     } else {
-        gps = "55.760626, 37.703999";
+        gps = "00.000000, 00.000000";
     }
     std::vector<std::string> coordinates = tools::split(gps, ',');
     try {
@@ -315,7 +318,7 @@ void JT808EventSerializer::setLocationData()
     }
 
     if(eventJson.contains("direction")) {
-        direction = static_cast<uint16_t>(eventJson.at("dirction"));
+        direction = static_cast<uint16_t>(eventJson.at("direction"));
     } else {
         direction = 0;
     }
@@ -325,11 +328,21 @@ void JT808EventSerializer::setLocationData()
     if(eventJson.contains("speed")) {
         const int8_t s = eventJson.at("speed");
         if(s >= 0) {
-            speed = static_cast<uint16_t>(s);
+            speed = static_cast<uint16_t>(s) * 10;
         }
     } else {
-        speed = 50;
+        speed = 500;
     }
+
+    speed = 500;
+//    const int testDir = (alarmSerialNum < 360) ? alarmSerialNum + 2 : (alarmSerialNum % 360) + 2;
+//    latitude = latitude + alarmSerialNum*1000;
+//    longitude = longitude + alarmSerialNum*1000;
+//    direction = testDir;
+//    std::cout << "Направление " << std::dec << testDir << std::endl;
+//    std::cout << "Широта: " << latitude << std::endl;
+//    std::cout << "Долгота: " << longitude << std::endl;
+//    std::cout << "Скорость: " << std::dec << speed << std::endl;
 
     //Time
     std::string timestamp = "";
@@ -499,6 +512,7 @@ void JT808EventSerializer::setBodyInfo(uint16_t &info)
     if(tools::getBit(bodySize,6)) tools::setBit(info, 6);
     if(tools::getBit(bodySize,7)) tools::setBit(info, 7);
     if(tools::getBit(bodySize,8)) tools::setBit(info, 8);
+    if(tools::getBit(bodySize,9)) tools::setBit(info, 9);
 
     //EncryptionInfo
 

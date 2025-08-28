@@ -270,7 +270,6 @@ void JT808Client::sendTerminalParametersRequest()
 
 
     LOG(INFO) << "Параметры терминала отправлены.";
-
 }
 
 void JT808Client::startPlatformAnswerHandler()
@@ -332,8 +331,9 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
         return false;
     }
 
-    const uint16_t replyID = (response[13] << 8) | response[14];
-    const uint16_t requestID = (response[15] << 8) | response[16];
+//    const uint16_t replyID = (response[13] << 8) | response[14];
+//    const uint16_t requestID = (response[15] << 8) | response[16];
+
     const int result = static_cast<int>(response[17]);
 
     if(result == 1) {
@@ -611,6 +611,7 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
         LOG(ERROR) << "Формат сообщения аларма не верен!" << std::endl;
         return false;
     }
+    tools::printHexBitStream(request);
 
     currentAddInfo = std::move(addInfo);
 
@@ -717,6 +718,10 @@ void JT808Client::removeEvent(const std::string &eventID)
 
     if(unUploadedEvents.size() > 20 || unUploadedAlarms.size() > 20) {
         LOG(ERROR) << "Переполнение буфера событий в JT808Client";
+        auto it = unUploadedEvents.begin();
+        for (int i = 0; i < 10 && it != unUploadedEvents.end(); ++i) {
+            it = unUploadedEvents.erase(it);
+        }
     }
 }
 
