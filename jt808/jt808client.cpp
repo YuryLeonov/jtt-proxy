@@ -269,7 +269,7 @@ void JT808Client::sendTerminalParametersRequest()
     }
 
 
-    LOG(INFO) << "Параметры терминала отправлены: " << tools::getStringFromBitStream(requestBuffer) << std::endl;
+    LOG(INFO) << "Параметры терминала отправлены.";
 
 }
 
@@ -537,7 +537,6 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
 
-
     std::cout << "Получено событие 9208!" << std::endl;
 
     std::vector<uint8_t> body(request.begin() + 13, request.end() - 2);
@@ -548,9 +547,10 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     std::vector<uint8_t> ipBuffer(body.begin() + 1, body.begin() + offset);
 
     storageHost = tools::hex_bytes_to_string(ipBuffer);
-    storagePortTCP = tools::make_uint16(body[offset], body[offset+1]);
 
+    storagePortTCP = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
+
     storagePortUDP = tools::make_uint16(body[offset], body[offset+1]);
     offset+=2;
 
@@ -568,8 +568,6 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
 
     unUploadedEvents[lastAlarmType.id].id = std::move(alarmID);
     unUploadedEvents[lastAlarmType.id].number = std::move(alarmNumber);
-
-    std::cout << "В список невыгруженных событий добавлено: " << lastAlarmType.id << std::endl;
 
     sendGeneralResponseToPlatform(header.messageSerialNumber, header.messageID);
 
@@ -636,7 +634,6 @@ bool JT808Client::sendAlarmMessage(const alarms::AlarmType &type, const std::vec
     LOG(INFO) << "Аларм типа " << type.lmsType << " отправлен на платформу!(тип по протоколу 808 - " << std::hex << static_cast<int>(type.jtType) << ")";
     lastAlarmSerialNumber = header.messageSerialNumber;
 
-    tools::printHexBitStream(request);
     PlatformAlarmID alarmID;
     auto now = std::chrono::system_clock::now();
     alarmID.time = std::chrono::system_clock::to_time_t(now);
@@ -721,6 +718,11 @@ void JT808Client::removeEvent(const std::string &eventID)
     if(unUploadedEvents.size() > 20 || unUploadedAlarms.size() > 20) {
         LOG(ERROR) << "Переполнение буфера событий в JT808Client";
     }
+}
+
+bool JT808Client::isPlatformConnected() const
+{
+    return isConnected;
 }
 
 void JT808Client::  connectToPlatform()

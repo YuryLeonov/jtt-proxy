@@ -55,6 +55,11 @@ void Module::initWebSocketClient()
 
 void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const std::string &message)
 {
+    if(!platformConnector.isPlatformConnected()) {
+        LOG(ERROR) << "Ошибка отправки события на платформу: не соединения" << std::endl;
+        return;
+    }
+
     static uint8_t alarmSerialNum = 0;
     JT808EventSerializer serializer;
     serializer.setTerminalInfo(terminalInfo);

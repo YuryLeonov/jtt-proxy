@@ -38,6 +38,8 @@ public:
     void sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo);
     void removeEvent(const std::string &eventID);
 
+    bool isPlatformConnected() const;
+
 private:
     bool checkIfAuthenticationKeyExists();
 
