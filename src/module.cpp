@@ -85,7 +85,7 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 
     std::string pathToVideo = data.at("path2video");
 
-    pathToVideo = "/home/rossi-cpp-dev/projects/lms/video/1-2-3-4-5-6-7-8-9-10-11-12-13-14.mp4";
+//    pathToVideo = "/home/rossi-cpp-dev/projects/lms/video/1-2-3-4-5-6-7-8-9-10-11-12-13-14.mp4";
 
     if(!std::filesystem::exists(pathToVideo)) {
         LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
