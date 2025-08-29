@@ -34,11 +34,13 @@ public:
     void setPlatformInfo(platform::PlatformInfo info);
     void setTerminalParameters();
 
-    bool sendAlarmMessage(const alarms::AlarmType &type, const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo);
-    void sendAlarmVideoFile(const std::string &eventID, const std::string &pathToVideo);
+    bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo, SendedToPlatformAlarm sendedAlarmInfo);
+    void sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const std::string &pathToVideo);
     void removeEvent(const std::string &eventID);
 
     bool isPlatformConnected() const;
+
+    void addVideoFile(const std::string &eventID, const std::string &path);
 
 private:
     bool checkIfAuthenticationKeyExists();
@@ -76,6 +78,8 @@ private:
 
     bool isIPAddress(const std::string &socketAddr);
 
+    void startVideoFilesUploadingCheck();
+
 private:
     TerminalInfo terminalInfo;
     platform::PlatformInfo platformInfo;
@@ -102,18 +106,20 @@ private:
 
     std::mutex sendingMessageMutex;
 
-    alarms::AlarmType lastAlarmType;
-    std::vector<alarms::AlarmType> unUploadedAlarms;
+    SendedToPlatformAlarm lastSendedAlarm;
     uint16_t lastAlarmSerialNumber = 0;
 
     std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
 
+    std::vector<UnuploadedAlarm> unuploadedAlarms;
     std::map<std::string, PlatformAlarmID> unUploadedEvents;
     std::mutex uploadMutex;
 
     std::map<int, std::string> rtspLinks;
 
     std::vector<std::string> uploadedFiles;
+
+    std::vector<SendedToPlatformAlarm> sendedAlarms;
 
 };
 

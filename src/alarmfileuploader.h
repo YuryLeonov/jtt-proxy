@@ -11,7 +11,6 @@ public:
     AlarmFileUploader(const std::string &host, int port, const TerminalInfo &info);
     ~AlarmFileUploader();
 
-    void setAlarmUuid(const std::string &uuid);
     void setJTAlarmTyoe(uint8_t type);
     void setPathToVideo(const std::string &path);
     void setAlarmID(const std::vector<uint8_t> &id);
@@ -38,7 +37,6 @@ private:
     int socketId = -1;
     bool isConnected = false;
 
-    std::string alarmUuid = "";
     uint8_t jtAlarmType = 0x10;
     std::string pathToVideo = "";
     std::vector<uint8_t> alarmID;

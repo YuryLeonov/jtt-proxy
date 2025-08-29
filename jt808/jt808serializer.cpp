@@ -35,7 +35,6 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const std::strin
     json data = json::parse(message);
 
     return serializeToBitStream(data);
-
 }
 
 std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
@@ -334,18 +333,13 @@ void JT808EventSerializer::setLocationData()
         speed = 500;
     }
 
-    speed = 500;
-//    const int testDir = (alarmSerialNum < 360) ? alarmSerialNum + 2 : (alarmSerialNum % 360) + 2;
-//    latitude = latitude + alarmSerialNum*1000;
-//    longitude = longitude + alarmSerialNum*1000;
-//    direction = testDir;
-//    std::cout << "Направление " << std::dec << testDir << std::endl;
-//    std::cout << "Широта: " << latitude << std::endl;
-//    std::cout << "Долгота: " << longitude << std::endl;
-//    std::cout << "Скорость: " << std::dec << speed << std::endl;
+    speed = 200;
+    const int testDir = (alarmSerialNum < 360) ? alarmSerialNum + 2 : (alarmSerialNum % 360) + 2;
+    latitude = latitude + alarmSerialNum*1000;
+    longitude = longitude + alarmSerialNum*1000;
+    direction = testDir;
 
     //Time
-    std::string timestamp = "";
     if(eventJson.contains("timestamp")) {
         timestamp = eventJson.at("timestamp");
     }
@@ -372,10 +366,12 @@ void JT808EventSerializer::setLocationData()
 
 void JT808EventSerializer::fillEventDada()
 {
+    const uint16_t multipliedSpeed = speed*10;
+
     tools::addToStdVector(bodyStream, latitude);
     tools::addToStdVector(bodyStream, longitude);
     tools::addToStdVector(bodyStream, elevation);
-    tools::addToStdVector(bodyStream, speed);
+    tools::addToStdVector(bodyStream, multipliedSpeed);
     tools::addToStdVector(bodyStream, direction);
     bodyStream.push_back(time.year);
     bodyStream.push_back(time.month);
@@ -389,7 +385,7 @@ void JT808EventSerializer::addAdditionalInformation()
 {
     addInfoStream.clear();
 
-    const uint32_t policeID = 0x00000000;
+    const uint32_t policeID = static_cast<uint32_t>(alarmSerialNum);
     tools::addToStdVector(addInfoStream, policeID);
 
     addInfoStream.push_back(0x00);
@@ -415,7 +411,7 @@ void JT808EventSerializer::addAdditionalInformation()
     const uint16_t vehicleStatus = getVehicleStateStatus();
     tools::addToStdVector(addInfoStream, vehicleStatus);
 
-    const std::vector<uint8_t> alarmID = getAlarmID();
+    composeAlarmID();
     addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
 
     bodyStream.push_back(alarmTypeID);
@@ -433,6 +429,25 @@ void JT808EventSerializer::addSatellitesCountInfo()
     bodyStream.push_back(terminalStatus.satellitesCount);
 }
 
+void JT808EventSerializer::composeAlarmID()
+{
+    alarmID.clear();
+
+    std::vector<uint8_t> terminalIDBytes = tools::getUint8VectorFromString(terminalInfo.terminalID);
+    alarmID.insert(alarmID.begin(), terminalIDBytes.begin(), terminalIDBytes.end());
+
+    alarmID.push_back(time.year);
+    alarmID.push_back(time.month);
+    alarmID.push_back(time.day);
+    alarmID.push_back(time.hour);
+    alarmID.push_back(time.minute);
+    alarmID.push_back(time.second);
+
+    alarmID.push_back(alarmType);
+    alarmID.push_back(0x01);
+    alarmID.push_back(0x00);
+}
+
 const uint16_t JT808EventSerializer::getVehicleStateStatus()
 {
     uint16_t status = 0x0000;
@@ -445,25 +460,19 @@ const uint16_t JT808EventSerializer::getVehicleStateStatus()
 
 }
 
-const std::vector<uint8_t> JT808EventSerializer::getAlarmID()
+const std::vector<uint8_t> JT808EventSerializer::getAlarmID() const
 {
-    std::vector<uint8_t> id;
+    return alarmID;
+}
 
-    std::vector<uint8_t> terminalIDBytes = tools::getUint8VectorFromString(terminalInfo.terminalID);
-    id.insert(id.begin(), terminalIDBytes.begin(), terminalIDBytes.end());
+const std::string JT808EventSerializer::getAlarmTime() const
+{
+    return timestamp;
+}
 
-    id.push_back(time.year);
-    id.push_back(time.month);
-    id.push_back(time.day);
-    id.push_back(time.hour);
-    id.push_back(time.minute);
-    id.push_back(time.second);
-
-    id.push_back(alarmType);
-    id.push_back(0x01);
-    id.push_back(0x00);
-
-    return id;
+uint8_t JT808EventSerializer::getAlarmType() const
+{
+    return alarmType;
 }
 
 void JT808EventSerializer::setHeader()

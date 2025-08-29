@@ -4,6 +4,7 @@
 #include "easylogging++.h"
 #include "tools.h"
 #include "alarmtypes.h"
+#include "platformalarmid.h"
 
 #include <filesystem>
 
@@ -64,8 +65,10 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
     JT808EventSerializer serializer;
     serializer.setTerminalInfo(terminalInfo);
     serializer.setLocationInfoStatus(JT808EventSerializer::Alarm);
-    serializer.setLocationInfoStatus(JT808EventSerializer::Alarm);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
+
+    std::cout << "Назначенный аларм события: ";
+    tools::printHexBitStream(serializer.getAlarmID());
 
     if(vec.empty()) {
         LOG(ERROR) << "Ошибка формирования сообщения о событии.";
@@ -76,8 +79,14 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
         alarmSerialNum = 0;
     }
 
+    SendedToPlatformAlarm alarm;
+    alarm.databaseID = type.id;
+    alarm.alarmID = serializer.getAlarmID();
+    alarm.time = serializer.getAlarmTime();
+    alarm.alarmJT808Type = serializer.getAlarmType();
+
     //Отправка на платформу
-    platformConnector.sendAlarmMessage(type,  vec, serializer.getAddInfoStream());
+    platformConnector.sendAlarmMessage(vec, serializer.getAddInfoStream(), alarm);
 }
 
 void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message)
@@ -86,16 +95,14 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 
     std::string pathToVideo = data.at("path2video");
 
-//    pathToVideo = "/home/rossi-cpp-dev/projects/lms/video/1-2-3-4-5-6-7-8-9-10-11-12-13-14.mp4";
+    pathToVideo = "/home/yury/projects/808/mtp-808-proxy/tests/1-2-3-4-5-6-7-8-9-10-11-12-13-14.mp4";
 
     if(!std::filesystem::exists(pathToVideo)) {
         LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
         return;
     }
 
-    std::thread uploadThread(&JT808Client::sendAlarmVideoFile, &platformConnector, eventID, pathToVideo);
-    uploadThread.detach();
-
+    platformConnector.addVideoFile(eventID, pathToVideo);
 }
 
 void Module::wsClientMessageEventRemovedHandler(const std::string &eventID)

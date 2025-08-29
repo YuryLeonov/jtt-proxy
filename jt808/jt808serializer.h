@@ -38,6 +38,9 @@ public:
 
     void setTerminalInfo(const TerminalInfo &info);
     void setLocationInfoStatus(LocationInfoStatus s);
+    const std::vector<uint8_t> getAlarmID() const;
+    const std::string getAlarmTime() const;
+    uint8_t getAlarmType() const;
 
     std::vector<uint8_t> serializeToBitStream(const std::string &message, uint8_t alarmSerNum);
     std::vector<uint8_t> serializeToBitStream(const json &j);
@@ -63,8 +66,9 @@ private:
 
     void addAdditionalInformation();
     void addSatellitesCountInfo();
+
+    void composeAlarmID();
     const uint16_t getVehicleStateStatus();
-    const std::vector<uint8_t> getAlarmID();
 
     void setHeader();
     void setBodyInfo(uint16_t &info);
@@ -93,6 +97,7 @@ private:
     uint16_t speed = 0;
     uint16_t direction = 0;
     BCDTime time;
+    std::string timestamp = "";
 
     const uint8_t startStopByte = 0x7E;
     const uint16_t alarmMessageID = 0x0200;
@@ -100,6 +105,7 @@ private:
     uint8_t alarmTypeID = 0x65;
     uint8_t alarmType = 0x05;
     uint8_t alarmSerialNum = 0;
+    std::vector<uint8_t> alarmID;
 
     const std::vector<uint8_t> replacers7E = {0x7d, 0x02};
     const std::vector<uint8_t> replacers7D = {0x7d, 0x01};

@@ -30,11 +30,6 @@ AlarmFileUploader::~AlarmFileUploader()
     LOG(DEBUG) << "Сокет закрыт: " << socketId << std::endl;
 }
 
-void AlarmFileUploader::setAlarmUuid(const std::string &uuid)
-{
-    alarmUuid = uuid;
-}
-
 void AlarmFileUploader::setJTAlarmTyoe(uint8_t type)
 {
     jtAlarmType = type;
