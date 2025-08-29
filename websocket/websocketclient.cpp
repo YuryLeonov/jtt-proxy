@@ -124,13 +124,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     if(eventEntities != std::nullopt) {
 
         if(!unuploadedEvents.empty()) {
-
-            for(const auto &event : unuploadedEvents) {
-                sendRequestForMediaInfo(event.id);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-
-//            sendRequestForMediaInfo(unuploadedEvents.front().id);
+            sendRequestForMediaInfo(unuploadedEvents.front().id);
             removeOldUnuploadedEvents();
         }
 
@@ -153,8 +147,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             ev.id = aType.id;
             auto now = std::chrono::system_clock::now();
             ev.time = std::chrono::system_clock::to_time_t(now);
-//            unuploadedEvents.push(ev);
-            unuploadedEvents.push_back(ev);
+            unuploadedEvents.push(ev);
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
 
             externalMessageAlarmHandler(aType, eventJson.dump());
@@ -225,23 +218,14 @@ void WebSocketClient::removeOldUnuploadedEvents()
     auto now = std::chrono::system_clock::now();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 
-    for (auto it = unuploadedEvents.begin(); it != unuploadedEvents.end(); ) {
-        if (std::difftime(currentTime, (*it).time) > 30) {
-            it = unuploadedEvents.erase(it);
-        } else {
-            ++it;
+    if(std::difftime(currentTime, unuploadedEvents.front().time) > 30) {
+        const std::string id = unuploadedEvents.front().id;
+        unuploadedEvents.pop();
+        if(!unuploadedEvents.empty()) {
+            unuploadedEvents.front().time = currentTime;
         }
+//        externalMessageEventRemoved(id);
     }
-
-
-//    if(std::difftime(currentTime, unuploadedEvents.front().time) > 30) {
-//        const std::string id = unuploadedEvents.front().id;
-//        unuploadedEvents.pop();
-//        if(!unuploadedEvents.empty()) {
-//            unuploadedEvents.front().time = currentTime;
-//        }
-////        externalMessageEventRemoved(id);
-//    }
 
     if(unuploadedEvents.size() > 20 || unuploadedEvents.size() > 20) {
         LOG(ERROR) << "Переполнение буфера событий";

@@ -91,8 +91,7 @@ private:
 
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
 
-//    std::queue<Event> unuploadedEvents;
-    std::vector<Event> unuploadedEvents;
+    std::queue<Event> unuploadedEvents;
 
 };
 
