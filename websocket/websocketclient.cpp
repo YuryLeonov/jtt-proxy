@@ -137,7 +137,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 
 
             aType.lmsType = eventJson.at("event_type");
-            std::cout << "Получено событие: " << eventJson.at("info") << " c LMSID = " << aType.lmsType << std::endl;
+            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c LMSID = " << aType.lmsType << std::endl;
 
             if(alarms::dsmAlarmsMap.find(aType.lmsType) != alarms::dsmAlarmsMap.end()) {
                 aType.jtType = alarms::dsmAlarmsMap[aType.lmsType];

@@ -330,14 +330,14 @@ void JT808EventSerializer::setLocationData()
             speed = static_cast<uint16_t>(s) * 10;
         }
     } else {
-        speed = 500;
+        speed = 0;
     }
 
-    speed = 200;
-    const int testDir = (alarmSerialNum < 360) ? alarmSerialNum + 2 : (alarmSerialNum % 360) + 2;
-    latitude = latitude + alarmSerialNum*1000;
-    longitude = longitude + alarmSerialNum*1000;
-    direction = testDir;
+//    speed = 200;
+//    const int testDir = (alarmSerialNum < 360) ? alarmSerialNum + 2 : (alarmSerialNum % 360) + 2;
+//    latitude = latitude + alarmSerialNum*1000;
+//    longitude = longitude + alarmSerialNum*1000;
+//    direction = testDir;
 
     //Time
     if(eventJson.contains("timestamp")) {

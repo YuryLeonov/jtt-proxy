@@ -607,7 +607,6 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
         LOG(ERROR) << "Формат сообщения аларма не верен!" << std::endl;
         return false;
     }
-//    tools::printHexBitStream(request);
 
     currentAddInfo = std::move(addInfo);
 
@@ -715,6 +714,8 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
                 return;
 
             alarm.videoPaths.push_back(path);
+            std::cout << "Добавлен ролик " << path << " к aларму: ";
+            tools::printHexBitStream(alarm.alarmID);
         }
     }
 }
