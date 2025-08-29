@@ -27,7 +27,6 @@ AlarmFileUploader::AlarmFileUploader(const std::string &host, int port, const Te
 AlarmFileUploader::~AlarmFileUploader()
 {
     close(socketId);
-    LOG(DEBUG) << "Сокет закрыт: " << socketId << std::endl;
 }
 
 void AlarmFileUploader::setJTAlarmTyoe(uint8_t type)
