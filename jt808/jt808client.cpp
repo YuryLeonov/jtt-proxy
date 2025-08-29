@@ -648,7 +648,7 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         uploadedFiles.push_back(pathToVideo);
     }
 
-    std::cout << "Выгружаем ролик: " << pathToVideo << std::endl;
+    LOG(INFO) << "Выгружаем ролик: " << pathToVideo << std::endl;
 
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
@@ -714,7 +714,7 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
                 return;
 
             alarm.videoPaths.push_back(path);
-            std::cout << "Добавлен ролик " << path << " к aларму: ";
+            LOG(INFO) << "Добавлен ролик " << path << " к aларму: ";
             tools::printHexBitStream(alarm.alarmID);
         }
     }
