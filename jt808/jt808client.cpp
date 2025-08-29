@@ -874,9 +874,6 @@ void JT808Client::startVideoFilesUploadingCheck()
 
     std::thread videoUploadCheckThread([this](){
         while(true) {
-            std::cout << "Проверяем выгрузку видеороликов" << std::endl;
-            std::cout << "Запросов на выгрузку: " << unuploadedAlarms.size() << std::endl;
-            std::cout << "Отправлено алармов: " << sendedAlarms.size() << std::endl;
             if(!unuploadedAlarms.empty()) {
                 for(const auto &unuploadedAlarm : unuploadedAlarms) {
                     for(const auto &sendedAlarm : sendedAlarms) {
@@ -885,7 +882,6 @@ void JT808Client::startVideoFilesUploadingCheck()
                                 for(const auto &path : sendedAlarm.videoPaths) {
                                     std::thread uploadThread(&JT808Client::sendAlarmVideoFile, this, unuploadedAlarm.alarmID, unuploadedAlarm.alarmNumber, sendedAlarm.alarmJT808Type, path);
                                     uploadThread.detach();
-
                                 }
                             }
                         }

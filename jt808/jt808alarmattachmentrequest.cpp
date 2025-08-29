@@ -43,7 +43,7 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
 
     const std::string alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
 
-    const std::string fileName = std::string("02_") + std::string("01_") + alarmTypeStr + std::string("1_") + alarmNumStr + std::string("_") + std::string("h264");
+    const std::string fileName = std::string("02_") + std::string("1_") + alarmTypeStr + std::string("1_") + alarmNumStr + std::string("_") + std::string("h264");
     std::cout << fileName << std::endl;
     const uint8_t fileNameSize = fileName.length();
     const uint32_t fileSize = std::filesystem::file_size(filePath);
