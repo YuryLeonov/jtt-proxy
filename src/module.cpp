@@ -67,7 +67,7 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
     serializer.setLocationInfoStatus(JT808EventSerializer::Alarm);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
-    std::cout << "Назначенный аларм события: ";
+    std::cout << "Назначенный ID аларма";
     tools::printHexBitStream(serializer.getAlarmID());
 
     if(vec.empty()) {

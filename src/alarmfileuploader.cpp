@@ -86,13 +86,11 @@ bool AlarmFileUploader::connectToStorage()
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(storagePort);
     inet_pton(AF_INET, storageHost.c_str(), &server_addr.sin_addr);
-    LOG(INFO) << "Попытка подключения к storage:" << storageHost << ":" << std::to_string(storagePort) << std::endl;
     if(connect(socketId, (sockaddr*)&server_addr, sizeof(server_addr))) {
         close(socketId);
         LOG(ERROR) << "Ошибка подключения к storage(проверьте реквизиты сервера)" << std::endl;
         return false;
     } else {
-         LOG(INFO) << "Соединение с storage установлено(" << socketId << ")" << std::endl;
          isConnected = true;
     }
 

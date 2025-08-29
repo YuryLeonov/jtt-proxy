@@ -13,9 +13,7 @@ JT808FileUploadInfoRequest::JT808FileUploadInfoRequest(const std::string &pathTo
 {
     fs::path file_path = filePath;
 
-    if (fs::exists(file_path)) {
-        LOG(INFO) << "Файл " << filePath << " найден.";
-    } else {
+    if (!fs::exists(file_path)) {
         const std::string errorMessage = std::string("Не найден файл видеоролика: ").append(file_path);
         throw FileNotFoundException(errorMessage);
     }
