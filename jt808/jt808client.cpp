@@ -528,8 +528,6 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
 
-    std::cout << "Получено событие 9208!" << std::endl;
-
     std::vector<uint8_t> body(request.begin() + 13, request.end() - 2);
     uint8_t offset = 0;
 
@@ -551,6 +549,8 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     for(int i = 0; i < 16; ++i) {
         alarmID.push_back(body[offset++]);
     }
+    std::cout << "Запрашивается ролик для alarmID: ";
+    tools::printHexBitStream(alarmID);
 
     std::vector<uint8_t> alarmNumber;
 
@@ -713,8 +713,6 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
                 return;
 
             alarm.videoPaths.push_back(path);
-            std::cout << "Добавлен видеоролик: " << std::endl;
-            alarm.printInfo();
         }
     }
 }
