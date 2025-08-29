@@ -649,7 +649,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         uploadedFiles.push_back(pathToVideo);
     }
 
-
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
         alarmUploader->setJTAlarmTyoe(jt808AlarmType);
