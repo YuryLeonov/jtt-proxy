@@ -649,6 +649,8 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         uploadedFiles.push_back(pathToVideo);
     }
 
+    std::cout << "Выгружаем ролик: " << pathToVideo << std::endl;
+
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
         alarmUploader->setJTAlarmTyoe(jt808AlarmType);
@@ -881,8 +883,6 @@ void JT808Client::startVideoFilesUploadingCheck()
                         if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
                             if(!sendedAlarm.videoPaths.empty()) {
                                 for(const auto &path : sendedAlarm.videoPaths) {
-                                    std::cout << "Выгружаем ролик: " << path << std::endl;
-
                                     std::thread uploadThread(&JT808Client::sendAlarmVideoFile, this, unuploadedAlarm.alarmID, unuploadedAlarm.alarmNumber, sendedAlarm.alarmJT808Type, path);
                                     uploadThread.detach();
 
