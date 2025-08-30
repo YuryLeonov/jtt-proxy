@@ -66,8 +66,8 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
     serializer.setLocationInfoStatus(JT808EventSerializer::Basic);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
-    LOG(DEBUG) << "Назначенный ID аларма: ";
-    tools::printHexBitStream(serializer.getAlarmID());
+//    LOG(DEBUG) << "Назначенный ID аларма: ";
+//    tools::printHexBitStream(serializer.getAlarmID());
 
     if(vec.empty()) {
         LOG(ERROR) << "Ошибка формирования сообщения о событии.";

@@ -296,9 +296,7 @@ bool AlarmFileUploader::parseGeneralResponse(const std::vector<uint8_t> &respons
         return false;
     }
 
-    const uint16_t replyID = (response[13] << 8) | response[14];
-    const uint16_t requestID = (response[15] << 8) | response[16];
-    const int result = static_cast<int>(response[17]);
+    const int result = static_cast<int>(response[response.size() - 3]);
 
     if(result == 1) {
         LOG(ERROR) << "General response failure";

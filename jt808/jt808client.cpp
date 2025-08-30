@@ -335,7 +335,7 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
 
 //    const uint16_t requestID = (response[15] << 8) | response[16];
 
-    const int result = static_cast<int>(response[17]);
+    const int result = static_cast<int>(response[response.size() - 3]);
 
     if(lastAlarmSerialNumber == replyID) {
         if(!result)
@@ -653,7 +653,7 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         uploadedFiles.push_back(pathToVideo);
     }
 
-    LOG(INFO) << "Выгружаем ролик: " << pathToVideo << std::endl;
+//    LOG(INFO) << "Выгружаем ролик: " << pathToVideo << std::endl;
 
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
@@ -663,6 +663,7 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         alarmUploader->setAlarmID(alarmID);
         alarmUploader->setAlarmNumber(alarmNumber);
     } else {
+        LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
         return;
     }
 
@@ -693,8 +694,8 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
                 return;
 
             alarm.videoPaths.push_back(path);
-            LOG(INFO) << "Добавлен ролик " << path << " к aларму: ";
-            tools::printHexBitStream(alarm.alarmID);
+//            LOG(INFO) << "Добавлен ролик " << path << " к aларму: ";
+//            tools::printHexBitStream(alarm.alarmID);
         }
     }
 }
