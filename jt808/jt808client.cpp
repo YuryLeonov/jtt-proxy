@@ -313,7 +313,7 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
     } else if(header.messageID == 0x9202) {
         parseVideoPlaybackControlRequest(std::move(answer));
     } else if(header.messageID == 0x9208) {
-//        parseAlarmAttachmentUploadRequest(std::move(answer));
+        parseAlarmAttachmentUploadRequest(std::move(answer));
     } else {
 //        LOG(INFO) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
     }
