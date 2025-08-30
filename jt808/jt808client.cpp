@@ -679,11 +679,6 @@ bool JT808Client::isPlatformConnected() const
 
 void JT808Client::addVideoFile(const std::string &eventID, const std::string &path)
 {
-    if(!std::filesystem::exists(path)) {
-        LOG(ERROR) << "Не найден файл " << path << " на диске" << std::endl;
-        return;
-    }
-
     for(auto &alarm : sendedAlarms) {
         if(alarm.databaseID == eventID) {
             if (std::find(alarm.videoPaths.begin(), alarm.videoPaths.end(), path) != alarm.videoPaths.end())

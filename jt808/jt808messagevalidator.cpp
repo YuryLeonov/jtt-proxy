@@ -1,6 +1,7 @@
 #include "jt808messagevalidator.h"
 #include "jt808header.h"
 #include <tools.h>
+#include "easylogging++.h"
 
 JT808MessageValidator::JT808MessageValidator()
 {
@@ -14,18 +15,11 @@ bool JT808MessageValidator::validateMessage(const std::vector<uint8_t> &message)
 
     //Проверка стартового и последнего битов
     if(startByte != 0x7e || stopByte != 0x7e) {
-        std::cerr << "Ошибка стартового или закрывающего байтов" << std::endl;
+        LOG(ERROR) << "Ошибка стартового или закрывающего байтов" << std::endl;
         return false;
     }
 
     std::vector<uint8_t> main(message.begin() + 1, message.end() - 1);
-
-    for(auto it = main.begin(); it != main.end(); ++it) {
-        if(*it == 0x7d) {
-            std::cout << "Сообщение содержит экранирующий байт!!!" << std::endl;
-            break;
-        }
-    }
 
     //Проверка контрольной суммы
     const uint8_t checkCode = main[main.size() - 1];

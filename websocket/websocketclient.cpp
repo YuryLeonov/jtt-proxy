@@ -7,6 +7,7 @@
 #include <thread>
 #include <memory>
 #include <string>
+#include <filesystem>
 
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
@@ -154,6 +155,14 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
         for(const auto &pair : videoEntities.value()) {
             const std::string eventID = tools::split(pair.first, '@').at(1);
             json eventVideoJson = pair.second;
+
+            const json data = json::parse(eventVideoJson.dump());
+            const std::string pathToVideo = data.at("path2video");
+
+            if(!std::filesystem::exists(pathToVideo)) {
+                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
+                return;
+            }
 
             receivedVideosForEvent[eventID]++;
 
