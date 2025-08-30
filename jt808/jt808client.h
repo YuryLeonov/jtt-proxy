@@ -105,7 +105,6 @@ private:
 
     std::mutex sendingMessageMutex;
 
-    SendedToPlatformAlarm lastSendedAlarm;
     uint16_t lastAlarmSerialNumber = 0;
 
     std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;

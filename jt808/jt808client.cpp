@@ -635,8 +635,7 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
 
     LOG(INFO) << "АЛАРМ ОТПРАВЛЕН НА ПЛАТФОРМУ!(тип по протоколу 808 - " << std::hex << static_cast<int>(sendedAlarmInfo.alarmJT808Type) << ")";
     lastAlarmSerialNumber = header.messageSerialNumber;
-    sendedAlarms.push_back(lastSendedAlarm);
-    lastSendedAlarm = sendedAlarmInfo;
+    sendedAlarms.push_back(sendedAlarmInfo);
 
     return true;
 }
