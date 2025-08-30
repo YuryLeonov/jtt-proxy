@@ -313,9 +313,9 @@ void JT808Client::handlePlatformAnswer(const std::vector<uint8_t> &answer)
     } else if(header.messageID == 0x9202) {
         parseVideoPlaybackControlRequest(std::move(answer));
     } else if(header.messageID == 0x9208) {
-        parseAlarmAttachmentUploadRequest(std::move(answer));
+//        parseAlarmAttachmentUploadRequest(std::move(answer));
     } else {
-        LOG(INFO) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
+//        LOG(INFO) << "Неизвестный запрос от плафтормы: " << tools::getStringFromBitStream(answer) << std::endl;
     }
 }
 
@@ -670,37 +670,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
 
 }
 
-void JT808Client::removeEvent(const std::string &eventID)
-{
-
-//    for (const auto& pair : unUploadedEvents) {
-//        if(pair.first == eventID) {
-//            unUploadedEvents.erase(pair.first);
-//            for(auto it = unUploadedAlarms.begin(); it != unUploadedAlarms.end(); ++it) {
-//                if(it->id == pair.first) {
-//                    unUploadedAlarms.erase(it);
-//                    std::cout <<     "Удалили из списка невыгруженных алармов в JT808Client: " << pair.first << std::endl;
-//                    break;
-//                }
-//            }
-
-//            break;
-//        }
-//    }
-
-//    if(uploadedFiles.size() > 10) {
-//        uploadedFiles.erase(uploadedFiles.begin(), uploadedFiles.begin() + 5);
-//    }
-
-//    if(unUploadedEvents.size() > 20 || unUploadedAlarms.size() > 20) {
-//        LOG(ERROR) << "Переполнение буфера событий в JT808Client";
-//        auto it = unUploadedEvents.begin();
-//        for (int i = 0; i < 10 && it != unUploadedEvents.end(); ++i) {
-//            it = unUploadedEvents.erase(it);
-//        }
-//    }
-}
-
 bool JT808Client::isPlatformConnected() const
 {
     return isConnected;
@@ -708,6 +677,11 @@ bool JT808Client::isPlatformConnected() const
 
 void JT808Client::addVideoFile(const std::string &eventID, const std::string &path)
 {
+    if(!std::filesystem::exists(path)) {
+        LOG(ERROR) << "Не найден файл " << path << " на диске" << std::endl;
+        return;
+    }
+
     for(auto &alarm : sendedAlarms) {
         if(alarm.databaseID == eventID) {
             if (std::find(alarm.videoPaths.begin(), alarm.videoPaths.end(), path) != alarm.videoPaths.end())

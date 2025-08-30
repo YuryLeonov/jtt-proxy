@@ -35,7 +35,6 @@ public:
     void setSurveyInterval(int interval);
     void setExternalMessageAlarmHandler(const std::function<void(const alarms::AlarmType &type, const std::string &message)> &f);
     void setExternalMessageMediaInfoHandler(const std::function<void(const std::string &eventID, const std::string &message)> &f);
-    void setExternalMessageEventRemoved(const std::function<void(const std::string &eventID)> &f);
 
     void connect();
 
@@ -77,7 +76,6 @@ private:
 
     std::function<void(const alarms::AlarmType &type, const std::string &message)> externalMessageAlarmHandler;
     std::function<void(const std::string &eventID, const std::string &message)> externalMessageMediaInfoHandler;
-    std::function<void(const std::string &eventID)> externalMessageEventRemoved;
 
     std::thread connectionLoopThread;
     websocketpp::connection_hdl currentConnectionHandler;
@@ -92,6 +90,7 @@ private:
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;
 
     std::queue<Event> unuploadedEvents;
+    std::map<std::string, int> receivedVideosForEvent;
 
 };
 

@@ -54,11 +54,6 @@ void WebSocketClient::setExternalMessageMediaInfoHandler(const std::function<voi
     externalMessageMediaInfoHandler = f;
 }
 
-void WebSocketClient::setExternalMessageEventRemoved(const std::function<void (const std::string &)> &f)
-{
-    externalMessageEventRemoved = f;
-}
-
 void WebSocketClient::formServerURI()
 {
     serverURI = "ws://" + serverHostIP + ":" + std::to_string(serverPort) + "/jsonrpc";
@@ -149,6 +144,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             ev.time = std::chrono::system_clock::to_time_t(now);
             unuploadedEvents.push(ev);
             lastEventTime = tools::addSecondsToTime(eventJson.at("timestamp"), 1);
+            receivedVideosForEvent[ev.id] = 0;
 
             externalMessageAlarmHandler(aType, eventJson.dump());
         }
@@ -159,15 +155,16 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const std::string eventID = tools::split(pair.first, '@').at(1);
             json eventVideoJson = pair.second;
 
-            if(eventVideoJson.is_array()) {
-               LOG(INFO) << "Получен массив видеороликов " << std::endl;
+            receivedVideosForEvent[eventID]++;
 
-//               for (const auto& videoJson : eventVideoJson) {
-//                   externalMess4ageMediaInfoHandler(eventID, videoJson.dump());
-//               }
-
-
-               eventVideoJson = eventVideoJson[0];
+            if(receivedVideosForEvent[eventID] > 0) {
+                receivedVideosForEvent.erase(eventID);
+                unuploadedEvents.pop();
+                if(!unuploadedEvents.empty()) {
+                    auto now = std::chrono::system_clock::now();
+                    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+                    unuploadedEvents.front().time = currentTime;
+                }
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
@@ -218,13 +215,12 @@ void WebSocketClient::removeOldUnuploadedEvents()
     auto now = std::chrono::system_clock::now();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 
-    if(std::difftime(currentTime, unuploadedEvents.front().time) > 30) {
+    if(std::difftime(currentTime, unuploadedEvents.front().time) > 25) {
         const std::string id = unuploadedEvents.front().id;
         unuploadedEvents.pop();
         if(!unuploadedEvents.empty()) {
             unuploadedEvents.front().time = currentTime;
         }
-//        externalMessageEventRemoved(id);
     }
 
     if(unuploadedEvents.size() > 20 || unuploadedEvents.size() > 20) {

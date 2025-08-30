@@ -50,7 +50,6 @@ void Module::initWebSocketClient()
     wsClient->setSurveyInterval(eventServerInfo.surveyInterval);
     wsClient->setExternalMessageAlarmHandler(std::bind(&Module::wsClientMessageAlarmHandler, this, ::_1, ::_2));
     wsClient->setExternalMessageMediaInfoHandler(std::bind(&Module::wsClientMessageMediaInfoHandler, this, ::_1, ::_2));
-    wsClient->setExternalMessageEventRemoved(std::bind(&Module::wsClientMessageEventRemovedHandler, this, ::_1));
     wsClient->connect();
 }
 
@@ -97,17 +96,7 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 
 //    pathToVideo = "/home/yury/projects/808/mtp-808-proxy/tests/1-2-3-4-5-6-7-8-9-10-11-12-13-14.mp4";
 
-    if(!std::filesystem::exists(pathToVideo)) {
-        LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
-        return;
-    }
-
     platformConnector.addVideoFile(eventID, pathToVideo);
-}
-
-void Module::wsClientMessageEventRemovedHandler(const std::string &eventID)
-{
-    platformConnector.removeEvent(eventID);
 }
 
 void Module::initPlatformClient()
