@@ -331,10 +331,16 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
         return false;
     }
 
-//    const uint16_t replyID = (response[13] << 8) | response[14];
+    const uint16_t replyID = (response[13] << 8) | response[14];
+
 //    const uint16_t requestID = (response[15] << 8) | response[16];
 
     const int result = static_cast<int>(response[17]);
+
+    if(lastAlarmSerialNumber == replyID) {
+        if(!result)
+            LOG(INFO) << "АЛАРМ принят";
+    }
 
     if(result == 1) {
         LOG(ERROR) << "General response failure";
