@@ -555,8 +555,6 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     for(int i = 0; i < 16; ++i) {
         alarmID.push_back(body[offset++]);
     }
-    LOG(INFO) << "Запрашивается ролик для alarmID: ";
-    tools::printHexBitStream(alarmID);
 
     std::vector<uint8_t> alarmNumber;
 
