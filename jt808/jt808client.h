@@ -78,6 +78,7 @@ private:
     bool isIPAddress(const std::string &socketAddr);
 
     void startVideoFilesUploadingCheck();
+    inline void removeOldAlarmsAndRequests();
 
 private:
     TerminalInfo terminalInfo;
@@ -103,20 +104,15 @@ private:
     std::thread heartBeatThread;
     std::thread platformAnswerHandlerThread;
 
-    std::mutex sendingMessageMutex;
-
     uint16_t lastAlarmSerialNumber = 0;
 
     std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
-
-    std::vector<UnuploadedAlarm> unuploadedAlarms;
-    std::map<std::string, PlatformAlarmID> unUploadedEvents;
-    std::mutex uploadMutex;
 
     std::map<int, std::string> rtspLinks;
 
     std::vector<std::string> uploadedFiles;
 
+    std::vector<UploadingRequest> requestsForUploading;
     std::vector<SendedToPlatformAlarm> sendedAlarms;
 
 };

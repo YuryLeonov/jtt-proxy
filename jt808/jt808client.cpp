@@ -568,10 +568,10 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
         alarmNumber.push_back(body[offset++]);
     }
 
-    UnuploadedAlarm alarm;
+    UploadingRequest alarm;
     alarm.alarmID = alarmID;
     alarm.alarmNumber = alarmNumber;
-    unuploadedAlarms.push_back(alarm);
+    requestsForUploading.push_back(alarm);
 
     sendGeneralResponseToPlatform(header.messageSerialNumber, header.messageID);
 
@@ -852,8 +852,8 @@ void JT808Client::startVideoFilesUploadingCheck()
 
     std::thread videoUploadCheckThread([this](){
         while(true) {
-            if(!unuploadedAlarms.empty()) {
-                for(const auto &unuploadedAlarm : unuploadedAlarms) {
+            if(!requestsForUploading.empty()) {
+                for(const auto &unuploadedAlarm : requestsForUploading) {
                     for(const auto &sendedAlarm : sendedAlarms) {
                         if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
                             if(!sendedAlarm.videoPaths.empty()) {
@@ -866,12 +866,25 @@ void JT808Client::startVideoFilesUploadingCheck()
                     }
                 }
             }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+            removeOldAlarmsAndRequests();
+            std::this_thread::sleep_for(std::chrono::milliseconds(7000));
         }
     });
     videoUploadCheckThread.detach();
 
+}
+
+void JT808Client::removeOldAlarmsAndRequests()
+{
+    if(sendedAlarms.size() > 1000) {
+        sendedAlarms.erase(sendedAlarms.begin(), sendedAlarms.begin() + 800);
+        LOG(INFO) << "Выполнена чистка буфера отправленных алармов";
+    }
+
+    if(requestsForUploading.size() > 1000) {
+        requestsForUploading.erase(requestsForUploading.begin(), requestsForUploading.begin() + 800);
+        LOG(INFO) << "Выполнена чистка буфера запросов на выгрузку";
+    }
 }
 
 JT808ConnectionErrorException::JT808ConnectionErrorException(const std::string errMessage) : runtime_error(errMessage)

@@ -29,17 +29,11 @@ struct SendedToPlatformAlarm
 
 };
 
-struct UnuploadedAlarm
+struct UploadingRequest
 {
     std::vector<uint8_t> alarmID;
     std::vector<uint8_t> alarmNumber;
-};
 
-struct PlatformAlarmID
-{
-    std::vector<uint8_t> id;
-    std::vector<uint8_t> number;
-    std::time_t time;
 };
 
 #endif // PLATFORMALARMID_H
