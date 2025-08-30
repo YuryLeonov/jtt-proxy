@@ -40,6 +40,8 @@ namespace tools {
 
     void replaceByteInVectorWithTwo(std::vector<uint8_t> &vec, uint8_t oldValue, uint8_t firstReplacer, uint8_t secondReplacer);
 
+    void replaceTwoBytesInVectorWithOne(std::vector<uint8_t> &vec, uint8_t firstByte, uint8_t secondByte, uint8_t replacer);
+
     bool isByteInStream(const std::vector<uint8_t> &vec, const uint8_t &byte);
 
     uint16_t random_hex_uint16();

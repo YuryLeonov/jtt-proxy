@@ -286,6 +286,10 @@ void JT808Client::startPlatformAnswerHandler()
             } else if(bytes_recieved > 0) {
                 std::vector<uint8_t> answer(bytes_recieved);
                 std::copy(buffer, buffer + bytes_recieved, answer.begin());
+
+                tools::replaceTwoBytesInVectorWithOne(answer, 0x7d, 0x02, 0x7e);
+                tools::replaceTwoBytesInVectorWithOne(answer, 0x7d, 0x01, 0x7d);
+
                 handlePlatformAnswer(answer);
             }
     }
@@ -340,6 +344,8 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     if(lastAlarmSerialNumber == replyID) {
         if(!result)
             LOG(INFO) << "АЛАРМ принят";
+        else
+            LOG(ERROR) << "Аларм не принят" << std::endl;
     }
 
     if(result == 1) {

@@ -65,6 +65,26 @@ namespace tools {
         vec = std::move(newVec);
     }
 
+    void replaceTwoBytesInVectorWithOne(std::vector<uint8_t> &vec, uint8_t firstByte, uint8_t secondByte, uint8_t replacer)
+    {
+        std::vector<uint8_t> result;
+        result.reserve(vec.size());
+
+        for (size_t i = 0; i < vec.size(); ++i) {
+            if (i < vec.size() - 1 &&
+                vec[i] == firstByte &&
+                vec[i + 1] == secondByte) {
+                result.push_back(replacer);
+                i++;
+            } else {
+                result.push_back(vec[i]);
+            }
+        }
+
+        vec.clear();
+        vec = std::move(result);
+    }
+
     uint16_t random_hex_uint16() {
         std::random_device rd;
         std::mt19937 gen(rd());
