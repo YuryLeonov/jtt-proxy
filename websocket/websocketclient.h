@@ -94,7 +94,6 @@ private:
 
     std::queue<Event> unuploadedEvents;
     std::map<std::string, int> receivedVideosForEvent;
-    std::vector<std::string> uploadedFiles;
 
 };
 

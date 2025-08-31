@@ -164,11 +164,6 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                 return;
             }
 
-            auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
-            if(it != uploadedFiles.end()) {
-                return;
-            }
-
             receivedVideosForEvent[eventID]++;
 
             if(receivedVideosForEvent[eventID] > alarmVideosCount) {
@@ -179,8 +174,6 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
                     unuploadedEvents.front().time = currentTime;
                 }
-            } else {
-                LOG(INFO) << "Ожидаем еще " << alarmVideosCount - receivedVideosForEvent[eventID] <<  " роликов для события " << eventID;
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
@@ -241,10 +234,6 @@ void WebSocketClient::removeOldUnuploadedEvents()
 
     if(unuploadedEvents.size() > 20 || unuploadedEvents.size() > 20) {
         LOG(ERROR) << "Переполнение буфера событий";
-    }
-
-    if(uploadedFiles.size() > 200) {
-        uploadedFiles.erase(uploadedFiles.begin(), uploadedFiles.begin() + 100);
     }
 }
 
