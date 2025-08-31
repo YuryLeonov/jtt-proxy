@@ -46,6 +46,7 @@ struct Configuration
     bool isGlonassUsing = false;
     bool isGalileoUsing = false;
     uint8_t satellitesCount = 0;
+    int alarmVideosCount = 0;
  };
 
 #endif // CONFIGURATION_H

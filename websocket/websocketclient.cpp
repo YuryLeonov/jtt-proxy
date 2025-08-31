@@ -166,7 +166,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 
             receivedVideosForEvent[eventID]++;
 
-            if(receivedVideosForEvent[eventID] > 0) {
+            if(receivedVideosForEvent[eventID] > alarmVideosCount) {
                 receivedVideosForEvent.erase(eventID);
                 unuploadedEvents.pop();
                 if(!unuploadedEvents.empty()) {
@@ -174,6 +174,8 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
                     unuploadedEvents.front().time = currentTime;
                 }
+            } else {
+                LOG(INFO) << "Ожидаем еще " << alarmVideosCount - receivedVideosForEvent[eventID] <<  " роликов для события " << eventID;
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
@@ -309,6 +311,11 @@ void WebSocketClient::connect()
     } catch(...) {
         LOG(ERROR) << "Unusual exception while opening connection with webocket server";
     }
+}
+
+void WebSocketClient::setAlarmVideosCount(int count)
+{
+    alarmVideosCount = count;
 }
 
 void WebSocketClient::sendMessage(const std::string &message)

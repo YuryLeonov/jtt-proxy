@@ -78,6 +78,7 @@ Configuration ConfigurationParser::parseConfiguration()
     conf.isGlonassUsing = statusFlagJson.at("GlonassStatus");
     conf.isGalileoUsing = statusFlagJson.at("GalileoStatus");
     conf.satellitesCount = statusFlagJson.at("satellitesCount");
+    conf.alarmVideosCount = statusFlagJson.at("alarmVideosCount");
 
     return conf;
 }

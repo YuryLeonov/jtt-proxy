@@ -62,6 +62,7 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     terminalStatus.isGlonassUsing = configuration.isGlonassUsing;
     terminalStatus.isGalileoUsing = configuration.isGalileoUsing;
     terminalStatus.satellitesCount = configuration.satellitesCount;
+    terminalStatus.alarmVideosCount = configuration.alarmVideosCount;
     terminalInfo.status = terminalStatus;
 
     platform::PlatformInfo platformInfo;
@@ -118,6 +119,7 @@ void setLogger()
     if(!config.parseFromFile("../logger/logger.conf")) {
         std::cerr << "Ошибка парсинга файла логгера" << std::endl;
     }
+
     el::Loggers::reconfigureLogger("default", config);
     el::Loggers::flushAll();
 }

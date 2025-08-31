@@ -38,6 +38,8 @@ public:
 
     void connect();
 
+    void setAlarmVideosCount(int count);
+
     void sendMessage(const std::string &message);
 
 private:
@@ -70,9 +72,10 @@ private:
     wsclient client;
     std::string serverHostIP = "127.0.0.1";
     int serverPort = 8088;
-    int reconnectTimeout = 3000; //milliseconds
+    int reconnectTimeout = 3000;
     int surveyInterval = 5000;
     std::string serverURI = "";
+    int alarmVideosCount = 1;
 
     std::function<void(const alarms::AlarmType &type, const std::string &message)> externalMessageAlarmHandler;
     std::function<void(const std::string &eventID, const std::string &message)> externalMessageMediaInfoHandler;
