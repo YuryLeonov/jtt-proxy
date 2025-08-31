@@ -143,6 +143,10 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
 
     std::vector<uint8_t> vec(bytes_read);
     std::copy(buffer, buffer + bytes_read, vec.begin());
+
+    tools::replaceTwoBytesInVectorWithOne(vec, 0x7d, 0x02, 0x7e);
+    tools::replaceTwoBytesInVectorWithOne(vec, 0x7d, 0x01, 0x7d);
+
     if(parseGeneralResponse(vec)) {
         return true;
     } else {
