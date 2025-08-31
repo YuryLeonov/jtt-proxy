@@ -164,6 +164,11 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                 return;
             }
 
+            auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
+            if(it != uploadedFiles.end()) {
+                return;
+            }
+
             receivedVideosForEvent[eventID]++;
 
             if(receivedVideosForEvent[eventID] > alarmVideosCount) {
@@ -236,6 +241,10 @@ void WebSocketClient::removeOldUnuploadedEvents()
 
     if(unuploadedEvents.size() > 20 || unuploadedEvents.size() > 20) {
         LOG(ERROR) << "Переполнение буфера событий";
+    }
+
+    if(uploadedFiles.size() > 200) {
+        uploadedFiles.erase(uploadedFiles.begin(), uploadedFiles.begin() + 100);
     }
 }
 
