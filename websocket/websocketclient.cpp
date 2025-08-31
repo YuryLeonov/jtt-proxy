@@ -172,7 +172,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
 
             receivedVideosForEvent[eventID]++;
 
-            if(receivedVideosForEvent[eventID] > alarmVideosCount) {
+            if(receivedVideosForEvent[eventID] > alarmVideosCount - 1) {
                 receivedVideosForEvent.erase(eventID);
                 unuploadedEvents.pop();
                 if(!unuploadedEvents.empty()) {
