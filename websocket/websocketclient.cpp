@@ -158,6 +158,10 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json data = json::parse(eventVideoJson.dump());
             const std::string pathToVideo = data.at("path2video");
 
+            if(!std::filesystem::exists(pathToVideo)) {
+                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
+                return;
+            }
 
             auto it = std::find(uploadedVideoFiles.begin(), uploadedVideoFiles.end(), pathToVideo);
             if(it != uploadedVideoFiles.end()) {
@@ -165,13 +169,6 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             } else {
                 uploadedVideoFiles.push_back(pathToVideo);
             }
-
-            if(!std::filesystem::exists(pathToVideo)) {
-                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
-                return;
-            }
-
-
 
             receivedVideosForEvent[eventID]++;
 
@@ -243,7 +240,7 @@ void WebSocketClient::removeOldUnuploadedEvents()
         }
     }
 
-    if(uploadedVideoFiles.size() < 100) {
+    if(uploadedVideoFiles.size() > 100) {
         uploadedVideoFiles.erase(uploadedVideoFiles.begin(), uploadedVideoFiles.begin() + 50);
     }
 
