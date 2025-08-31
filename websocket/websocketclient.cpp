@@ -131,7 +131,6 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             aType.id = pair.first;
             const json eventJson = pair.second;
 
-
             aType.lmsType = eventJson.at("event_type");
             LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c LMSID = " << aType.lmsType;
 
@@ -159,10 +158,20 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json data = json::parse(eventVideoJson.dump());
             const std::string pathToVideo = data.at("path2video");
 
+
+            auto it = std::find(uploadedVideoFiles.begin(), uploadedVideoFiles.end(), pathToVideo);
+            if(it != uploadedVideoFiles.end()) {
+                return;
+            } else {
+                uploadedVideoFiles.push_back(pathToVideo);
+            }
+
             if(!std::filesystem::exists(pathToVideo)) {
                 LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
                 return;
             }
+
+
 
             receivedVideosForEvent[eventID]++;
 
@@ -174,6 +183,8 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
                     unuploadedEvents.front().time = currentTime;
                 }
+            } else {
+                LOG(INFO) << "Для события " << eventID << " ожидаем еще " << alarmVideosCount - receivedVideosForEvent[eventID] << " роликов";
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
@@ -230,6 +241,10 @@ void WebSocketClient::removeOldUnuploadedEvents()
         if(!unuploadedEvents.empty()) {
             unuploadedEvents.front().time = currentTime;
         }
+    }
+
+    if(uploadedVideoFiles.size() < 100) {
+        uploadedVideoFiles.erase(uploadedVideoFiles.begin(), uploadedVideoFiles.begin() + 50);
     }
 
     if(unuploadedEvents.size() > 20 || unuploadedEvents.size() > 20) {
