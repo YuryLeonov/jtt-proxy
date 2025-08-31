@@ -119,7 +119,6 @@ int main(int argc, char **argv)
     signal(SIGINT, signalHandler);
 
     //--------Logger settings--------------------
-//    setLogger();
     logger::setLogger();
 
     //-------- Configuration settings----------

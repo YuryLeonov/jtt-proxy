@@ -47,6 +47,7 @@ set(HEADERS ./nlohmann/json.hpp
             /.src/alarmfileuploader.h
             ./src/alarmtypes.h
             ./src/platformalarmid.h
+            ./src/logger.h
             ./jt808/jt808serializer.h
             ./jt808/jt808client.h
             ./jt808/jt808server.h
