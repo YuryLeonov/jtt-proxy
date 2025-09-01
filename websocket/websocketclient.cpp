@@ -186,6 +186,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                 std::cout << "Все ролики для события получены" << std::endl;
             } else {
                 LOG(INFO) << "Для события " << eventID << " ожидаем еще " << alarmVideosCount - receivedVideosForEvent[eventID] << " роликов";
+                std::cout << "Время ожидания " << alarmVideosWaitInterval << " секунд" << std::endl;
             }
 
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
@@ -238,6 +239,7 @@ void WebSocketClient::removeOldUnuploadedEvents()
 
     if(std::difftime(currentTime, unuploadedEvents.front().time) > alarmVideosWaitInterval) {
         const std::string id = unuploadedEvents.front().id;
+        std::cout << "Удаляем из очереди аларм" << std::endl;
         unuploadedEvents.pop();
         if(!unuploadedEvents.empty()) {
             unuploadedEvents.front().time = currentTime;
