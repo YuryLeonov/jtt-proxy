@@ -573,6 +573,13 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     alarm.alarmNumber = alarmNumber;
     requestsForUploading.push_back(alarm);
 
+    for(const auto &alarm : sendedAlarms) {
+        if(alarmID == alarm.alarmID) {
+            LOG(INFO) << "Запрошены ролики для события " << alarm.databaseID;
+            break;
+        }
+    }
+
     sendGeneralResponseToPlatform(header.messageSerialNumber, header.messageID);
 
     return true;
