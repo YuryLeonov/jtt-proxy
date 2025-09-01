@@ -151,6 +151,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     }
 
     if(videoEntities != std::nullopt) {
+        std::cout << "Количество entity: " << videoEntities.value().size() << std::endl;
         for(const auto &pair : videoEntities.value()) {
             const std::string eventID = tools::split(pair.first, '@').at(1);
             json eventVideoJson = pair.second;
@@ -158,11 +159,10 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json data = json::parse(eventVideoJson.dump());
             const std::string pathToVideo = data.at("path2video");
 
-            std::cout << "Получен ролик: " << pathToVideo << std::endl;
-            if(!std::filesystem::exists(pathToVideo)) {
-                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
-                return;
-            }
+//            if(!std::filesystem::exists(pathToVideo)) {
+//                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
+//                return;
+//            }
 
             auto it = std::find(uploadedVideoFiles.begin(), uploadedVideoFiles.end(), pathToVideo);
             if(it != uploadedVideoFiles.end()) {
@@ -189,7 +189,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                 std::cout << "Время ожидания " << alarmVideosWaitInterval << " секунд" << std::endl;
             }
 
-            externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
+//            externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
         }
     }
 }
