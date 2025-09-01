@@ -695,11 +695,12 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
     for(auto &alarm : sendedAlarms) {
         if(alarm.databaseID == eventID) {
             if (std::find(alarm.videoPaths.begin(), alarm.videoPaths.end(), path) != alarm.videoPaths.end()) {
-                std::cout << "КУ" << std::endl;
                 return;
             }
 
             alarm.videoPaths.push_back(path);
+            std::cout << "Ролик добавлен к отправленному событию" << std::endl;
+
         }
     }
 }
@@ -860,11 +861,17 @@ void JT808Client::startVideoFilesUploadingCheck()
     std::thread videoUploadCheckThread([this](){
         while(true) {
             if(!requestsForUploading.empty()) {
+                std::cout << "1" << std::endl;
                 for(const auto &unuploadedAlarm : requestsForUploading) {
+                    std::cout << "2" << std::endl;
                     for(const auto &sendedAlarm : sendedAlarms) {
+                        std::cout << "3" << std::endl;
                         if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
+                            std::cout << "4" << std::endl;
                             if(!sendedAlarm.videoPaths.empty()) {
+                                std::cout << "5" << std::endl;
                                 for(const auto &path : sendedAlarm.videoPaths) {
+                                    std::cout << "6" << std::endl;
                                     std::thread uploadThread(&JT808Client::sendAlarmVideoFile, this, unuploadedAlarm.alarmID, unuploadedAlarm.alarmNumber, sendedAlarm.alarmJT808Type, path);
                                     uploadThread.detach();
                                 }
