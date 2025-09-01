@@ -63,6 +63,7 @@ const FullConfiguration getFullConfiguration(const std::string &confFilePath)
     terminalStatus.isGalileoUsing = configuration.isGalileoUsing;
     terminalStatus.satellitesCount = configuration.satellitesCount;
     terminalStatus.alarmVideosCount = configuration.alarmVideosCount;
+    terminalStatus.alarmVideosWaitInterval = configuration.alarmVideosWaitInterval;
     terminalInfo.status = terminalStatus;
 
     platform::PlatformInfo platformInfo;

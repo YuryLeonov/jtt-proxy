@@ -79,6 +79,7 @@ Configuration ConfigurationParser::parseConfiguration()
     conf.isGalileoUsing = statusFlagJson.at("GalileoStatus");
     conf.satellitesCount = statusFlagJson.at("satellitesCount");
     conf.alarmVideosCount = statusFlagJson.at("alarmVideosCount");
+    conf.alarmVideosWaitInterval = statusFlagJson.at("alarmVideosWaitInterval");
 
     return conf;
 }

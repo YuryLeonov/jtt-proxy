@@ -47,6 +47,7 @@ struct Configuration
     bool isGalileoUsing = false;
     uint8_t satellitesCount = 0;
     int alarmVideosCount = 0;
+    int alarmVideosWaitInterval = 30000;
  };
 
 #endif // CONFIGURATION_H

@@ -48,6 +48,8 @@
 		"BeidouStatus" : false,
 		"GlonassStatus" : false,
 		"GalileoStatus" : false,
-		"satellitesCount" : 3
+		"satellitesCount" : 3,
+		"alarmVideosCount" : 2,
+		"alarmVideosWaitInterval" : 30000
 	}
 }

@@ -39,6 +39,7 @@ public:
     void connect();
 
     void setAlarmVideosCount(int count);
+    void setAlarmVideosWaitInterval(int interval);
 
     void sendMessage(const std::string &message);
 
@@ -76,6 +77,7 @@ private:
     int surveyInterval = 5000;
     std::string serverURI = "";
     int alarmVideosCount = 1;
+    int alarmVideosWaitInterval = 30000;
 
     std::function<void(const alarms::AlarmType &type, const std::string &message)> externalMessageAlarmHandler;
     std::function<void(const std::string &eventID, const std::string &message)> externalMessageMediaInfoHandler;
