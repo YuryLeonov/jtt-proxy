@@ -654,10 +654,11 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
 void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const std::string &pathToVideo)
 {
     if(storageHost.empty()) {
-        std::cout << "КУ1" << std::endl;
         return;
     }
 
+
+    std::cout << "Пытаемся выгрузить файл: " << pathToVideo << std::endl;
     auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
     if(it != uploadedFiles.end()) {
         std::cout << "КУ2" << std::endl;
@@ -672,7 +673,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         alarmUploader->setAlarmID(alarmID);
         alarmUploader->setAlarmNumber(alarmNumber);
     } else {
-        std::cout << "КУ3" << std::endl;
         LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
         return;
     }
@@ -683,7 +683,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         }
     } catch(const std::filesystem::filesystem_error& e) {
         LOG(ERROR) << "Ошибка обработки файла " << pathToVideo << " : " << e.what();
-        std::cout << "КУ4" << std::endl;
         return;
     }
 
