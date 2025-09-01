@@ -694,12 +694,12 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
 {
     for(auto &alarm : sendedAlarms) {
         if(alarm.databaseID == eventID) {
-            if (std::find(alarm.videoPaths.begin(), alarm.videoPaths.end(), path) != alarm.videoPaths.end())
+            if (std::find(alarm.videoPaths.begin(), alarm.videoPaths.end(), path) != alarm.videoPaths.end()) {
+                std::cout << "КУ" << std::endl;
                 return;
+            }
 
             alarm.videoPaths.push_back(path);
-//            LOG(INFO) << "Добавлен ролик " << path << " к aларму: ";
-//            tools::printHexBitStream(alarm.alarmID);
         }
     }
 }
@@ -874,7 +874,7 @@ void JT808Client::startVideoFilesUploadingCheck()
                 }
             }
             removeOldAlarmsAndRequests();
-            std::this_thread::sleep_for(std::chrono::milliseconds(7000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
     });
     videoUploadCheckThread.detach();

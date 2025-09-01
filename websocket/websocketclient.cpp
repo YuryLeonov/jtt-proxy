@@ -132,7 +132,7 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json eventJson = pair.second;
 
             aType.lmsType = eventJson.at("event_type");
-            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c LMSID = " << aType.lmsType;
+            LOG(INFO) << "Получено событие: " << eventJson.at("info") << " c ID = " << aType.id;
 
             if(alarms::dsmAlarmsMap.find(aType.lmsType) != alarms::dsmAlarmsMap.end()) {
                 aType.jtType = alarms::dsmAlarmsMap[aType.lmsType];
