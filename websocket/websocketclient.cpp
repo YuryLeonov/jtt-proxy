@@ -158,10 +158,10 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
             const json data = json::parse(eventVideoJson.dump());
             const std::string pathToVideo = data.at("path2video");
 
-            if(!std::filesystem::exists(pathToVideo)) {
-                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
-                continue;
-            }
+//            if(!std::filesystem::exists(pathToVideo)) {
+//                LOG(ERROR) << "Не найден файл " << pathToVideo << " на диске" << std::endl;
+//                continue;
+//            }
 
             auto it = std::find(uploadedVideoFiles.begin(), uploadedVideoFiles.end(), pathToVideo);
             if(it != uploadedVideoFiles.end()) {

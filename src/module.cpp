@@ -68,9 +68,6 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
     serializer.setLocationInfoStatus(JT808EventSerializer::Alarm);
     std::vector<uint8_t> vec = std::move(serializer.serializeToBitStream(message, alarmSerialNum++));
 
-//    LOG(DEBUG) << "Назначенный ID аларма: ";
-//    tools::printHexBitStream(serializer.getAlarmID());
-
     if(vec.empty()) {
         LOG(ERROR) << "Ошибка формирования сообщения о событии.";
         return;
@@ -95,8 +92,6 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
     json data = json::parse(message);
 
     std::string pathToVideo = data.at("path2video");
-
-//    pathToVideo = "/home/yury/projects/808/mtp-808-proxy/tests/1-2-3-4-5-6-7-8-9-10-11-12-13-14.mp4";
 
     platformConnector.addVideoFile(eventID, pathToVideo);
 }

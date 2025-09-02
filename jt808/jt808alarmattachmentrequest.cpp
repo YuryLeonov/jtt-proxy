@@ -45,15 +45,19 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
     const std::string alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
 
     std::string channelStr = "";
+    std::string serialStr = "";
     if(channel == 1) {
         channelStr = "1_";
+        serialStr = "1_";
     } else if(channel == 2) {
         channelStr = "2_";
+        serialStr = "2_";
     } else {
         channelStr = "3_";
+        serialStr = "3_";
     }
 
-    const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + std::string("1_") + alarmNumStr + std::string("_") + std::string("h264");
+    const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + serialStr + alarmNumStr + std::string("_") + std::string("h264");
     std::cout << fileName << std::endl;
     const uint8_t fileNameSize = fileName.length();
     const uint32_t fileSize = std::filesystem::file_size(filePath);

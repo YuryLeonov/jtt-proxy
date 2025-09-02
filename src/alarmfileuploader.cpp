@@ -162,44 +162,47 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
 
 bool AlarmFileUploader::initUploading()
 {
-    try {
-        JT808FileUploadInfoRequest request(pathToVideo, terminalInfo);
-        std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-        unsigned char *message = requestBuffer.data();
-        ssize_t bytes_sent = send(socketId, message, requestBuffer.size(), 0);
-        if (bytes_sent == -1) {
-            if(errno == EAGAIN || errno == EWOULDBLOCK) {
-                while(bytes_sent == -1) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                    LOG(INFO) << "Повторная отправка 0x1211" << std::endl;
-                    bytes_sent = send(socketId, message, requestBuffer.size(), MSG_NOSIGNAL);
+    while(true) {
+        try {
+            JT808FileUploadInfoRequest request(pathToVideo, terminalInfo);
+            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+
+            unsigned char *message = requestBuffer.data();
+            ssize_t bytes_sent = send(socketId, message, requestBuffer.size(), 0);
+            if (bytes_sent == -1) {
+                if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                    while(bytes_sent == -1) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        LOG(INFO) << "Повторная отправка 0x1211" << std::endl;
+                        bytes_sent = send(socketId, message, requestBuffer.size(), MSG_NOSIGNAL);
+                    }
                 }
             }
-        }
 
-    } catch(const std::runtime_error &err) {
-        LOG(ERROR) << err.what();
-        return false;
-    }
-
-    int bytes_read = -1;
-    char buffer[1024] = {0};
-
-    bytes_read = read(socketId, buffer, 1024);
-    if (bytes_read <= 0) {
-        LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1211: " << errno << std::endl;
-        return false;
-    } else {
-        std::vector<uint8_t> vec(bytes_read);
-        std::copy(buffer, buffer + bytes_read, vec.begin());
-        if(parseGeneralResponse(std::move(vec))) {
-            return true;
-        } else {
-            LOG(ERROR) << "Сервер Storage не принял информацию о файле";
+        } catch(const std::runtime_error &err) {
+            LOG(ERROR) << err.what();
             return false;
         }
+
+        int bytes_read = -1;
+        char buffer[1024] = {0};
+
+        bytes_read = read(socketId, buffer, 1024);
+        if (bytes_read <= 0) {
+            LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1211: " << errno << std::endl;
+            return false;
+        } else {
+            std::vector<uint8_t> vec(bytes_read);
+            std::copy(buffer, buffer + bytes_read, vec.begin());
+            if(parseGeneralResponse(std::move(vec))) {
+                return true;
+            } else {
+//                LOG(ERROR) << "Сервер Storage не принял информацию о файле.Повторяем запрос! ";
+            }
+        }
     }
+
 }
 
 bool AlarmFileUploader::upload()

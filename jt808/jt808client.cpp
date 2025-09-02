@@ -669,7 +669,8 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
     if(alarmUploader->connectToStorage()) {
         alarmUploader->setJTAlarmTyoe(jt808AlarmType);
         alarmUploader->setPathToVideo(pathToVideo);
-        alarmUploader->setAttachments(1);
+        alarmUploader->setUploadChannel(fileUploadChannel);
+        alarmUploader->setAttachments(2);
         alarmUploader->setAlarmID(alarmID);
         alarmUploader->setAlarmNumber(alarmNumber);
     } else {
@@ -879,7 +880,7 @@ void JT808Client::startVideoFilesUploadingCheck()
                 }
             }
             removeOldAlarmsAndRequests();
-            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10000));
         }
     });
     videoUploadCheckThread.detach();

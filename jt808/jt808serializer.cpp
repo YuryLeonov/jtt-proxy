@@ -494,8 +494,8 @@ void JT808EventSerializer::composeAlarmID()
     alarmID.push_back(time.minute);
     alarmID.push_back(time.second);
 
-    alarmID.push_back(alarmType);
-    alarmID.push_back(0x01);
+    alarmID.push_back(alarmSerialNum);
+    alarmID.push_back(0x02);
     alarmID.push_back(0x00);
 }
 
