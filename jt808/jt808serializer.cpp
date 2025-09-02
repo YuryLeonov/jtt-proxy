@@ -63,8 +63,15 @@ std::vector<uint8_t> JT808EventSerializer::serializeToBitStream(const json &j)
 
     addSatellitesCountInfo();
 
-    if(locationInfoStatus == Alarm)
-        addAdditionalInformation();
+    if(locationInfoStatus == Alarm) {
+        if(alarmTypeID == 0x65)
+            addDMSAdditionalInformation();
+        else if(alarmTypeID == 0x64)
+            addADASAdditionalInformation();
+        else {
+            LOG(ERROR) << "Не определен тип события.Не добавляем дополнительную информацию к аларму";
+        }
+    }
 
     setHeader();
 
@@ -381,7 +388,7 @@ void JT808EventSerializer::fillEventDada()
     bodyStream.push_back(time.second);
 }
 
-void JT808EventSerializer::addAdditionalInformation()
+void JT808EventSerializer::addDMSAdditionalInformation()
 {
     addInfoStream.clear();
 
@@ -420,6 +427,50 @@ void JT808EventSerializer::addAdditionalInformation()
     bodyStream.push_back(addInfoLength);
     bodyStream.insert(bodyStream.end(), addInfoStream.begin(), addInfoStream.end());
 
+}
+
+void JT808EventSerializer::addADASAdditionalInformation()
+{
+    addInfoStream.clear();
+
+    const uint8_t distancetoFrontTarget = 10; //Meters(0~100)
+    const uint8_t deviationType = 0x01;
+    const uint8_t roadSignType = 0x01;
+
+    const uint32_t policeID = static_cast<uint32_t>(alarmSerialNum);
+    tools::addToStdVector(addInfoStream, policeID);
+
+    addInfoStream.push_back(0x00);
+    addInfoStream.push_back(alarmType);
+    addInfoStream.push_back(0x01);
+    addInfoStream.push_back(static_cast<uint8_t>(speed));
+    addInfoStream.push_back(distancetoFrontTarget);
+    addInfoStream.push_back(deviationType);
+    addInfoStream.push_back(roadSignType);
+    addInfoStream.push_back(0x00);
+    addInfoStream.push_back(static_cast<uint8_t>(speed));
+    tools::addToStdVector(addInfoStream, elevation);
+    tools::addToStdVector(addInfoStream, latitude);
+    tools::addToStdVector(addInfoStream, longitude);
+    addInfoStream.push_back(time.year);
+    addInfoStream.push_back(time.month);
+    addInfoStream.push_back(time.day);
+    addInfoStream.push_back(time.hour);
+    addInfoStream.push_back(time.minute);
+    addInfoStream.push_back(time.second);
+
+
+    const uint16_t vehicleStatus = getVehicleStateStatus();
+    tools::addToStdVector(addInfoStream, vehicleStatus);
+
+    composeAlarmID();
+    addInfoStream.insert(addInfoStream.end(), alarmID.begin(), alarmID.end());
+
+    bodyStream.push_back(alarmTypeID);
+
+    const uint8_t addInfoLength = addInfoStream.size();
+    bodyStream.push_back(addInfoLength);
+    bodyStream.insert(bodyStream.end(), addInfoStream.begin(), addInfoStream.end());
 }
 
 void JT808EventSerializer::addSatellitesCountInfo()

@@ -151,7 +151,6 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
     }
 
     if(videoEntities != std::nullopt) {
-        std::cout << "Количество entity: " << videoEntities.value().size() << std::endl;
         for(const auto &pair : videoEntities.value()) {
             const std::string eventID = tools::split(pair.first, '@').at(1);
             json eventVideoJson = pair.second;

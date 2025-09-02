@@ -661,7 +661,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
     std::cout << "Пытаемся выгрузить файл: " << pathToVideo << std::endl;
     auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
     if(it != uploadedFiles.end()) {
-        std::cout << "КУ2" << std::endl;
         return;
     }
 

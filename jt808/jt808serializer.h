@@ -64,7 +64,8 @@ private:
     void setLocationData();
     void fillEventDada();
 
-    void addAdditionalInformation();
+    void addDMSAdditionalInformation();
+    void addADASAdditionalInformation();
     void addSatellitesCountInfo();
 
     void composeAlarmID();
