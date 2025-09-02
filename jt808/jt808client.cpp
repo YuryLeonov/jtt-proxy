@@ -657,8 +657,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         return;
     }
 
-
-    std::cout << "Пытаемся выгрузить файл: " << pathToVideo << std::endl;
     auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
     if(it != uploadedFiles.end()) {
         return;
@@ -701,7 +699,6 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
             }
 
             alarm.videoPaths.push_back(path);
-            std::cout << "Ролик добавлен к отправленному событию" << std::endl;
 
         }
     }
