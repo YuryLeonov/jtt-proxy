@@ -662,6 +662,9 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         return;
     }
 
+    if(fileUploadChannel > 100)
+        fileUploadChannel = 1;
+
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
         alarmUploader->setJTAlarmTyoe(jt808AlarmType);
@@ -673,6 +676,8 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
         return;
     }
+
+    fileUploadChannel++;
 
     try {
         if(alarmUploader->uploadFile()) {

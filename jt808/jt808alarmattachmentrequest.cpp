@@ -8,12 +8,13 @@
 
 #include <algorithm>
 
-JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber, uint8_t attachmentsNum, const TerminalInfo &info) :
+JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber,int ch, uint8_t attachmentsNum, const TerminalInfo &info) :
     JT808MessageFormatter(info),
     jt808AlarmType(jtType),
     filePath(fPath),
     alarmID(std::move(alID)),
     alarmNumber(std::move(alNuMber)),
+    channel(ch),
     attachmentsNumber(attachmentsNum)
 {
 
@@ -43,7 +44,16 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
 
     const std::string alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
 
-    const std::string fileName = std::string("02_") + std::string("1_") + alarmTypeStr + std::string("1_") + alarmNumStr + std::string("_") + std::string("h264");
+    std::string channelStr = "";
+    if(channel == 1) {
+        channelStr = "1_";
+    } else if(channel == 2) {
+        channelStr = "2_";
+    } else {
+        channelStr = "3_";
+    }
+
+    const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + std::string("1_") + alarmNumStr + std::string("_") + std::string("h264");
     std::cout << fileName << std::endl;
     const uint8_t fileNameSize = fileName.length();
     const uint32_t fileSize = std::filesystem::file_size(filePath);

@@ -54,6 +54,11 @@ void AlarmFileUploader::setAttachments(int ats)
     attachments = ats;
 }
 
+void AlarmFileUploader::setUploadChannel(int ch)
+{
+    uploadChannel = ch;
+}
+
 bool AlarmFileUploader::connectToStorage()
 {
     if(isConnected) {
@@ -112,7 +117,7 @@ bool AlarmFileUploader::uploadFile()
 
 bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
 {
-    JT808AlarmAttachmentRequest request(jtAlarmType, pathToVideo, alarmID, alarmNumber, attachments, terminalInfo);
+    JT808AlarmAttachmentRequest request(jtAlarmType, pathToVideo, alarmID, alarmNumber, uploadChannel, attachments, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
     unsigned char *message = requestBuffer.data();

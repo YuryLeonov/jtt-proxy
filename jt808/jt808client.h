@@ -115,6 +115,8 @@ private:
     std::vector<UploadingRequest> requestsForUploading;
     std::vector<SendedToPlatformAlarm> sendedAlarms;
 
+    int fileUploadChannel = 1;
+
 };
 
 #endif // JT808CONNECTIONHANDLER_H
