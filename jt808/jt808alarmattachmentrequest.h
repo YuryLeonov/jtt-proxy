@@ -7,7 +7,7 @@
 class JT808AlarmAttachmentRequest : public JT808MessageFormatter
 {
 public:
-    JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber,uint8_t alType, uint8_t attachmentsNum, const TerminalInfo &info);
+    JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::vector<std::string> &paths, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNumber, uint8_t alType, const TerminalInfo &info);
     ~JT808AlarmAttachmentRequest();
 
 
@@ -16,10 +16,9 @@ public:
 private:
     std::vector<uint8_t> alarmID;
     std::vector<uint8_t> alarmNumber;
-    uint8_t attachmentsNumber;
     uint8_t alarmType = 0x00;
-    std::string filePath = "";
     uint8_t jt808AlarmType = 0x10;
+    std::vector<std::string> videoPaths;
 };
 
 #endif // JT808ALARMATTACHMENTREQUEST_H

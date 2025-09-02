@@ -667,19 +667,19 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
 
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
-        alarmUploader->setJTAlarmTyoe(jt808AlarmType);
-        alarmUploader->setPathToVideo(pathToVideo);
-        alarmUploader->setAlarmType(alTypeID);
-        alarmUploader->setAttachments(2);
-        alarmUploader->setAlarmID(alarmID);
-        alarmUploader->setAlarmNumber(alarmNumber);
+//        alarmUploader->setJTAlarmTyoe(jt808AlarmType);
+//        alarmUploader->setPathToVideo(pathToVideo);
+//        alarmUploader->setAlarmType(alTypeID);
+//        alarmUploader->setAttachments(2);
+//        alarmUploader->setAlarmID(alarmID);
+//        alarmUploader->setAlarmNumber(alarmNumber);
     } else {
         LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
         return;
     }
 
     try {
-        if(alarmUploader->uploadFile()) {
+        if(alarmUploader->uploadAlarmFiles()) {
             uploadedFiles.push_back(pathToVideo);
         }
     } catch(const std::filesystem::filesystem_error& e) {
@@ -862,12 +862,6 @@ void JT808Client::startVideoFilesUploadingCheck()
 {
     std::thread videoUploadCheckThread([this](){
         while(true) {
-
-            std::cout << "Запросы: " << std::endl;
-            for(const auto &request : requestsForUploading) {
-                request.printInfo();
-            }
-
             auto now = std::chrono::system_clock::now();
             std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 
@@ -881,7 +875,7 @@ void JT808Client::startVideoFilesUploadingCheck()
                         for(const auto &sendedAlarm : sendedAlarms) {
                             if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
                                 if(!sendedAlarm.videoPaths.empty()) {
-                                    std::thread uploadThread(&JT808Client::uploadAlarm, this, sendedAlarm);
+                                    std::thread uploadThread(&JT808Client::uploadAlarm, this, sendedAlarm, unuploadedAlarm.alarmNumber);
                                     uploadThread.detach();
                                     uploadedAlarms.push_back(sendedAlarm.alarmID);
 //                                    for(const auto &path : sendedAlarm.videoPaths) {
@@ -930,13 +924,25 @@ void JT808Client::removeOldAlarmsAndRequests()
     uploadedAlarms.clear();
 }
 
-void JT808Client::uploadAlarm(SendedToPlatformAlarm alarm)
+void JT808Client::uploadAlarm(SendedToPlatformAlarm alarm, const std::vector<uint8_t> &alarmNumber)
 {
     std::cout << "Выгружаем аларм: ";
     tools::printHexBitStream(alarm.alarmID);
 
+    if(storageHost.empty()) {
+        return;
+    }
 
+    std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
+    if(alarmUploader->connectToStorage()) {
+        std::cout << "Соединение с сервером хранилищем установлено" << std::endl;
+        alarmUploader->setAlarm(alarm);
+        alarmUploader->setAlarmNumber(alarmNumber);
+    } else {
+        return;
+    }
 
+    alarmUploader->uploadAlarmFiles();
 
 }
 

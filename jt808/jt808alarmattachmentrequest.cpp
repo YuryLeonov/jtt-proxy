@@ -8,14 +8,13 @@
 
 #include <algorithm>
 
-JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber,uint8_t alType, uint8_t attachmentsNum, const TerminalInfo &info) :
+JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::vector<std::string> &paths, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNumber,uint8_t alType, const TerminalInfo &info) :
     JT808MessageFormatter(info),
     jt808AlarmType(jtType),
-    filePath(fPath),
     alarmID(std::move(alID)),
     alarmType(alType),
-    alarmNumber(std::move(alNuMber)),
-    attachmentsNumber(attachmentsNum)
+    videoPaths(paths),
+    alarmNumber(std::move(alNumber))
 {
 
 }
@@ -36,36 +35,44 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
     bodyStream.insert(bodyStream.end(), alarmID.begin(), alarmID.end());
     bodyStream.insert(bodyStream.end(), alarmNumber.begin(), alarmNumber.end());
 
-    bodyStream.push_back(0x00);
-    bodyStream.push_back(attachmentsNumber);
+    bodyStream.push_back(0x00); //Normal file
+    bodyStream.push_back(static_cast<uint8_t>(videoPaths.size()));
 
-    std::string alarmNumStr = tools::hex_bytes_to_string(alarmNumber);
-    alarmNumStr.erase(std::remove_if(alarmNumStr.begin(), alarmNumStr.end(), ::isspace), alarmNumStr.end());
 
-    std::string alarmTypeStr = "";
-    std::string channelStr = "";
-    std::string serialStr = "";
+    for(const auto &path : videoPaths) {
+        std::vector<uint8_t> fileInfoStream;
 
-    if(alarmType == 0x65) {
-        channelStr = "65_";
-//        alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
-        alarmTypeStr = std::string("65").append("02") + "_";
-        serialStr = "1_";
-    } else if(alarmType == 0x64) {
-        channelStr = "64_";
-        alarmTypeStr = std::string("64").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
-        serialStr = "2_";
+        std::string alarmNumStr = tools::hex_bytes_to_string(alarmNumber);
+        alarmNumStr.erase(std::remove_if(alarmNumStr.begin(), alarmNumStr.end(), ::isspace), alarmNumStr.end());
+
+        std::string alarmTypeStr = "";
+        std::string channelStr = "";
+        std::string serialStr = "";
+
+        if(alarmType == 0x65) {
+            channelStr = "65_";
+    //        alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
+            alarmTypeStr = std::string("65").append("02") + "_";
+            serialStr = "1_";
+        } else if(alarmType == 0x64) {
+            channelStr = "64_";
+            alarmTypeStr = std::string("64").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
+            serialStr = "2_";
+        }
+
+        const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + serialStr + alarmNumStr + std::string("_") + std::string("h264");
+        std::cout << fileName << std::endl;
+        const uint8_t fileNameSize = fileName.length();
+        const uint32_t fileSize = std::filesystem::file_size(path);
+
+        fileInfoStream.push_back(fileNameSize);
+        const std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
+        fileInfoStream.insert(fileInfoStream.end(), fileNameBytes.begin(), fileNameBytes.end());
+        tools::addToStdVector(fileInfoStream, fileSize);
+
+        bodyStream.insert(bodyStream.end(), fileInfoStream.begin(), fileInfoStream.end());
     }
 
-    const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + serialStr + alarmNumStr + std::string("_") + std::string("h264");
-    std::cout << fileName << std::endl;
-    const uint8_t fileNameSize = fileName.length();
-    const uint32_t fileSize = std::filesystem::file_size(filePath);
-
-    bodyStream.push_back(fileNameSize);
-    const std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
-    bodyStream.insert(bodyStream.end(), fileNameBytes.begin(), fileNameBytes.end());
-    tools::addToStdVector(bodyStream, fileSize);
 
     //Header
     setHeader(0x01210);

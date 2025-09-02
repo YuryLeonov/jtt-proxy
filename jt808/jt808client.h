@@ -80,7 +80,7 @@ private:
     void startVideoFilesUploadingCheck();
     inline void removeOldAlarmsAndRequests();
 
-    void uploadAlarm(SendedToPlatformAlarm alarm);
+    void uploadAlarm(SendedToPlatformAlarm alarm, const std::vector<uint8_t> &alarmNumber);
 
 private:
     TerminalInfo terminalInfo;
