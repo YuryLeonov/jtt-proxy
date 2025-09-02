@@ -648,7 +648,11 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
     lastAlarmSerialNumber = header.messageSerialNumber;
     sendedAlarms.push_back(sendedAlarmInfo);
 
+    tools::printHexBitStream(request);
+
     return true;
+
+
 }
 
 void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const std::string &pathToVideo)
