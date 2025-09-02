@@ -535,7 +535,7 @@ bool JT808Client::parseVideoPlaybackControlRequest(const std::vector<uint8_t> &r
     return true;
 }
 
-bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request)
+bool JT808Client::  parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &request)
 {
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
@@ -571,11 +571,12 @@ bool JT808Client::parseAlarmAttachmentUploadRequest(const std::vector<uint8_t> &
     UploadingRequest alarm;
     alarm.alarmID = alarmID;
     alarm.alarmNumber = alarmNumber;
+    auto now = std::chrono::system_clock::now();
+    alarm.updateTime = std::chrono::system_clock::to_time_t(now);
     requestsForUploading.push_back(alarm);
 
     for(const auto &alarm : sendedAlarms) {
         if(alarmID == alarm.alarmID) {
-            LOG(INFO) << "Запрошены ролики для события " << alarm.databaseID;
             break;
         }
     }
@@ -648,14 +649,12 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
     lastAlarmSerialNumber = header.messageSerialNumber;
     sendedAlarms.push_back(sendedAlarmInfo);
 
-    tools::printHexBitStream(request);
-
     return true;
 
 
 }
 
-void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const std::string &pathToVideo)
+void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const uint8_t &alTypeID, const std::string &pathToVideo)
 {
     if(storageHost.empty()) {
         return;
@@ -666,14 +665,11 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         return;
     }
 
-    if(fileUploadChannel > 100)
-        fileUploadChannel = 1;
-
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
         alarmUploader->setJTAlarmTyoe(jt808AlarmType);
         alarmUploader->setPathToVideo(pathToVideo);
-        alarmUploader->setUploadChannel(fileUploadChannel);
+        alarmUploader->setAlarmType(alTypeID);
         alarmUploader->setAttachments(2);
         alarmUploader->setAlarmID(alarmID);
         alarmUploader->setAlarmNumber(alarmNumber);
@@ -681,8 +677,6 @@ void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const 
         LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
         return;
     }
-
-    fileUploadChannel++;
 
     try {
         if(alarmUploader->uploadFile()) {
@@ -866,25 +860,44 @@ bool JT808Client::isIPAddress(const std::string &socketAddr)
 
 void JT808Client::startVideoFilesUploadingCheck()
 {
-
     std::thread videoUploadCheckThread([this](){
         while(true) {
+
+            std::cout << "Запросы: " << std::endl;
+            for(const auto &request : requestsForUploading) {
+                request.printInfo();
+            }
+
+            auto now = std::chrono::system_clock::now();
+            std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+
             if(!requestsForUploading.empty()) {
                 for(const auto &unuploadedAlarm : requestsForUploading) {
-                    for(const auto &sendedAlarm : sendedAlarms) {
-                        if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
-                            if(!sendedAlarm.videoPaths.empty()) {
-                                for(const auto &path : sendedAlarm.videoPaths) {
-                                    std::thread uploadThread(&JT808Client::sendAlarmVideoFile, this, unuploadedAlarm.alarmID, unuploadedAlarm.alarmNumber, sendedAlarm.alarmJT808Type, path);
+
+                    if(std::difftime(currentTime, unuploadedAlarm.updateTime) > 30) {
+                        std::cout << "Надо выгрузить ролики для: ";
+                        tools::printHexBitStream(unuploadedAlarm.alarmID);
+
+                        for(const auto &sendedAlarm : sendedAlarms) {
+                            if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
+                                if(!sendedAlarm.videoPaths.empty()) {
+                                    std::thread uploadThread(&JT808Client::uploadAlarm, this, sendedAlarm);
                                     uploadThread.detach();
+                                    uploadedAlarms.push_back(sendedAlarm.alarmID);
+//                                    for(const auto &path : sendedAlarm.videoPaths) {
+////                                        std::thread uploadThread(&JT808Client::sendAlarmVideoFile, this, unuploadedAlarm.alarmID, unuploadedAlarm.alarmNumber, sendedAlarm.alarmJT808Type, sendedAlarm.alarmType, path);
+////                                        uploadThread.detach();
+//                                    }
                                 }
                             }
                         }
+
                     }
                 }
             }
+
             removeOldAlarmsAndRequests();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(35000));
         }
     });
     videoUploadCheckThread.detach();
@@ -893,15 +906,38 @@ void JT808Client::startVideoFilesUploadingCheck()
 
 void JT808Client::removeOldAlarmsAndRequests()
 {
-    if(sendedAlarms.size() > 1000) {
-        sendedAlarms.erase(sendedAlarms.begin(), sendedAlarms.begin() + 800);
-        LOG(INFO) << "Выполнена чистка буфера отправленных алармов";
+    for(const auto &uploadedAlarm : uploadedAlarms) {
+        auto it = requestsForUploading.begin();
+        while (it != requestsForUploading.end()) {
+            if ((*it).alarmID == uploadedAlarm) {
+                it = requestsForUploading.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        auto it2 = sendedAlarms.begin();
+        while (it2 != sendedAlarms.end()) {
+            if ((*it2).alarmID == uploadedAlarm) {
+                it2 = sendedAlarms.erase(it2);
+            } else {
+                ++it2;
+            }
+        }
+
     }
 
-    if(requestsForUploading.size() > 1000) {
-        requestsForUploading.erase(requestsForUploading.begin(), requestsForUploading.begin() + 800);
-        LOG(INFO) << "Выполнена чистка буфера запросов на выгрузку";
-    }
+    uploadedAlarms.clear();
+}
+
+void JT808Client::uploadAlarm(SendedToPlatformAlarm alarm)
+{
+    std::cout << "Выгружаем аларм: ";
+    tools::printHexBitStream(alarm.alarmID);
+
+
+
+
 }
 
 JT808ConnectionErrorException::JT808ConnectionErrorException(const std::string errMessage) : runtime_error(errMessage)

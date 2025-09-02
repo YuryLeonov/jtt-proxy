@@ -16,7 +16,7 @@ public:
     void setAlarmID(const std::vector<uint8_t> &id);
     void setAlarmNumber(const std::vector<uint8_t> &number);
     void setAttachments(int ats);
-    void setUploadChannel(int ch);
+    void setAlarmType(uint8_t type);
 
     bool connectToStorage();
     bool uploadFile();
@@ -43,7 +43,7 @@ private:
     std::vector<uint8_t> alarmID;
     std::vector<uint8_t> alarmNumber;
     int attachments = 0;
-    int uploadChannel = 1;
+    uint8_t alarmType = 0x65;
 };
 
 #endif // ALARMFILEUPLOADER_H

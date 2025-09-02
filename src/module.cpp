@@ -80,8 +80,11 @@ void Module::wsClientMessageAlarmHandler(const alarms::AlarmType &type, const st
     SendedToPlatformAlarm alarm;
     alarm.databaseID = type.id;
     alarm.alarmID = serializer.getAlarmID();
+    alarm.alarmType = serializer.getAlarmTypeID();
     alarm.time = serializer.getAlarmTime();
     alarm.alarmJT808Type = serializer.getAlarmType();
+    auto now = std::chrono::system_clock::now();
+    alarm.updateTime = std::chrono::system_clock::to_time_t(now);
 
     //Отправка на платформу
     platformConnector.sendAlarmMessage(vec, serializer.getAddInfoStream(), alarm);

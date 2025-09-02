@@ -39,6 +39,7 @@ public:
     void setTerminalInfo(const TerminalInfo &info);
     void setLocationInfoStatus(LocationInfoStatus s);
     const std::vector<uint8_t> getAlarmID() const;
+    const uint8_t getAlarmTypeID() const;
     const std::string getAlarmTime() const;
     uint8_t getAlarmType() const;
 

@@ -516,6 +516,11 @@ const std::vector<uint8_t> JT808EventSerializer::getAlarmID() const
     return alarmID;
 }
 
+const uint8_t JT808EventSerializer::getAlarmTypeID() const
+{
+    return alarmTypeID;
+}
+
 const std::string JT808EventSerializer::getAlarmTime() const
 {
     return timestamp;

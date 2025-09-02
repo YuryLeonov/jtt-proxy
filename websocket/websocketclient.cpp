@@ -180,10 +180,8 @@ void WebSocketClient::messageHandler(websocketpp::connection_hdl handler, messag
                     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
                     unuploadedEvents.front().time = currentTime;
                 }
-                LOG(INFO) << "Все ролики для события получены" << std::endl;
             }
 
-            std::cout << "Выгружаем " << pathToVideo << " для события " << pair.first <<  std::endl;
             externalMessageMediaInfoHandler(eventID, eventVideoJson.dump());
         }
     }

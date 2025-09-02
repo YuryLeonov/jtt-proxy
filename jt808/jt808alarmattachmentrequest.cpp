@@ -8,13 +8,13 @@
 
 #include <algorithm>
 
-JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber,int ch, uint8_t attachmentsNum, const TerminalInfo &info) :
+JT808AlarmAttachmentRequest::JT808AlarmAttachmentRequest(const uint8_t &jtType, const std::string &fPath, const std::vector<uint8_t> &alID, const std::vector<uint8_t> &alNuMber,uint8_t alType, uint8_t attachmentsNum, const TerminalInfo &info) :
     JT808MessageFormatter(info),
     jt808AlarmType(jtType),
     filePath(fPath),
     alarmID(std::move(alID)),
+    alarmType(alType),
     alarmNumber(std::move(alNuMber)),
-    channel(ch),
     attachmentsNumber(attachmentsNum)
 {
 
@@ -42,19 +42,19 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
     std::string alarmNumStr = tools::hex_bytes_to_string(alarmNumber);
     alarmNumStr.erase(std::remove_if(alarmNumStr.begin(), alarmNumStr.end(), ::isspace), alarmNumStr.end());
 
-    const std::string alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
-
+    std::string alarmTypeStr = "";
     std::string channelStr = "";
     std::string serialStr = "";
-    if(channel == 1) {
-        channelStr = "1_";
+
+    if(alarmType == 0x65) {
+        channelStr = "65_";
+//        alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
+        alarmTypeStr = std::string("65").append("02") + "_";
         serialStr = "1_";
-    } else if(channel == 2) {
-        channelStr = "2_";
+    } else if(alarmType == 0x64) {
+        channelStr = "64_";
+        alarmTypeStr = std::string("64").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
         serialStr = "2_";
-    } else {
-        channelStr = "3_";
-        serialStr = "3_";
     }
 
     const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + serialStr + alarmNumStr + std::string("_") + std::string("h264");

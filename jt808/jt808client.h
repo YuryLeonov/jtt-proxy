@@ -35,7 +35,7 @@ public:
     void setTerminalParameters();
 
     bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo, SendedToPlatformAlarm sendedAlarmInfo);
-    void sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const std::string &pathToVideo);
+    void sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const uint8_t &alTypeID, const std::string &pathToVideo);
 
     bool isPlatformConnected() const;
 
@@ -80,6 +80,8 @@ private:
     void startVideoFilesUploadingCheck();
     inline void removeOldAlarmsAndRequests();
 
+    void uploadAlarm(SendedToPlatformAlarm alarm);
+
 private:
     TerminalInfo terminalInfo;
     platform::PlatformInfo platformInfo;
@@ -111,11 +113,10 @@ private:
     std::map<int, std::string> rtspLinks;
 
     std::vector<std::string> uploadedFiles;
+    std::vector<std::vector<uint8_t>> uploadedAlarms;
 
     std::vector<UploadingRequest> requestsForUploading;
     std::vector<SendedToPlatformAlarm> sendedAlarms;
-
-    int fileUploadChannel = 1;
 
 };
 
