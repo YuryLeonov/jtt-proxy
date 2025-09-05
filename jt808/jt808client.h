@@ -36,7 +36,7 @@ public:
     void setTerminalParameters();
 
     bool sendAlarmMessage(const std::vector<uint8_t> &request, const std::vector<uint8_t> &addInfo, SendedToPlatformAlarm sendedAlarmInfo);
-    void sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const uint8_t &alTypeID, const std::string &pathToVideo);
+//    void sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const uint8_t &alTypeID, const std::string &pathToVideo);
 
     bool isPlatformConnected() const;
 

@@ -59,18 +59,20 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
         std::string channelStr = "";
         std::string serialStr = "";
 
+        std::stringstream ss;
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(jt808AlarmType);
+        const std::string alarmCode = ss.str();
+
         if(alarmType == 0x65) {
             channelStr = "65_";
-    //        alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
-            alarmTypeStr = std::string("65").append("02") + "_";
-
+            alarmTypeStr = std::string("65").append(alarmCode) + "_";
             if(i == 0)
                 serialStr = "0_";
             else
                 serialStr = "1_";
         } else if(alarmType == 0x64) {
             channelStr = "64_";
-            alarmTypeStr = std::string("64").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
+            alarmTypeStr = std::string("64").append(alarmCode) + "_";
             serialStr = "1_";
         }
 

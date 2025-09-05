@@ -17,7 +17,7 @@ private:
     std::vector<uint8_t> alarmID;
     std::vector<uint8_t> alarmNumber;
     uint8_t alarmType = 0x00;
-    uint8_t jt808AlarmType = 0x10;
+    uint8_t jt808AlarmType = 0x00;
     std::vector<std::string> videoPaths;
 };
 

@@ -581,6 +581,7 @@ bool JT808Client::  parseAlarmAttachmentUploadRequest(const std::vector<uint8_t>
 
     for(const auto &alarm : sendedAlarms) {
         if(alarmID == alarm.alarmID) {
+            LOG(INFO) << "Запрошены ролики для аларма " << alarm.databaseID;
             break;
         }
     }
@@ -663,40 +664,40 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
 
 }
 
-void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const uint8_t &alTypeID, const std::string &pathToVideo)
-{
-    if(storageHost.empty()) {
-        return;
-    }
+//void JT808Client::sendAlarmVideoFile(const std::vector<uint8_t> &alarmID, const std::vector<uint8_t> &alarmNumber, const uint8_t &jt808AlarmType, const uint8_t &alTypeID, const std::string &pathToVideo)
+//{
+//    if(storageHost.empty()) {
+//        return;
+//    }
 
-    auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
-    if(it != uploadedFiles.end()) {
-        return;
-    }
+//    auto it = std::find(uploadedFiles.begin(), uploadedFiles.end(), pathToVideo);
+//    if(it != uploadedFiles.end()) {
+//        return;
+//    }
 
-    std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
-    if(alarmUploader->connectToStorage()) {
-//        alarmUploader->setJTAlarmTyoe(jt808AlarmType);
-//        alarmUploader->setPathToVideo(pathToVideo);
-//        alarmUploader->setAlarmType(alTypeID);
-//        alarmUploader->setAttachments(2);
-//        alarmUploader->setAlarmID(alarmID);
-//        alarmUploader->setAlarmNumber(alarmNumber);
-    } else {
-        LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
-        return;
-    }
+//    std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
+//    if(alarmUploader->connectToStorage()) {
+////        alarmUploader->setJTAlarmTyoe(jt808AlarmType);
+////        alarmUploader->setPathToVideo(pathToVideo);
+////        alarmUploader->setAlarmType(alTypeID);
+////        alarmUploader->setAttachments(2);
+////        alarmUploader->setAlarmID(alarmID);
+////        alarmUploader->setAlarmNumber(alarmNumber);
+//    } else {
+//        LOG(ERROR) << "Не удалось соединиться со storage для выгрузки ролика " << pathToVideo;
+//        return;
+//    }
 
-    try {
-        if(alarmUploader->uploadAlarmFiles()) {
-            uploadedFiles.push_back(pathToVideo);
-        }
-    } catch(const std::filesystem::filesystem_error& e) {
-        LOG(ERROR) << "Ошибка обработки файла " << pathToVideo << " : " << e.what();
-        return;
-    }
+//    try {
+//        if(alarmUploader->uploadAlarmFiles()) {
+//            uploadedFiles.push_back(pathToVideo);
+//        }
+//    } catch(const std::filesystem::filesystem_error& e) {
+//        LOG(ERROR) << "Ошибка обработки файла " << pathToVideo << " : " << e.what();
+//        return;
+//    }
 
-}
+//}
 
 bool JT808Client::isPlatformConnected() const
 {
