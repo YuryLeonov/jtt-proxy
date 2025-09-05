@@ -196,9 +196,6 @@ bool AlarmFileUploader::initUploading(const std::string &path)
             JT808FileUploadInfoRequest request(path, terminalInfo);
             std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-            std::cout << "КУ1: ";
-            tools::printHexBitStream(requestBuffer);
-
             unsigned char *message = requestBuffer.data();
             ssize_t bytes_sent = send(socketId, message, requestBuffer.size(), 0);
             if (bytes_sent == -1) {

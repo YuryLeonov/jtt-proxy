@@ -245,7 +245,6 @@ void WebSocketClient::sendRequestForAlarmSave(const std::string &eventUUID, cons
     alarmSaveMTP = UuId::generate_uuid_v4();
     const JSON saveAlarmJson = dbMessageHelper->buildSaveRequest(alarmSaveMTP, "808-alarm",alarmEntity, SaveMode::Create);
     const std::string message = saveAlarmJson.dump();
-    std::cout << "Отправляем в базу аларм!" << std::endl;
     client.send(currentConnectionHandler, message, websocketpp::frame::opcode::text);
 }
 
@@ -259,7 +258,6 @@ void WebSocketClient::sendRequestForAlarmConfirm(const std::string &eventUUID, c
     alarmConfirmMTP = UuId::generate_uuid_v4();
     const JSON confirmAlarmJson = dbMessageHelper->buildSaveRequest(alarmConfirmMTP, "808-alarm",alarmEntity, SaveMode::Patch);
     const std::string message = confirmAlarmJson.dump();
-    std::cout << "Отправляем в базу подтверждение принятия аларма платформой!" << std::endl;
     client.send(currentConnectionHandler, message, websocketpp::frame::opcode::text);
 
 }

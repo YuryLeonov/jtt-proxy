@@ -99,7 +99,7 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
     if(testCounter % 2 == 0) {
         pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test1.mp4";
     } else {
-        pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test2.mp4";
+        pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test1.jpg";
     }
     testCounter++;
 
