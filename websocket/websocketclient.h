@@ -15,6 +15,8 @@ using message_ptr = websocketpp::config::asio_client::message_type::ptr;
 
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
+using websocketpp::lib::placeholders::_3;
+using websocketpp::lib::placeholders::_4;
 using websocketpp::lib::bind;
 
 
@@ -40,6 +42,10 @@ public:
 
     void setAlarmVideosCount(int count);
     void setAlarmVideosWaitInterval(int interval);
+
+    void sendRequestForAlarmSave(const std::string &eventUUID, const std::string &eventID, const std::string &timestamp, const std::string &status);
+    void sendRequestForAlarmConfirm(const std::string &eventUUID, const std::string &status);
+
 
     void sendMessage(const std::string &message);
 
@@ -90,6 +96,8 @@ private:
     std::string eventInfoMTP = "";
     std::string lastEventTime = "";
     std::string eventMediaInfoMTP = "";
+    std::string alarmSaveMTP = "";
+    std::string alarmConfirmMTP = "";
     std::string currentEventUUID = "";
 
     std::unique_ptr<IDbMessagesHelper> dbMessageHelper;

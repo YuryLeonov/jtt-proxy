@@ -14,7 +14,6 @@ struct SendedToPlatformAlarm
     uint8_t alarmType = 0x00;
     std::string time;
     std::vector<uint8_t> alarmID;
-    std::vector<uint8_t> alarmNumber;
     std::vector<std::string> videoPaths;
     std::time_t updateTime;
 

@@ -78,6 +78,8 @@ bool AlarmFileUploader::connectToStorage()
 
     socketId = socket(AF_INET, SOCK_STREAM, 0);
 
+    std::cout << "Пытаемся подключиться к " << storageHost << ":" << storagePort << std::endl;
+
     if (socketId == -1) {
         LOG(ERROR) << "Ошибка подключения к storage(ошибка создания сокета)" << std::endl;
         return false;
@@ -113,22 +115,28 @@ bool AlarmFileUploader::connectToStorage()
 
 bool AlarmFileUploader::uploadAlarmFiles()
 {
+    std::cout << "Выгружаемые файлы: " << std::endl;
+    for(const auto &path : alarm.videoPaths) {
+        std::cout << path << std::endl;
+    }
+
     if(sendAlarmAttachmentMessageToStorage()) {
-//        if(initUploading()) {
-//            if(upload()) {
-//                return true;
-//            }
-//        }
+        for(const auto &path : alarm.videoPaths) {
+            startUploading(path);
+        }
     }
 
 
-    return false;
+    return true;
 }
 
 bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
 {
-    JT808AlarmAttachmentRequest request(alarm.alarmJT808Type, alarm.videoPaths , alarm.alarmID, alarm.alarmNumber, alarm.alarmType, terminalInfo);
+    JT808AlarmAttachmentRequest request(alarm.alarmJT808Type, alarm.videoPaths , alarm.alarmID, alarmNumber, alarm.alarmType, terminalInfo);
     std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+
+    std::cout << "Attachment: " << std::endl;
+    tools::printHexBitStream(requestBuffer);
 
     unsigned char *message = requestBuffer.data();
     ssize_t bytes_sent = send(socketId, message, requestBuffer.size(), 0);
@@ -171,140 +179,153 @@ bool AlarmFileUploader::sendAlarmAttachmentMessageToStorage()
     }
 }
 
-bool AlarmFileUploader::initUploading()
+void AlarmFileUploader::startUploading(const std::string &path)
+{
+    if(initUploading(path)) {
+        if(upload(path)) {
+
+        }
+    }
+}
+
+bool AlarmFileUploader::initUploading(const std::string &path)
 {
 
-//    while(true) {
-//        try {
-//            JT808FileUploadInfoRequest request(pathToVideo, terminalInfo);
-//            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+    while(true) {
+        try {
+            JT808FileUploadInfoRequest request(path, terminalInfo);
+            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-//            unsigned char *message = requestBuffer.data();
-//            ssize_t bytes_sent = send(socketId, message, requestBuffer.size(), 0);
-//            if (bytes_sent == -1) {
-//                if(errno == EAGAIN || errno == EWOULDBLOCK) {
-//                    while(bytes_sent == -1) {
-//                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                        LOG(INFO) << "Повторная отправка 0x1211" << std::endl;
-//                        bytes_sent = send(socketId, message, requestBuffer.size(), MSG_NOSIGNAL);
-//                    }
-//                }
-//            }
+            std::cout << "КУ1: ";
+            tools::printHexBitStream(requestBuffer);
 
-//        } catch(const std::runtime_error &err) {
-//            LOG(ERROR) << err.what();
-//            return false;
-//        }
+            unsigned char *message = requestBuffer.data();
+            ssize_t bytes_sent = send(socketId, message, requestBuffer.size(), 0);
+            if (bytes_sent == -1) {
+                if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                    while(bytes_sent == -1) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        LOG(INFO) << "Повторная отправка 0x1211" << std::endl;
+                        bytes_sent = send(socketId, message, requestBuffer.size(), MSG_NOSIGNAL);
+                    }
+                }
+            }
 
-//        int bytes_read = -1;
-//        char buffer[1024] = {0};
+        } catch(const std::runtime_error &err) {
+            LOG(ERROR) << err.what();
+            return false;
+        }
 
-//        bytes_read = read(socketId, buffer, 1024);
-//        if (bytes_read <= 0) {
-//            LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1211: " << errno << std::endl;
-//            return false;
-//        } else {
-//            std::vector<uint8_t> vec(bytes_read);
-//            std::copy(buffer, buffer + bytes_read, vec.begin());
-//            if(parseGeneralResponse(std::move(vec))) {
-//                return true;
-//            } else {
-////                LOG(ERROR) << "Сервер Storage не принял информацию о файле.Повторяем запрос! ";
-//            }
-//        }
-//    }
+        int bytes_read = -1;
+        char buffer[1024] = {0};
+
+        bytes_read = read(socketId, buffer, 1024);
+        if (bytes_read <= 0) {
+            LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1211: " << errno << std::endl;
+            return false;
+        } else {
+            std::vector<uint8_t> vec(bytes_read);
+            std::copy(buffer, buffer + bytes_read, vec.begin());
+            if(parseGeneralResponse(std::move(vec))) {
+                std::cout << "Информация о файле " << path << " принята" << std::endl;
+                return true;
+            } else {
+//                LOG(ERROR) << "Сервер Storage не принял информацию о файле.Повторяем запрос! ";
+            }
+        }
+    }
 
 }
 
-bool AlarmFileUploader::upload()
+bool AlarmFileUploader::upload(const std::string &pathToVideo)
 {
-//    std::filesystem::path fsPath = pathToVideo;
+    std::filesystem::path fsPath = pathToVideo;
 
-//    uint32_t fileSize = std::filesystem::file_size(pathToVideo);
+    uint32_t fileSize = std::filesystem::file_size(pathToVideo);
 
-//    const size_t chunkSize = 64000;
+    const size_t chunkSize = 64000;
 
-//    std::ifstream file(pathToVideo, std::ios::binary);
-//    if (!file) {
-//        LOG(ERROR) << "Ошибка открытия файла " << pathToVideo;
-//        return false;
-//    }
+    std::ifstream file(pathToVideo, std::ios::binary);
+    if (!file) {
+        LOG(ERROR) << "Ошибка открытия файла " << pathToVideo;
+        return false;
+    }
 
-//    std::vector<uint8_t> fileData(fileSize);
-//    file.read(reinterpret_cast<char*>(fileData.data()), fileSize);
+    std::vector<uint8_t> fileData(fileSize);
+    file.read(reinterpret_cast<char*>(fileData.data()), fileSize);
 
-//    std::vector<std::vector<uint8_t>> chunks = std::move(tools::splitFileIntoChunks(pathToVideo, chunkSize));
-//    int size = 0;
-//    ssize_t bytes_sent = -1;
-//    const uint32_t header = 0x30316364;
-//    std::filesystem::path filePath = pathToVideo;
-//    std::string fileName = filePath.filename().string();
-//    if(fileName.length() > 50) {
-//        fileName = tools::split(fileName, 'T').at(1) + tools::split(fileName, 'T').at(2);
-//        if(fileName.length() > 50) {
-//            LOG(ERROR) << "Длина имени выгружаемого файла слишком большая!!!";
-//            return false;
-//        }
-//    }
-//    std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
+    std::vector<std::vector<uint8_t>> chunks = std::move(tools::splitFileIntoChunks(pathToVideo, chunkSize));
+    int size = 0;
+    ssize_t bytes_sent = -1;
+    const uint32_t header = 0x30316364;
+    std::filesystem::path filePath = pathToVideo;
+    std::string fileName = filePath.filename().string();
+    if(fileName.length() > 50) {
+        fileName = tools::split(fileName, 'T').at(1) + tools::split(fileName, 'T').at(2);
+        if(fileName.length() > 50) {
+            LOG(ERROR) << "Длина имени выгружаемого файла слишком большая!!!";
+            return false;
+        }
+    }
+    std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
 
-//    fileNameBytes.insert(fileNameBytes.end(), 50 - fileName.length(), 0x00);
-//    uint32_t offset = 0;
-//    uint32_t dataLength = 0;
-//    std::vector<uint8_t> dataBody;
-//    for(int i = 0; i < chunks.size(); ++i) {
-//        dataBody.clear();
-//        tools::addToStdVector(dataBody, header);
-//        dataBody.insert(dataBody.end(), fileNameBytes.begin(), fileNameBytes.end());
-//        tools::addToStdVector(dataBody, offset);
-//        dataLength = chunks.at(i).size();
-//        tools::addToStdVector(dataBody, dataLength);
-//        dataBody.insert(dataBody.end(), chunks.at(i).begin(), chunks.at(i).end());
-//        unsigned char *message = dataBody.data();
-//        bytes_sent = send(socketId, message, dataBody.size(), MSG_NOSIGNAL);
-//        if (bytes_sent == -1) {
-//            if(errno == EAGAIN || errno == EWOULDBLOCK) {
-//                while(bytes_sent == -1) {
-//                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                    bytes_sent = send(socketId, message, dataBody.size(), MSG_NOSIGNAL);
-//                }
-//            }
-//            continue;
-//        }
-//        offset += bytes_sent;
-//        size += bytes_sent;
+    fileNameBytes.insert(fileNameBytes.end(), 50 - fileName.length(), 0x00);
+    uint32_t offset = 0;
+    uint32_t dataLength = 0;
+    std::vector<uint8_t> dataBody;
+    for(int i = 0; i < chunks.size(); ++i) {
+        dataBody.clear();
+        tools::addToStdVector(dataBody, header);
+        dataBody.insert(dataBody.end(), fileNameBytes.begin(), fileNameBytes.end());
+        tools::addToStdVector(dataBody, offset);
+        dataLength = chunks.at(i).size();
+        tools::addToStdVector(dataBody, dataLength);
+        dataBody.insert(dataBody.end(), chunks.at(i).begin(), chunks.at(i).end());
+        unsigned char *message = dataBody.data();
+        bytes_sent = send(socketId, message, dataBody.size(), MSG_NOSIGNAL);
+        if (bytes_sent == -1) {
+            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                while(bytes_sent == -1) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    bytes_sent = send(socketId, message, dataBody.size(), MSG_NOSIGNAL);
+                }
+            }
+            continue;
+        }
+        offset += bytes_sent;
+        size += bytes_sent;
 
-//        std::this_thread::sleep_for(std::chrono::milliseconds(2));
-//    }
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
 
-//    JT808FileUploadStopRequest request(pathToVideo, terminalInfo);
-//    std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+    JT808FileUploadStopRequest request(pathToVideo, terminalInfo);
+    std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
 
-//    unsigned char *message = requestBuffer.data();
-//    bytes_sent = send(socketId, message, requestBuffer.size(), 0);
-//    if (bytes_sent == -1) {
-//        if(errno == EAGAIN || errno == EWOULDBLOCK) {
-//            while(bytes_sent == -1) {
-//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                LOG(INFO) << "Повторная отправка 0x1212" << std::endl;
-//                bytes_sent = send(socketId, message, requestBuffer.size(), MSG_NOSIGNAL);
-//            }
-//        }
-//    }
+    unsigned char *message = requestBuffer.data();
+    bytes_sent = send(socketId, message, requestBuffer.size(), 0);
+    if (bytes_sent == -1) {
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            while(bytes_sent == -1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                LOG(INFO) << "Повторная отправка 0x1212" << std::endl;
+                bytes_sent = send(socketId, message, requestBuffer.size(), MSG_NOSIGNAL);
+            }
+        }
+    }
 
-//    int bytes_read = -1;
-//    char buffer[1024] = {0};
+    int bytes_read = -1;
+    char buffer[1024] = {0};
 
-//    bytes_read = read(socketId, buffer, 1024);
-//    if (bytes_read <= 0) {
-//        LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1212: " << errno << std::endl;
-//    } else {
-//        std::vector<uint8_t> vec(bytes_read);
-//        std::copy(buffer, buffer + bytes_read, vec.begin());
-//        parse9212Answer(vec);
-//    }
+    bytes_read = read(socketId, buffer, 1024);
+    if (bytes_read <= 0) {
+        LOG(ERROR) << "Ошибка при чтении ответа на запрос 0x1212: " << errno << std::endl;
+    } else {
+        std::vector<uint8_t> vec(bytes_read);
+        std::copy(buffer, buffer + bytes_read, vec.begin());
+        parse9212Answer(vec);
+    }
 
-//    return true;
+    return true;
 }
 
 bool AlarmFileUploader::parseGeneralResponse(const std::vector<uint8_t> &response)

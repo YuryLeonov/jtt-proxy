@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-JSON DbMessagesHelper::buildSaveRequest(const std::string &declaration, const std::map<std::string, JSON> &entityMap, const SaveMode &mode) const
+JSON DbMessagesHelper::buildSaveRequest(const std::string &uuid, const std::string &declaration, const std::map<std::string, JSON> &entityMap, const SaveMode &mode) const
 {
     if(entityMap.empty()) {
         std::cerr << "Ошибка формирования запроса: пустой entity !";
@@ -12,8 +12,8 @@ JSON DbMessagesHelper::buildSaveRequest(const std::string &declaration, const st
 
     JSON j;
     j["jsonrpc"] = "2.0";
-    const std::string id = UuId::generate_uuid_v4();
-    j["id"]      = id;
+//    const std::string id = UuId::generate_uuid_v4();
+    j["id"]      = uuid;
     j["method"]  = "save";
 
     JSON params;
@@ -30,7 +30,7 @@ JSON DbMessagesHelper::buildSaveRequest(const std::string &declaration, const st
     //if (!sequence_.empty()) params["sequence"] = sequence_;
 
     j["params"] = params;
-    recordRequestId(id);
+    recordRequestId(uuid);
     return j;
 }
 
@@ -118,12 +118,14 @@ std::optional<std::string> DbMessagesHelper::extractErrorMessage(const JSON &res
 
 std::optional<std::map<std::string, JSON> > DbMessagesHelper::parseQueryResponse(const JSON &response, const std::optional<std::string> &expectedId) const
 {
-    if (!isSuccessResponse(response, expectedId))
+    if (!isSuccessResponse(response, expectedId)) {
         return std::nullopt;
+    }
 
     const auto& resultObj = response["result"];
-    if (!resultObj.contains("entity") || !resultObj["entity"].is_object())
+    if (!resultObj.contains("entity") || !resultObj["entity"].is_object()) {
         return std::nullopt;
+    }
 
     std::map<std::string, JSON> entities;
     for (auto it = resultObj["entity"].begin(); it != resultObj["entity"].end(); ++it) {

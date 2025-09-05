@@ -24,7 +24,10 @@ private:
     void initWebSocketClient();
     void wsClientMessageAlarmHandler(const alarms::AlarmType &type, const std::string &message);
     void wsClientMessageMediaInfoHandler(const std::string &eventID, const std::string &message);
+
     void initPlatformClient();
+    void jt808clientAlarmSaveHandler(const std::string &eventUUID, const std::string &eventID, const std::string &timestamp, const std::string &status);
+    void jt808clientAlarmConfirmHandler(const std::string &eventUUID, const std::string &status);
 
 private:
     std::shared_ptr<WebSocketClient> wsClient;

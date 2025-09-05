@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <memory>
 #include <map>
+#include <functional>
 
 
 class JT808ConnectionErrorException : public std::runtime_error
@@ -40,6 +41,9 @@ public:
     bool isPlatformConnected() const;
 
     void addVideoFile(const std::string &eventID, const std::string &path);
+
+    void setAlarmRegisterHandler(const std::function<void(const std::string &eventUUID, const std::string &eventID, const std::string &timestamp, const std::string &status)> &f);
+    void setAlarmConfirmHandler(const std::function<void(const std::string &eventUUID, const std::string &status)> &f);
 
 private:
     bool checkIfAuthenticationKeyExists();
@@ -107,6 +111,7 @@ private:
     std::thread platformAnswerHandlerThread;
 
     uint16_t lastAlarmSerialNumber = 0;
+    std::string lastAlarmUUID = "";
 
     std::map<int, std::unique_ptr<streamer::RealTimeVideoStreamer>> videoStreamers;
 
@@ -117,6 +122,9 @@ private:
 
     std::vector<UploadingRequest> requestsForUploading;
     std::vector<SendedToPlatformAlarm> sendedAlarms;
+
+    std::function<void(const std::string &eventUUID, const std::string &eventID, const std::string &timestamp, const std::string &status)> alarmRegisterHandler;
+    std::function<void(const std::string &eventUUID, const std::string &status)> alarmConfirmHandler;
 
 };
 

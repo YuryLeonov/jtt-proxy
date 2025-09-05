@@ -27,8 +27,9 @@ public:
 
 private:
     bool sendAlarmAttachmentMessageToStorage();
-    bool initUploading();
-    bool upload();
+    void startUploading(const std::string &path);
+    bool initUploading(const std::string &path);
+    bool upload(const std::string &pathToVideo);
 
     bool parseGeneralResponse(const std::vector<uint8_t> &response);
     void parse9212Answer(const std::vector<uint8_t> &answer);

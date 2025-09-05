@@ -30,19 +30,29 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
 
     //Body
     std::vector<uint8_t> terminalIDBytes = tools::getUint8VectorFromString(terminalInfo.terminalID);
+    std::cout << "TerminalID = ";
+    tools::printHexBitStream(terminalIDBytes);
+
     bodyStream.insert(bodyStream.begin(), terminalIDBytes.begin(), terminalIDBytes.end());
 
     bodyStream.insert(bodyStream.end(), alarmID.begin(), alarmID.end());
     bodyStream.insert(bodyStream.end(), alarmNumber.begin(), alarmNumber.end());
 
+    std::cout << "alarmID = ";
+    tools::printHexBitStream(alarmID);
+
+    std::cout << "AlarmNumber = ";
+    tools::printHexBitStream(alarmNumber);
+
     bodyStream.push_back(0x00); //Normal file
     bodyStream.push_back(static_cast<uint8_t>(videoPaths.size()));
 
 
+    int i = 0;
     for(const auto &path : videoPaths) {
         std::vector<uint8_t> fileInfoStream;
 
-        std::string alarmNumStr = tools::hex_bytes_to_string(alarmNumber);
+        std::string alarmNumStr = tools::getStringFromBitStream(alarmID);
         alarmNumStr.erase(std::remove_if(alarmNumStr.begin(), alarmNumStr.end(), ::isspace), alarmNumStr.end());
 
         std::string alarmTypeStr = "";
@@ -53,19 +63,26 @@ std::vector<uint8_t> JT808AlarmAttachmentRequest::getRequest()
             channelStr = "65_";
     //        alarmTypeStr = std::string("65").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
             alarmTypeStr = std::string("65").append("02") + "_";
-            serialStr = "1_";
+
+            if(i == 0)
+                serialStr = "0_";
+            else
+                serialStr = "1_";
         } else if(alarmType == 0x64) {
             channelStr = "64_";
             alarmTypeStr = std::string("64").append(std::to_string(static_cast<int>(jt808AlarmType))) + "_";
-            serialStr = "2_";
+            serialStr = "1_";
         }
+
+        ++i;
 
         const std::string fileName = std::string("02_") + channelStr + alarmTypeStr + serialStr + alarmNumStr + std::string("_") + std::string("h264");
         std::cout << fileName << std::endl;
-        const uint8_t fileNameSize = fileName.length();
+        int fileNameSize = fileName.size();
+        std::cout << "Длина имени файла: " << fileNameSize << std::endl;
         const uint32_t fileSize = std::filesystem::file_size(path);
 
-        fileInfoStream.push_back(fileNameSize);
+        fileInfoStream.push_back(static_cast<uint8_t>(fileNameSize));
         const std::vector<uint8_t> fileNameBytes = tools::getUint8VectorFromString(fileName);
         fileInfoStream.insert(fileInfoStream.end(), fileNameBytes.begin(), fileNameBytes.end());
         tools::addToStdVector(fileInfoStream, fileSize);

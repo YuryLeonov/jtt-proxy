@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-JSON DbMessagesHelperOld::buildSaveRequest(const std::string &declaration, const std::map<std::string, JSON> &entityMap, const SaveMode &mode) const
+JSON DbMessagesHelperOld::buildSaveRequest(const std::string &uuid, const std::string &declaration, const std::map<std::string, JSON> &entityMap, const SaveMode &mode) const
 {
     if(entityMap.empty()) {
         std::cerr << "Ошибка формирования запроса: пустой JSON для toWrite !";

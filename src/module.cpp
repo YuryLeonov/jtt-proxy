@@ -96,6 +96,13 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 
     std::string pathToVideo = data.at("path2video");
 
+    if(testCounter % 2 == 0) {
+        pathToVideo = "/home/yury/projects/808/mtp-808-proxy/tests/test1.mp4";
+    } else {
+        pathToVideo = "/home/yury/projects/808/mtp-808-proxy/tests/test2.mp4";
+    }
+    testCounter++;
+
     platformConnector.addVideoFile(eventID, pathToVideo);
 }
 
@@ -103,4 +110,20 @@ void Module::initPlatformClient()
 {
     platformConnector.setConfiguration(terminalInfo, platformInfo);
     platformConnector.connectToPlatform();
+    platformConnector.setAlarmRegisterHandler(std::bind(&Module::jt808clientAlarmSaveHandler, this, ::_1, ::_2, ::_3, ::_4));
+    platformConnector.setAlarmConfirmHandler(std::bind(&Module::jt808clientAlarmConfirmHandler, this, ::_1, ::_2));
+}
+
+void Module::jt808clientAlarmSaveHandler(const std::string &eventUUID, const std::string &eventID, const std::string &timestamp, const std::string &status)
+{
+    if(wsClient) {
+        wsClient->sendRequestForAlarmSave(eventUUID, eventID, timestamp, status);
+    }
+}
+
+void Module::jt808clientAlarmConfirmHandler(const std::string &eventUUID, const std::string &status)
+{
+    if(wsClient) {
+        wsClient->sendRequestForAlarmConfirm(eventUUID, status);
+    }
 }

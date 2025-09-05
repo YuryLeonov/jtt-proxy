@@ -12,7 +12,7 @@ public:
 
     ~DbMessagesHelperOld() {}
 
-    virtual JSON buildSaveRequest(const std::string& declaration,
+    virtual JSON buildSaveRequest(const std::string &uuid, const std::string& declaration,
                                   const std::map<std::string, JSON> &entityMap,
                                   const SaveMode& mode = SaveMode::Patch) const;
 

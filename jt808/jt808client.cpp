@@ -342,8 +342,10 @@ bool JT808Client::parseGeneralResponse(const std::vector<uint8_t> &response)
     const int result = static_cast<int>(response[response.size() - 3]);
 
     if(lastAlarmSerialNumber == replyID) {
-        if(!result)
+        if(!result) {
             LOG(INFO) << "АЛАРМ принят";
+            alarmConfirmHandler(lastAlarmUUID, "confirmed");
+        }
         else
             LOG(ERROR) << "Аларм не принят" << std::endl;
     }
@@ -381,6 +383,8 @@ bool JT808Client::parseRealTimeVideoRequest(const std::vector<uint8_t> &request)
     vsRequisites.channel = body[offset++];
     vsRequisites.dataType = body[offset++];
     vsRequisites.streamType = body[offset++];
+
+    vsRequisites.printInfo();
 
     if(vsRequisites.channel == 1 || vsRequisites.channel == 2) {
         vsRequisites.printInfo();
@@ -645,6 +649,11 @@ bool JT808Client::sendAlarmMessage(const std::vector<uint8_t> &request, const st
     JT808HeaderParser headerParser;
     JT808Header header = headerParser.getHeader(request);
 
+    std::string alarmuuid = tools::getStringFromBitStream(sendedAlarmInfo.alarmID);
+    alarmuuid.erase(std::remove_if(alarmuuid.begin(), alarmuuid.end(), ::isspace), alarmuuid.end());
+    lastAlarmUUID = alarmuuid;
+    alarmRegisterHandler(alarmuuid, sendedAlarmInfo.databaseID, sendedAlarmInfo.time, "pending");
+
     LOG(INFO) << "АЛАРМ ОТПРАВЛЕН НА ПЛАТФОРМУ!(тип по протоколу 808 - " << std::hex << static_cast<int>(sendedAlarmInfo.alarmJT808Type) << ")";
     lastAlarmSerialNumber = header.messageSerialNumber;
     sendedAlarms.push_back(sendedAlarmInfo);
@@ -706,6 +715,16 @@ void JT808Client::addVideoFile(const std::string &eventID, const std::string &pa
 
         }
     }
+}
+
+void JT808Client::setAlarmRegisterHandler(const std::function<void (const std::string &, const std::string &, const std::string &, const std::string &)> &f)
+{
+    alarmRegisterHandler = f;
+}
+
+void JT808Client::setAlarmConfirmHandler(const std::function<void (const std::string &, const std::string &)> &f)
+{
+    alarmConfirmHandler = f;
 }
 
 void JT808Client::connectToPlatform()
@@ -871,17 +890,15 @@ void JT808Client::startVideoFilesUploadingCheck()
                     if(std::difftime(currentTime, unuploadedAlarm.updateTime) > 30) {
                         std::cout << "Надо выгрузить ролики для: ";
                         tools::printHexBitStream(unuploadedAlarm.alarmID);
+                        tools::printHexBitStream(unuploadedAlarm.alarmNumber);
 
                         for(const auto &sendedAlarm : sendedAlarms) {
                             if(unuploadedAlarm.alarmID == sendedAlarm.alarmID) {
                                 if(!sendedAlarm.videoPaths.empty()) {
+
                                     std::thread uploadThread(&JT808Client::uploadAlarm, this, sendedAlarm, unuploadedAlarm.alarmNumber);
                                     uploadThread.detach();
                                     uploadedAlarms.push_back(sendedAlarm.alarmID);
-//                                    for(const auto &path : sendedAlarm.videoPaths) {
-////                                        std::thread uploadThread(&JT808Client::sendAlarmVideoFile, this, unuploadedAlarm.alarmID, unuploadedAlarm.alarmNumber, sendedAlarm.alarmJT808Type, sendedAlarm.alarmType, path);
-////                                        uploadThread.detach();
-//                                    }
                                 }
                             }
                         }
@@ -935,14 +952,16 @@ void JT808Client::uploadAlarm(SendedToPlatformAlarm alarm, const std::vector<uin
 
     std::unique_ptr<AlarmFileUploader> alarmUploader = std::make_unique<AlarmFileUploader>(storageHost, storagePortTCP, terminalInfo);
     if(alarmUploader->connectToStorage()) {
-        std::cout << "Соединение с сервером хранилищем установлено" << std::endl;
+        std::cout << "Соединение с сервером-хранилищем установлено" << std::endl;
         alarmUploader->setAlarm(alarm);
         alarmUploader->setAlarmNumber(alarmNumber);
     } else {
         return;
     }
 
-    alarmUploader->uploadAlarmFiles();
+    if(alarmUploader->uploadAlarmFiles()) {
+
+    }
 
 }
 
