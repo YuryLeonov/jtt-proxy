@@ -25,9 +25,9 @@ std::vector<uint8_t> JT1078StreamTransmitRequest::getRequest()
 
     uint8_t byte1 = 0;
     //V bits
-    tools::setBit(byte1, 7);
+    tools::setBit(byte1, 1);
     //CC bits
-    tools::setBit(byte1, 0);
+    tools::setBit(byte1, 4);
 
     bodyStream.push_back(byte1);
 

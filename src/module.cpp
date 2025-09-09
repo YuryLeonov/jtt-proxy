@@ -96,12 +96,12 @@ void Module::wsClientMessageMediaInfoHandler(const std::string &eventID, const s
 
     std::string pathToVideo = data.at("path2video");
 
-//    if(testCounter % 2 == 0) {
-//        pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test1.mp4";
-//    } else {
-//        pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test1.jpg";
-//    }
-//    testCounter++;
+    if(testCounter % 2 == 0) {
+        pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test1.mp4";
+    } else {
+        pathToVideo = "/home/rossi-cpp-dev/projects/lms/mtp-808-proxy/tests/test1.jpg";
+    }
+    testCounter++;
 
     platformConnector.addVideoFile(eventID, pathToVideo);
 }

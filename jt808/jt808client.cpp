@@ -900,6 +900,8 @@ void JT808Client::startVideoFilesUploadingCheck()
                                     std::thread uploadThread(&JT808Client::uploadAlarm, this, sendedAlarm, unuploadedAlarm.alarmNumber);
                                     uploadThread.detach();
                                     uploadedAlarms.push_back(sendedAlarm.alarmID);
+                                } else {
+                                    LOG(INFO) << "Пока не получены ролики для: " << sendedAlarm.databaseID;
                                 }
                             }
                         }
