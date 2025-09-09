@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(mtp-808-proxy LANGUAGES CXX)
+project(jtt-proxy LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/binDebug)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG /opt/lms/mtp-808-proxy/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG /opt/lms/jtt-proxy/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/binRelease)
 
 find_package(websocketpp REQUIRED)
@@ -120,5 +120,5 @@ set(SOURCES ./src/main.cpp
             )
 
 
-add_executable(mtp-808-proxy ${SOURCES})
-target_link_libraries(mtp-808-proxy pthread systemd ${AV_LIBRARIES})
+add_executable(jtt-proxy ${SOURCES})
+target_link_libraries(jtt-proxy pthread systemd ${AV_LIBRARIES})
