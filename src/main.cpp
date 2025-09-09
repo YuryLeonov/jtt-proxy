@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "configurationparser.h"
 #include "confmodificationwatcher.h"
@@ -8,6 +9,8 @@
 #include <csignal>
 #include <systemd/sd-daemon.h>
 #include "logger.h"
+
+const std::string VERSION = "1.0";
 
 struct FullConfiguration
 {
@@ -112,6 +115,7 @@ void signalHandler(int sigNum) {
     std::cout << "Interrupt signal: " << sigNum << " recieved..." << std::endl;
 
     isRunning = false;
+    exit(0);
 }
 
 INITIALIZE_EASYLOGGINGPP
@@ -129,6 +133,10 @@ int main(int argc, char **argv)
         return 0;
     } else {
         pathToConf = std::string(argv[1]);
+        if(pathToConf == "-v") {
+            std::cout << "Версия: " << VERSION << std::endl;
+            return 0;
+        }
     }
 
     FullConfiguration fullConf = getFullConfiguration(pathToConf);

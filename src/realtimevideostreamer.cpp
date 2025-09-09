@@ -255,14 +255,15 @@ void RealTimeVideoStreamer::startPacketsReading()
             std::chrono::system_clock::time_point curentNTPFrameTime = std::chrono::high_resolution_clock::now();
             params.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(curentNTPFrameTime - firstPackageTime).count();
 
-//            if(videoServer.channel == 1) {
-
-                JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
-                std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
-                if(!sendMessage(requestBuffer)) {
-                    LOG(ERROR) << "Ошибка отправки RTP-пакета" << std::endl;
-                }
-//            }
+            JT1078StreamTransmitRequest request(terminalInfo, params, packets[i]);
+            std::vector<uint8_t> requestBuffer = std::move(request.getRequest());
+            if(!sendMessage(requestBuffer)) {
+                LOG(ERROR) << "Ошибка отправки RTP-пакета" << std::endl;
+            } else {
+                LOG(TRACE) << "Отправлен пакет: ";
+                LOG(TRACE) << tools::getStringFromBitStream(requestBuffer);
+                LOG(TRACE) << "---------------------------------------------------";
+            }
 
         }
         packets.clear();
